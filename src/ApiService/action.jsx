@@ -245,4 +245,14 @@ export const updateLead = async payload => {
   }
 };
 
+//global search
+export const globalFilter = async value => {
+  try {
+    const response = await api.get(`/api/globalFilter?filter=${value}`);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export default api;

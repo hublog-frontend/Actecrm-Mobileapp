@@ -294,6 +294,8 @@ export default function AddLead({ navigation, route }) {
       }
     } catch (error) {
       console.log('lead status fetch error', error);
+    } finally {
+      setScreenLoading(false);
     }
   };
 
@@ -361,7 +363,6 @@ export default function AddLead({ navigation, route }) {
     const initLoad = async () => {
       setScreenLoading(true);
       await getLeadTypeData();
-      setScreenLoading(false);
     };
     initLoad();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -643,570 +644,595 @@ export default function AddLead({ navigation, route }) {
     setErrors({});
   };
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        {/* Header bar */}
-        <View style={styles.header}>
-          {navigation.canGoBack() ? (
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={styles.closeBtn}
-            >
-              <Icon name="close" size={24} color="#1A3353" />
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Lead Manager')}
-              style={styles.closeBtn}
-            >
-              <Icon name="chevron-back" size={24} color="#1A3353" />
-            </TouchableOpacity>
-          )}
-          <Text style={styles.headerTitle}>
-            {isEditMode ? 'Edit Lead' : 'Add Lead'}
-          </Text>
-          <View style={{ width: 24 }} />
-        </View>
-
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
+    <>
+      {screenLoading ? (
+        <View
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
         >
-          {/* Basic Information section */}
-          <Text style={styles.sectionHeading}>Basic Information</Text>
-
-          <View style={styles.card}>
-            {/* Candidate Name Input */}
-            <CommonFormInput
-              label="Candidate Name *"
-              placeholder="Candidate Name"
-              value={candidateName}
-              onChangeText={setCandidateName}
-              error={errors.candidateName}
-            />
-
-            {/* Mobile Number Field */}
-            <PhoneWithCountry
-              label="Mobile Number *"
-              value={mobileNumber}
-              onChange={setMobileNumber}
-              selectedCountry={mobileCountryCode}
-              countryCode={setMobileDialCode}
-              onCountryChange={setMobileCountryCode}
-              error={errors.mobileNumber}
-            />
-
-            {/* WhatsApp Number Field */}
-            <PhoneWithCountry
-              label="WhatsApp Number *"
-              value={whatsappNumber}
-              onChange={setWhatsappNumber}
-              selectedCountry={whatsappCountryCode}
-              countryCode={setWhatsappDialCode}
-              onCountryChange={setWhatsappCountryCode}
-              error={errors.whatsappNumber}
-            />
-
-            {/* Email Input */}
-            <CommonFormInput
-              label="Email *"
-              placeholder="Email Address"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-              error={errors.email}
-            />
-
-            {/* Lead Source Selector */}
-            <CommonSelectField
-              label="Lead Source *"
-              placeholder="Select Lead Source"
-              selectedValue={leadSource ? leadSource.name : null}
-              onPress={() =>
-                showPicker(
-                  'Select Lead Source',
-                  leadTypeOptions.filter(x => x.is_active === 1),
-                  'name',
-                  item => {
-                    setLeadSource(item);
-                    setPickerModalVisible(false);
-                    setErrors(prev => ({ ...prev, leadSource: null }));
-                  },
-                  'Search lead sources...',
-                  leadSource ? leadSource.name : null,
-                )
-              }
-              error={errors.leadSource}
-            />
-
-            {/* Country Input / Selector */}
-            <CommonSelectField
-              label="Country *"
-              placeholder="Select Country"
-              selectedValue={country ? country.name : null}
-              onPress={() =>
-                showPicker(
-                  'Select Country',
-                  COUNTRIES,
-                  'name',
-                  item => {
-                    setCountry(item);
-                    setState(null);
-                    setStateOptions(STATE_DATA[item.code] || []);
-                    setPickerModalVisible(false);
-                  },
-                  'Search countries...',
-                  country ? country.name : null,
-                )
-              }
-            />
-
-            {/* State Input / Selector */}
-            <CommonSelectField
-              label="State *"
-              placeholder="Select State"
-              selectedValue={state ? state.name : null}
-              onPress={() =>
-                showPicker(
-                  'Select State',
-                  stateOptions,
-                  'name',
-                  item => {
-                    setState(item);
-                    setPickerModalVisible(false);
-                  },
-                  'Search states...',
-                  state ? state.name : null,
-                )
-              }
-            />
-
-            {/* Area Selector with "+" Quick Add Button */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Area *</Text>
-              <View style={styles.selectorRow}>
-                <CommonSelectField
-                  containerStyle={{ flex: 1, marginBottom: 0 }}
-                  placeholder="Select Area"
-                  selectedValue={area ? area.name : null}
-                  onPress={() =>
-                    showPicker(
-                      'Select Area',
-                      areasOptions,
-                      'name',
-                      item => {
-                        setArea(item);
-                        setPickerModalVisible(false);
-                        setErrors(prev => ({ ...prev, area: null }));
-                      },
-                      'Search areas...',
-                      area ? area.name : null,
-                    )
-                  }
-                  error={errors.area}
-                />
-                <TouchableOpacity
-                  style={styles.quickAddButton}
-                  onPress={() =>
-                    showAddModal(
-                      'Add Area',
-                      'Area Name',
-                      'Enter area name',
-                      handleSaveNewArea,
-                    )
-                  }
-                >
-                  <Icon name="add" size={24} color="#FFFFFF" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-
-          {/* Course Details section */}
-          <Text style={styles.sectionHeading}>Course Details</Text>
-
-          <View style={styles.card}>
-            {/* Primary Course with "+" Quick Add Button */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Primary Course *</Text>
-              <View style={styles.selectorRow}>
-                <CommonSelectField
-                  containerStyle={{ flex: 1, marginBottom: 0 }}
-                  placeholder="Select Course"
-                  selectedValue={primaryCourse ? primaryCourse.name : null}
-                  onPress={() =>
-                    showPicker(
-                      'Select Course',
-                      courseList,
-                      'name',
-                      item => {
-                        setPrimaryCourse(item);
-                        setPickerModalVisible(false);
-                        setErrors(prev => ({ ...prev, primaryCourse: null }));
-                      },
-                      'Search courses...',
-                      primaryCourse ? primaryCourse.name : null,
-                    )
-                  }
-                  error={errors.primaryCourse}
-                />
-                <TouchableOpacity
-                  style={styles.quickAddButton}
-                  onPress={() =>
-                    showAddModal(
-                      'Add Course',
-                      'Course Name',
-                      'Enter course name',
-                      handleSaveNewCourse,
-                    )
-                  }
-                >
-                  <Icon name="add" size={24} color="#FFFFFF" />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Course Fees Input */}
-            <CommonFormInput
-              label="Fees *"
-              placeholder="Course Fees"
-              keyboardType="numeric"
-              value={fees}
-              onChangeText={setFees}
-              error={errors.fees}
-            />
-
-            {/* Region Selector */}
-            <CommonSelectField
-              label="Region *"
-              placeholder="Select Region"
-              selectedValue={region ? region.name : null}
-              onPress={() =>
-                showPicker(
-                  'Select Region',
-                  regionsOptions,
-                  'name',
-                  item => {
-                    setRegion(item);
-                    setPickerModalVisible(false);
-                    setErrors(prev => ({ ...prev, region: null }));
-                    if (item.id != 3) {
-                      getBranchData(item.id);
-                    } else {
-                      setBranch(null);
-                    }
-                  },
-                  'Search regions...',
-                  region ? region.name : null,
-                )
-              }
-              error={errors.region}
-            />
-
-            {/* Branch Name Selector */}
-            {region?.id != 3 && (
-              <CommonSelectField
-                label="Branch Name *"
-                placeholder="Select Branch"
-                selectedValue={branch ? branch.name : null}
-                onPress={() =>
-                  showPicker(
-                    'Select Branch',
-                    branchesOptions,
-                    'name',
-                    item => {
-                      setBranch(item);
-                      setPickerModalVisible(false);
-                      setErrors(prev => ({ ...prev, branch: null }));
-                    },
-                    'Search branches...',
-                    branch ? branch.name : null,
-                  )
-                }
-                error={errors.branch}
-              />
-            )}
-
-            {/* Batch Track Selector */}
-            <CommonSelectField
-              label="Batch Track *"
-              placeholder="Select Batch"
-              selectedValue={
-                batchTrack
-                  ? typeof batchTrack === 'string'
-                    ? batchTrack
-                    : batchTrack.name
-                  : null
-              }
-              onPress={() =>
-                showPicker(
-                  'Select Batch Track',
-                  [
-                    {
-                      id: 1,
-                      name: 'Normal',
-                    },
-                    {
-                      id: 2,
-                      name: 'Fastrack',
-                    },
-                    {
-                      id: 3,
-                      name: 'Custom',
-                    },
-                  ],
-                  'name',
-                  item => {
-                    setBatchTrack(item);
-                    setPickerModalVisible(false);
-                  },
-                  'Search batch tracks...',
-                  batchTrack
-                    ? typeof batchTrack === 'string'
-                      ? batchTrack
-                      : batchTrack.name
-                    : null,
-                )
-              }
-            />
-          </View>
-
-          {/* Response Status Section */}
-          <Text style={styles.sectionHeading}>Response Status</Text>
-          <View style={styles.card}>
-            {/* Lead Status Selector */}
-            <CommonSelectField
-              label="Lead Status *"
-              placeholder="Select Status"
-              selectedValue={leadStatus ? leadStatus.name : null}
-              onPress={() =>
-                showPicker(
-                  'Select Lead Status',
-                  leadStatusOptions,
-                  'name',
-                  item => {
-                    setLeadStatus(item);
-                    setPickerModalVisible(false);
-                    setErrors(prev => ({ ...prev, leadStatus: null }));
-                  },
-                  'Search status...',
-                  leadStatus ? leadStatus.name : null,
-                )
-              }
-              error={errors.leadStatus}
-            />
-
-            {/* Next Follow-Up Date Selector */}
-            <CommonDatePicker
-              label="Next Follow-Up Date *"
-              placeholder="Select Date"
-              value={nextFollowUpDate}
-              onDateChange={val => {
-                setNextFollowUpDate(val);
-                if (val)
-                  setErrors(prev => ({ ...prev, nextFollowUpDate: null }));
-              }}
-              error={errors.nextFollowUpDate}
-            />
-
-            {/* Followup Status (Lead Action) Selector */}
-            <CommonSelectField
-              label="Followup Status *"
-              placeholder="Select Followup Status"
-              selectedValue={followupStatus ? followupStatus.name : null}
-              onPress={() =>
-                showPicker(
-                  'Select Followup Status',
-                  followupStatusOptions,
-                  'name',
-                  item => {
-                    setFollowupStatus(item);
-                    setPickerModalVisible(false);
-                    setErrors(prev => ({ ...prev, followupStatus: null }));
-                  },
-                  'Search followup status...',
-                  followupStatus ? followupStatus.name : null,
-                )
-              }
-              error={errors.followupStatus}
-            />
-
-            {/* Expected Date Join Selector */}
-            <CommonDatePicker
-              label="Expected Date Join"
-              placeholder="Select Date"
-              value={expectedDateJoin}
-              onDateChange={setExpectedDateJoin}
-            />
-
-            {/* Comments Selector */}
-            <CommonTextArea
-              label="Comments *"
-              placeholder="Type here..."
-              value={comments}
-              onChangeText={val => {
-                setComments(val);
-                if (val) setErrors(prev => ({ ...prev, comments: null }));
-              }}
-              error={errors.comments}
-            />
-          </View>
-
-          {/* Form Submit Save Button */}
-          <TouchableOpacity
-            style={styles.submitBtn}
-            onPress={handleFormSubmit}
-            disabled={submitLoading}
+          <ActivityIndicator size="large" color="#5D6AD1" />
+        </View>
+      ) : (
+        <SafeAreaView style={styles.safeArea}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ flex: 1 }}
           >
-            {submitLoading ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Text style={styles.submitBtnText}>
-                {isEditMode ? 'Update Lead' : 'Save Lead'}
+            {/* Header bar */}
+            <View style={styles.header}>
+              {navigation.canGoBack() ? (
+                <TouchableOpacity
+                  onPress={() => navigation.goBack()}
+                  style={styles.closeBtn}
+                >
+                  <Icon name="close" size={24} color="#1A3353" />
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Lead Manager')}
+                  style={styles.closeBtn}
+                >
+                  <Icon name="chevron-back" size={24} color="#1A3353" />
+                </TouchableOpacity>
+              )}
+              <Text style={styles.headerTitle}>
+                {isEditMode ? 'Edit Lead' : 'Add Lead'}
               </Text>
-            )}
-          </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
+              <View style={{ width: 24 }} />
+            </View>
 
-      {/* Global Searchable Selection Dropdown Modal */}
-      <Modal visible={pickerModalVisible} transparent animationType="slide">
-        <TouchableWithoutFeedback onPress={() => setPickerModalVisible(false)}>
-          <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback>
-              <View style={styles.pickerModalContainer}>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>{pickerConfig.title}</Text>
-                  <TouchableOpacity
-                    onPress={() => setPickerModalVisible(false)}
-                  >
-                    <Icon name="close-outline" size={24} color="#1A3353" />
-                  </TouchableOpacity>
-                </View>
+            <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
+            >
+              {/* Basic Information section */}
+              <Text style={styles.sectionHeading}>Basic Information</Text>
 
-                {/* Search query input */}
-                <View style={styles.modalSearchContainer}>
-                  <Icon
-                    name="search-outline"
-                    size={18}
-                    color="#7D8DA1"
-                    style={{ marginRight: 8 }}
-                  />
-                  <TextInput
-                    style={styles.modalSearchInput}
-                    placeholder={pickerConfig.searchPlaceholder}
-                    placeholderTextColor="#A0AEC0"
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                  />
-                  {searchQuery.length > 0 && (
-                    <TouchableOpacity onPress={() => setSearchQuery('')}>
-                      <Icon name="close-circle" size={18} color="#A0AEC0" />
-                    </TouchableOpacity>
-                  )}
-                </View>
+              <View style={styles.card}>
+                {/* Candidate Name Input */}
+                <CommonFormInput
+                  label="Candidate Name *"
+                  placeholder="Candidate Name"
+                  value={candidateName}
+                  onChangeText={setCandidateName}
+                  error={errors.candidateName}
+                />
 
-                {/* Item lists */}
-                <FlatList
-                  data={filteredPickerItems}
-                  keyExtractor={(item, index) => index.toString()}
-                  keyboardShouldPersistTaps="handled"
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={[
-                        styles.pickerItemRow,
-                        item.label === pickerConfig.selectedValue && {
-                          backgroundColor: '#F0F3F7',
-                        },
-                      ]}
-                      onPress={() => pickerConfig.onSelect(item)}
-                    >
-                      {item.flag && (
-                        <Text style={styles.pickerFlag}>{item.flag}</Text>
-                      )}
-                      <Text
-                        style={[
-                          styles.pickerItemLabel,
-                          item.label === pickerConfig.selectedValue && {
-                            color: '#5D6AD1',
-                            fontWeight: 'bold',
+                {/* Mobile Number Field */}
+                <PhoneWithCountry
+                  label="Mobile Number *"
+                  value={mobileNumber}
+                  onChange={setMobileNumber}
+                  selectedCountry={mobileCountryCode}
+                  countryCode={setMobileDialCode}
+                  onCountryChange={setMobileCountryCode}
+                  error={errors.mobileNumber}
+                />
+
+                {/* WhatsApp Number Field */}
+                <PhoneWithCountry
+                  label="WhatsApp Number *"
+                  value={whatsappNumber}
+                  onChange={setWhatsappNumber}
+                  selectedCountry={whatsappCountryCode}
+                  countryCode={setWhatsappDialCode}
+                  onCountryChange={setWhatsappCountryCode}
+                  error={errors.whatsappNumber}
+                />
+
+                {/* Email Input */}
+                <CommonFormInput
+                  label="Email *"
+                  placeholder="Email Address"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={email}
+                  onChangeText={setEmail}
+                  error={errors.email}
+                />
+
+                {/* Lead Source Selector */}
+                <CommonSelectField
+                  label="Lead Source *"
+                  placeholder="Select Lead Source"
+                  selectedValue={leadSource ? leadSource.name : null}
+                  onPress={() =>
+                    showPicker(
+                      'Select Lead Source',
+                      leadTypeOptions.filter(x => x.is_active === 1),
+                      'name',
+                      item => {
+                        setLeadSource(item);
+                        setPickerModalVisible(false);
+                        setErrors(prev => ({ ...prev, leadSource: null }));
+                      },
+                      'Search lead sources...',
+                      leadSource ? leadSource.name : null,
+                    )
+                  }
+                  error={errors.leadSource}
+                />
+
+                {/* Country Input / Selector */}
+                <CommonSelectField
+                  label="Country *"
+                  placeholder="Select Country"
+                  selectedValue={country ? country.name : null}
+                  onPress={() =>
+                    showPicker(
+                      'Select Country',
+                      COUNTRIES,
+                      'name',
+                      item => {
+                        setCountry(item);
+                        setState(null);
+                        setStateOptions(STATE_DATA[item.code] || []);
+                        setPickerModalVisible(false);
+                      },
+                      'Search countries...',
+                      country ? country.name : null,
+                    )
+                  }
+                />
+
+                {/* State Input / Selector */}
+                <CommonSelectField
+                  label="State *"
+                  placeholder="Select State"
+                  selectedValue={state ? state.name : null}
+                  onPress={() =>
+                    showPicker(
+                      'Select State',
+                      stateOptions,
+                      'name',
+                      item => {
+                        setState(item);
+                        setPickerModalVisible(false);
+                      },
+                      'Search states...',
+                      state ? state.name : null,
+                    )
+                  }
+                />
+
+                {/* Area Selector with "+" Quick Add Button */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Area *</Text>
+                  <View style={styles.selectorRow}>
+                    <CommonSelectField
+                      containerStyle={{ flex: 1, marginBottom: 0 }}
+                      placeholder="Select Area"
+                      selectedValue={area ? area.name : null}
+                      onPress={() =>
+                        showPicker(
+                          'Select Area',
+                          areasOptions,
+                          'name',
+                          item => {
+                            setArea(item);
+                            setPickerModalVisible(false);
+                            setErrors(prev => ({ ...prev, area: null }));
                           },
-                        ]}
-                      >
-                        {item.label}
-                      </Text>
-                      {item.prefix && (
-                        <Text style={styles.pickerPrefix}>{item.prefix}</Text>
-                      )}
+                          'Search areas...',
+                          area ? area.name : null,
+                        )
+                      }
+                      error={errors.area}
+                    />
+                    <TouchableOpacity
+                      style={styles.quickAddButton}
+                      onPress={() =>
+                        showAddModal(
+                          'Add Area',
+                          'Area Name',
+                          'Enter area name',
+                          handleSaveNewArea,
+                        )
+                      }
+                    >
+                      <Icon name="add" size={24} color="#FFFFFF" />
                     </TouchableOpacity>
-                  )}
-                  ListEmptyComponent={
-                    <Text style={styles.emptyListText}>
-                      No items matched your search.
-                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Course Details section */}
+              <Text style={styles.sectionHeading}>Course Details</Text>
+
+              <View style={styles.card}>
+                {/* Primary Course with "+" Quick Add Button */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Primary Course *</Text>
+                  <View style={styles.selectorRow}>
+                    <CommonSelectField
+                      containerStyle={{ flex: 1, marginBottom: 0 }}
+                      placeholder="Select Course"
+                      selectedValue={primaryCourse ? primaryCourse.name : null}
+                      onPress={() =>
+                        showPicker(
+                          'Select Course',
+                          courseList,
+                          'name',
+                          item => {
+                            setPrimaryCourse(item);
+                            setPickerModalVisible(false);
+                            setErrors(prev => ({
+                              ...prev,
+                              primaryCourse: null,
+                            }));
+                          },
+                          'Search courses...',
+                          primaryCourse ? primaryCourse.name : null,
+                        )
+                      }
+                      error={errors.primaryCourse}
+                    />
+                    <TouchableOpacity
+                      style={styles.quickAddButton}
+                      onPress={() =>
+                        showAddModal(
+                          'Add Course',
+                          'Course Name',
+                          'Enter course name',
+                          handleSaveNewCourse,
+                        )
+                      }
+                    >
+                      <Icon name="add" size={24} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Course Fees Input */}
+                <CommonFormInput
+                  label="Fees *"
+                  placeholder="Course Fees"
+                  keyboardType="numeric"
+                  value={fees}
+                  onChangeText={setFees}
+                  error={errors.fees}
+                />
+
+                {/* Region Selector */}
+                <CommonSelectField
+                  label="Region *"
+                  placeholder="Select Region"
+                  selectedValue={region ? region.name : null}
+                  onPress={() =>
+                    showPicker(
+                      'Select Region',
+                      regionsOptions,
+                      'name',
+                      item => {
+                        setRegion(item);
+                        setPickerModalVisible(false);
+                        setErrors(prev => ({ ...prev, region: null }));
+                        if (item.id != 3) {
+                          getBranchData(item.id);
+                        } else {
+                          setBranch(null);
+                        }
+                      },
+                      'Search regions...',
+                      region ? region.name : null,
+                    )
+                  }
+                  error={errors.region}
+                />
+
+                {/* Branch Name Selector */}
+                {region?.id != 3 && (
+                  <CommonSelectField
+                    label="Branch Name *"
+                    placeholder="Select Branch"
+                    selectedValue={branch ? branch.name : null}
+                    onPress={() =>
+                      showPicker(
+                        'Select Branch',
+                        branchesOptions,
+                        'name',
+                        item => {
+                          setBranch(item);
+                          setPickerModalVisible(false);
+                          setErrors(prev => ({ ...prev, branch: null }));
+                        },
+                        'Search branches...',
+                        branch ? branch.name : null,
+                      )
+                    }
+                    error={errors.branch}
+                  />
+                )}
+
+                {/* Batch Track Selector */}
+                <CommonSelectField
+                  label="Batch Track *"
+                  placeholder="Select Batch"
+                  selectedValue={
+                    batchTrack
+                      ? typeof batchTrack === 'string'
+                        ? batchTrack
+                        : batchTrack.name
+                      : null
+                  }
+                  onPress={() =>
+                    showPicker(
+                      'Select Batch Track',
+                      [
+                        {
+                          id: 1,
+                          name: 'Normal',
+                        },
+                        {
+                          id: 2,
+                          name: 'Fastrack',
+                        },
+                        {
+                          id: 3,
+                          name: 'Custom',
+                        },
+                      ],
+                      'name',
+                      item => {
+                        setBatchTrack(item);
+                        setPickerModalVisible(false);
+                      },
+                      'Search batch tracks...',
+                      batchTrack
+                        ? typeof batchTrack === 'string'
+                          ? batchTrack
+                          : batchTrack.name
+                        : null,
+                    )
                   }
                 />
               </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
 
-      {/* Quick Add Modal Dialog */}
-      <Modal visible={addModalVisible} transparent animationType="fade">
-        <TouchableWithoutFeedback onPress={() => setAddModalVisible(false)}>
-          <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback>
-              <View style={styles.addModalContainer}>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>{addModalConfig.title}</Text>
-                  <TouchableOpacity onPress={() => setAddModalVisible(false)}>
-                    <Icon name="close-outline" size={24} color="#1A3353" />
-                  </TouchableOpacity>
-                </View>
+              {/* Response Status Section */}
+              <Text style={styles.sectionHeading}>Response Status</Text>
+              <View style={styles.card}>
+                {/* Lead Status Selector */}
+                <CommonSelectField
+                  label="Lead Status *"
+                  placeholder="Select Status"
+                  selectedValue={leadStatus ? leadStatus.name : null}
+                  onPress={() =>
+                    showPicker(
+                      'Select Lead Status',
+                      leadStatusOptions,
+                      'name',
+                      item => {
+                        setLeadStatus(item);
+                        setPickerModalVisible(false);
+                        setErrors(prev => ({ ...prev, leadStatus: null }));
+                      },
+                      'Search status...',
+                      leadStatus ? leadStatus.name : null,
+                    )
+                  }
+                  error={errors.leadStatus}
+                />
 
-                <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                  <Text style={styles.inputLabel}>{addModalConfig.label}</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder={addModalConfig.placeholder}
-                    placeholderTextColor="#A0AEC0"
-                    value={newItemName}
-                    onChangeText={setNewItemName}
-                    autoFocus
-                  />
-                </View>
+                {/* Next Follow-Up Date Selector */}
+                <CommonDatePicker
+                  label="Next Follow-Up Date *"
+                  placeholder="Select Date"
+                  value={nextFollowUpDate}
+                  onDateChange={val => {
+                    setNextFollowUpDate(val);
+                    if (val)
+                      setErrors(prev => ({ ...prev, nextFollowUpDate: null }));
+                  }}
+                  error={errors.nextFollowUpDate}
+                />
 
-                <View style={styles.addModalFooter}>
-                  <TouchableOpacity
-                    style={[styles.addModalButton, styles.cancelBtn]}
-                    onPress={() => setAddModalVisible(false)}
-                  >
-                    <Text style={styles.cancelBtnText}>Cancel</Text>
-                  </TouchableOpacity>
+                {/* Followup Status (Lead Action) Selector */}
+                <CommonSelectField
+                  label="Followup Status *"
+                  placeholder="Select Followup Status"
+                  selectedValue={followupStatus ? followupStatus.name : null}
+                  onPress={() =>
+                    showPicker(
+                      'Select Followup Status',
+                      followupStatusOptions,
+                      'name',
+                      item => {
+                        setFollowupStatus(item);
+                        setPickerModalVisible(false);
+                        setErrors(prev => ({ ...prev, followupStatus: null }));
+                      },
+                      'Search followup status...',
+                      followupStatus ? followupStatus.name : null,
+                    )
+                  }
+                  error={errors.followupStatus}
+                />
 
-                  <TouchableOpacity
-                    style={[styles.addModalButton, styles.saveBtn]}
-                    onPress={() => addModalConfig.onSave(newItemName)}
-                    disabled={newItemLoading || !newItemName.trim()}
-                  >
-                    {newItemLoading ? (
-                      <ActivityIndicator size="small" color="#FFFFFF" />
-                    ) : (
-                      <Text style={styles.saveBtnText}>Save</Text>
-                    )}
-                  </TouchableOpacity>
-                </View>
+                {/* Expected Date Join Selector */}
+                <CommonDatePicker
+                  label="Expected Date Join"
+                  placeholder="Select Date"
+                  value={expectedDateJoin}
+                  onDateChange={setExpectedDateJoin}
+                />
+
+                {/* Comments Selector */}
+                <CommonTextArea
+                  label="Comments *"
+                  placeholder="Type here..."
+                  value={comments}
+                  onChangeText={val => {
+                    setComments(val);
+                    if (val) setErrors(prev => ({ ...prev, comments: null }));
+                  }}
+                  error={errors.comments}
+                />
+              </View>
+
+              {/* Form Submit Save Button */}
+              <TouchableOpacity
+                style={styles.submitBtn}
+                onPress={handleFormSubmit}
+                disabled={submitLoading}
+              >
+                {submitLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.submitBtnText}>
+                    {isEditMode ? 'Update Lead' : 'Save Lead'}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </KeyboardAvoidingView>
+
+          {/* Global Searchable Selection Dropdown Modal */}
+          <Modal visible={pickerModalVisible} transparent animationType="slide">
+            <TouchableWithoutFeedback
+              onPress={() => setPickerModalVisible(false)}
+            >
+              <View style={styles.modalOverlay}>
+                <TouchableWithoutFeedback>
+                  <View style={styles.pickerModalContainer}>
+                    <View style={styles.modalHeader}>
+                      <Text style={styles.modalTitle}>
+                        {pickerConfig.title}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => setPickerModalVisible(false)}
+                      >
+                        <Icon name="close-outline" size={24} color="#1A3353" />
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Search query input */}
+                    <View style={styles.modalSearchContainer}>
+                      <Icon
+                        name="search-outline"
+                        size={18}
+                        color="#7D8DA1"
+                        style={{ marginRight: 8 }}
+                      />
+                      <TextInput
+                        style={styles.modalSearchInput}
+                        placeholder={pickerConfig.searchPlaceholder}
+                        placeholderTextColor="#A0AEC0"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                      />
+                      {searchQuery.length > 0 && (
+                        <TouchableOpacity onPress={() => setSearchQuery('')}>
+                          <Icon name="close-circle" size={18} color="#A0AEC0" />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                    {/* Item lists */}
+                    <FlatList
+                      data={filteredPickerItems}
+                      keyExtractor={(item, index) => index.toString()}
+                      keyboardShouldPersistTaps="handled"
+                      renderItem={({ item }) => (
+                        <TouchableOpacity
+                          style={[
+                            styles.pickerItemRow,
+                            item.label === pickerConfig.selectedValue && {
+                              backgroundColor: '#F0F3F7',
+                            },
+                          ]}
+                          onPress={() => pickerConfig.onSelect(item)}
+                        >
+                          {item.flag && (
+                            <Text style={styles.pickerFlag}>{item.flag}</Text>
+                          )}
+                          <Text
+                            style={[
+                              styles.pickerItemLabel,
+                              item.label === pickerConfig.selectedValue && {
+                                color: '#5D6AD1',
+                                fontWeight: 'bold',
+                              },
+                            ]}
+                          >
+                            {item.label}
+                          </Text>
+                          {item.prefix && (
+                            <Text style={styles.pickerPrefix}>
+                              {item.prefix}
+                            </Text>
+                          )}
+                        </TouchableOpacity>
+                      )}
+                      ListEmptyComponent={
+                        <Text style={styles.emptyListText}>
+                          No items matched your search.
+                        </Text>
+                      }
+                    />
+                  </View>
+                </TouchableWithoutFeedback>
               </View>
             </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
-    </SafeAreaView>
+          </Modal>
+
+          {/* Quick Add Modal Dialog */}
+          <Modal visible={addModalVisible} transparent animationType="fade">
+            <TouchableWithoutFeedback onPress={() => setAddModalVisible(false)}>
+              <View style={styles.modalOverlay}>
+                <TouchableWithoutFeedback>
+                  <View style={styles.addModalContainer}>
+                    <View style={styles.modalHeader}>
+                      <Text style={styles.modalTitle}>
+                        {addModalConfig.title}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => setAddModalVisible(false)}
+                      >
+                        <Icon name="close-outline" size={24} color="#1A3353" />
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={[styles.inputGroup, { marginTop: 10 }]}>
+                      <Text style={styles.inputLabel}>
+                        {addModalConfig.label}
+                      </Text>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder={addModalConfig.placeholder}
+                        placeholderTextColor="#A0AEC0"
+                        value={newItemName}
+                        onChangeText={setNewItemName}
+                        autoFocus
+                      />
+                    </View>
+
+                    <View style={styles.addModalFooter}>
+                      <TouchableOpacity
+                        style={[styles.addModalButton, styles.cancelBtn]}
+                        onPress={() => setAddModalVisible(false)}
+                      >
+                        <Text style={styles.cancelBtnText}>Cancel</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[styles.addModalButton, styles.saveBtn]}
+                        onPress={() => addModalConfig.onSave(newItemName)}
+                        disabled={newItemLoading || !newItemName.trim()}
+                      >
+                        {newItemLoading ? (
+                          <ActivityIndicator size="small" color="#FFFFFF" />
+                        ) : (
+                          <Text style={styles.saveBtnText}>Save</Text>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </TouchableWithoutFeedback>
+              </View>
+            </TouchableWithoutFeedback>
+          </Modal>
+        </SafeAreaView>
+      )}
+    </>
   );
 }
 
