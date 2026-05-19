@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   TextInput,
@@ -10,6 +10,7 @@ import {
   Modal,
   ScrollView,
   TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,6 +24,7 @@ const SearchScreen = () => {
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
 
   const handleLeadPress = lead => {
+    Keyboard.dismiss();
     setSelectedLead(lead);
     setDetailsModalVisible(true);
   };
@@ -93,10 +95,13 @@ const SearchScreen = () => {
             <FlatList
               data={results}
               keyExtractor={item => item.id}
+              keyboardShouldPersistTaps="handled"
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={styles.resultItem}
-                  onPress={() => handleLeadPress(item)}
+                  onPress={() => {
+                    handleLeadPress(item);
+                  }}
                 >
                   <View style={styles.iconCircle}>
                     <Icon name="person" size={20} color="#5D6AD1" />
@@ -138,113 +143,128 @@ const SearchScreen = () => {
           <View style={styles.detailsModalContainer}>
             {/* Header */}
             <View style={styles.detailsHeader}>
-              <Text style={styles.detailsTitle}>Lead Details</Text>
-              <TouchableOpacity onPress={() => setDetailsModalVisible(false)}>
-                <Icon name="close" size={24} color="#1A3353" />
-              </TouchableOpacity>
+              <View style={styles.dragIndicator} />
+              <View style={styles.headerRow}>
+                <Text style={styles.detailsTitle}>Lead Details</Text>
+                <TouchableOpacity
+                  onPress={() => setDetailsModalVisible(false)}
+                  style={styles.closeButton}
+                >
+                  <Icon name="close" size={24} color="#1A3353" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Content */}
-            <ScrollView contentContainerStyle={styles.detailsContent}>
+            <ScrollView
+              contentContainerStyle={styles.detailsContent}
+              showsVerticalScrollIndicator={false}
+            >
               {selectedLead && (
                 <View>
-                  <DetailRow
-                    icon="person-outline"
-                    label="Name"
-                    value={selectedLead.name}
-                  />
-                  <DetailRow
-                    icon="mail-outline"
-                    label="Email"
-                    value={selectedLead.email}
-                  />
-                  <DetailRow
-                    icon="call-outline"
-                    label="Mobile"
-                    value={selectedLead.phone}
-                  />
-                  <DetailRow
-                    icon="logo-whatsapp"
-                    label="Whatsapp"
-                    value={selectedLead.whatsapp}
-                  />
-                  <DetailRow
-                    icon="location-outline"
-                    label="Area"
-                    value={selectedLead.area_id}
-                  />
-                  <DetailRow
-                    icon="person-circle-outline"
-                    label="Lead Executive"
-                    value={
-                      selectedLead.lead_assigned_to_name
-                        ? `${selectedLead.lead_assigned_to_id} (${selectedLead.lead_assigned_to_name})`
-                        : selectedLead.lead_assigned_to_id
-                    }
-                  />
-                  <DetailRow
-                    icon="calendar-outline"
-                    label="Created At"
-                    value={selectedLead.created_date}
-                  />
-                  <DetailRow
-                    icon="calendar-outline"
-                    label="Next Followup"
-                    value={selectedLead.next_follow_up_date}
-                  />
-                  <DetailRow
-                    icon="chatbox-ellipses-outline"
-                    label="Comments"
-                    value={selectedLead.comments}
-                  />
+                  <Text style={styles.sectionHeading}>Basic Information</Text>
+                  <View style={styles.card}>
+                    <DetailRow
+                      icon="person-outline"
+                      label="Name"
+                      value={selectedLead.name}
+                    />
+                    <DetailRow
+                      icon="mail-outline"
+                      label="Email"
+                      value={selectedLead.email}
+                    />
+                    <DetailRow
+                      icon="call-outline"
+                      label="Mobile"
+                      value={selectedLead.phone}
+                    />
+                    <DetailRow
+                      icon="logo-whatsapp"
+                      label="Whatsapp"
+                      value={selectedLead.whatsapp}
+                    />
+                    <DetailRow
+                      icon="location-outline"
+                      label="Area"
+                      value={selectedLead.area_id}
+                    />
+                    <DetailRow
+                      icon="person-circle-outline"
+                      label="Lead Executive"
+                      value={
+                        selectedLead.lead_assigned_to_name
+                          ? `${selectedLead.lead_assigned_to_id} (${selectedLead.lead_assigned_to_name})`
+                          : selectedLead.lead_assigned_to_id
+                      }
+                    />
+                    <DetailRow
+                      icon="calendar-outline"
+                      label="Created At"
+                      value={selectedLead.created_date}
+                    />
+                    <DetailRow
+                      icon="calendar-outline"
+                      label="Next Followup"
+                      value={selectedLead.next_follow_up_date}
+                    />
+                    <DetailRow
+                      icon="chatbox-ellipses-outline"
+                      label="Comments"
+                      value={selectedLead.comments}
+                      hideBorder
+                    />
+                    <DetailRow
+                      icon="person-add-outline"
+                      label="Is Customer"
+                      value={selectedLead.is_customer_reg == 1 ? 'Yes' : 'No'}
+                      isHighlight={selectedLead.is_customer_reg != 1}
+                      hideBorder
+                    />
+                  </View>
 
-                  <View style={styles.divider} />
-
-                  <DetailRow
-                    icon="book-outline"
-                    label="Course"
-                    value={selectedLead.primary_course}
-                  />
-                  <DetailRow
-                    icon="cash-outline"
-                    label="Course Fees"
-                    value={
-                      selectedLead.primary_fees
-                        ? `₹${selectedLead.primary_fees}`
-                        : null
-                    }
-                  />
-                  <DetailRow
-                    icon="map-outline"
-                    label="Region"
-                    value={selectedLead.region_name}
-                  />
-                  <DetailRow
-                    icon="business-outline"
-                    label="Branch"
-                    value={selectedLead.branch_name}
-                  />
-                  <DetailRow
-                    icon="time-outline"
-                    label="Batch Track"
-                    value={selectedLead.batch_track}
-                  />
-                  <DetailRow
-                    icon="funnel-outline"
-                    label="Lead Source"
-                    value={selectedLead.lead_type}
-                  />
-                  <DetailRow
-                    icon="star-outline"
-                    label="Lead Status"
-                    value={selectedLead.lead_status}
-                  />
-                  <DetailRow
-                    icon="person-add-outline"
-                    label="Is Customer"
-                    value={selectedLead.is_customer_reg == 1 ? 'Yes' : 'No'}
-                    isHighlight={selectedLead.is_customer_reg != 1}
-                  />
+                  <Text style={styles.sectionHeading}>Course Details</Text>
+                  <View style={styles.card}>
+                    <DetailRow
+                      icon="book-outline"
+                      label="Course"
+                      value={selectedLead.primary_course}
+                    />
+                    <DetailRow
+                      icon="cash-outline"
+                      label="Course Fees"
+                      value={
+                        selectedLead.primary_fees
+                          ? `₹${selectedLead.primary_fees}`
+                          : null
+                      }
+                    />
+                    <DetailRow
+                      icon="map-outline"
+                      label="Region"
+                      value={selectedLead.region_name}
+                    />
+                    <DetailRow
+                      icon="business-outline"
+                      label="Branch"
+                      value={selectedLead.branch_name}
+                    />
+                    <DetailRow
+                      icon="time-outline"
+                      label="Batch Track"
+                      value={selectedLead.batch_track}
+                    />
+                    <DetailRow
+                      icon="funnel-outline"
+                      label="Lead Source"
+                      value={selectedLead.lead_type}
+                    />
+                    <DetailRow
+                      icon="star-outline"
+                      label="Lead Status"
+                      value={selectedLead.lead_status}
+                    />
+                  </View>
                 </View>
               )}
             </ScrollView>
@@ -255,16 +275,21 @@ const SearchScreen = () => {
   );
 };
 
-const DetailRow = ({ icon, label, value, isHighlight }) => (
-  <View style={styles.detailRow}>
+const DetailRow = ({ icon, label, value, isHighlight, hideBorder }) => (
+  <View style={[styles.detailRow, hideBorder && { borderBottomWidth: 0 }]}>
     <View style={styles.detailLabelContainer}>
       {icon && (
-        <Icon name={icon} size={18} color="#7D8DA1" style={styles.detailIcon} />
+        <View style={styles.iconWrapper}>
+          <Icon name={icon} size={16} color="#5D6AD1" />
+        </View>
       )}
       <Text style={styles.detailLabel}>{label}</Text>
     </View>
     <View style={styles.detailValueContainer}>
-      <Text style={[styles.detailValue, isHighlight && styles.highlightValue]}>
+      <Text
+        style={[styles.detailValue, isHighlight && styles.highlightValue]}
+        selectable={true}
+      >
         {value || '-'}
       </Text>
     </View>
@@ -364,18 +389,43 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   detailsModalContainer: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '85%',
+    backgroundColor: '#F5F7FA',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '92%',
   },
-  detailsHeader: {
+  dragIndicator: {
+    width: 40,
+    height: 5,
+    backgroundColor: '#CBD5E0',
+    borderRadius: 3,
+    alignSelf: 'center',
+    marginBottom: 15,
+  },
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  closeButton: {
+    backgroundColor: '#EEF2FF',
+    padding: 6,
+    borderRadius: 20,
+  },
+  detailsHeader: {
     padding: 20,
+    paddingTop: 12,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F3F7',
+    borderBottomColor: '#EAF0F6',
+    shadowColor: '#1A3353',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 3,
+    zIndex: 10,
   },
   detailsTitle: {
     fontSize: 18,
@@ -383,28 +433,56 @@ const styles = StyleSheet.create({
     color: '#1A3353',
   },
   detailsContent: {
-    padding: 20,
+    padding: 16,
     paddingBottom: 40,
+  },
+  sectionHeading: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#5D6AD1',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    marginTop: 10,
+    marginLeft: 4,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    marginBottom: 20,
+    shadowColor: '#1A3353',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#EAF0F6',
   },
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#F7FAFC',
+    borderBottomColor: '#F0F3F7',
   },
   detailLabelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  detailIcon: {
+  iconWrapper: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#F0F3F7',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 10,
-    width: 20,
   },
   detailLabel: {
     fontSize: 14,
-    color: '#4A5568',
+    color: '#667C94',
     fontWeight: '500',
   },
   detailValueContainer: {
@@ -416,17 +494,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#1A3353',
     textAlign: 'right',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   highlightValue: {
     color: '#E53E3E',
     fontWeight: '700',
-  },
-  divider: {
-    height: 8,
-    backgroundColor: '#F0F3F7',
-    marginVertical: 10,
-    marginHorizontal: -20,
   },
 });
 
