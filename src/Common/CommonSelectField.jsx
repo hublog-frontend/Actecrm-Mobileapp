@@ -23,10 +23,7 @@ export default function CommonSelectField({
         {...props}
       >
         <Text
-          style={[
-            styles.pickerValue,
-            !selectedValue && styles.placeholderText,
-          ]}
+          style={[styles.pickerValue, !selectedValue && styles.placeholderText]}
         >
           {selectedValue ? selectedValue : placeholder}
         </Text>

@@ -40,6 +40,7 @@ import {
   updateLead,
   getLeadStatus,
 } from '../../ApiService/action';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const followupStatusOptions = [
   { id: 1, name: 'Hot Follow Up' },
@@ -79,7 +80,7 @@ export default function AddLead({ navigation, route }) {
   const [addCourse, setAddCourse] = useState(false);
   const [region, setRegion] = useState(null);
   const [branch, setBranch] = useState(null);
-  const [batchTrack, setBatchTrack] = useState('Normal');
+  const [batchTrack, setBatchTrack] = useState({ id: 1, name: 'Normal' });
   const [leadStatus, setLeadStatus] = useState(null);
   const [nextFollowUpDate, setNextFollowUpDate] = useState(null);
   const [showNextDatePicker, setShowNextDatePicker] = useState(false);
@@ -120,42 +121,75 @@ export default function AddLead({ navigation, route }) {
   // Pre-fill fields for editing
   useEffect(() => {
     if (isEditMode) {
-      setCandidateName(editLeadData.candidate_name || '');
+      console.log('editLeadData', editLeadData);
+
+      setCandidateName(editLeadData.name || '');
       setEmail(editLeadData.email || '');
 
+      const targetPhoneCode = editLeadData.phone_code
+        ? String(editLeadData.phone_code).startsWith('+')
+          ? String(editLeadData.phone_code)
+          : `+${editLeadData.phone_code}`
+        : null;
       const foundMob =
-        COUNTRIES.find(c => c.prefix === editLeadData.country_code) ||
+        COUNTRIES.find(c => c.prefix === targetPhoneCode) ||
         COUNTRIES.find(c => c.code === 'in');
       setMobileDialCode(
-        editLeadData.country_code
-          ? editLeadData.country_code.replace('+', '')
+        editLeadData.phone_code
+          ? String(editLeadData.phone_code).replace('+', '')
           : '91',
       );
       setMobileCountryCode(foundMob ? foundMob.code : 'in');
       setMobileNumber(editLeadData.phone || '');
 
+      const targetWAPhoneCode = editLeadData.whatsapp_phone_code
+        ? String(editLeadData.whatsapp_phone_code).startsWith('+')
+          ? String(editLeadData.whatsapp_phone_code)
+          : `+${editLeadData.whatsapp_phone_code}`
+        : null;
       const foundWA =
-        COUNTRIES.find(c => c.prefix === editLeadData.whatsapp_country_code) ||
+        COUNTRIES.find(c => c.prefix === targetWAPhoneCode) ||
         COUNTRIES.find(c => c.code === 'in');
       setWhatsappDialCode(
-        editLeadData.whatsapp_country_code
-          ? editLeadData.whatsapp_country_code.replace('+', '')
+        editLeadData.whatsapp_phone_code
+          ? String(editLeadData.whatsapp_phone_code).replace('+', '')
           : '91',
       );
       setWhatsappCountryCode(foundWA ? foundWA.code : 'in');
-      setWhatsappNumber(editLeadData.whatsapp_no || '');
+      setWhatsappNumber(
+        editLeadData.whatsapp || editLeadData.whatsapp_no || '',
+      );
 
-      const defaultCountryCode = editLeadData.country ? editLeadData.country.toLowerCase() : 'in';
-      const foundCountry = COUNTRIES.find(c => c.code.toLowerCase() === defaultCountryCode || c.name.toLowerCase() === defaultCountryCode) || { name: 'India', code: 'in' };
+      const defaultCountryCode = editLeadData.country
+        ? editLeadData.country.toLowerCase()
+        : 'in';
+      const foundCountry = COUNTRIES.find(
+        c =>
+          c.code.toLowerCase() === defaultCountryCode ||
+          c.name.toLowerCase() === defaultCountryCode,
+      ) || { name: 'India', code: 'in' };
       setCountry(foundCountry);
 
-      const stateCode = editLeadData.state ? editLeadData.state.toUpperCase() : 'TN';
+      const stateCode = editLeadData.state
+        ? editLeadData.state.toUpperCase()
+        : 'TN';
       const availableStates = STATE_DATA[foundCountry.code] || [];
-      const foundState = availableStates.find(s => s.code === stateCode || s.name.toUpperCase() === stateCode) || { name: 'Tamil Nadu', code: 'TN' };
+      const foundState = availableStates.find(
+        s => s.code === stateCode || s.name.toUpperCase() === stateCode,
+      ) || { name: 'Tamil Nadu', code: 'TN' };
       setState(foundState);
       setStateOptions(availableStates);
-      setFees(editLeadData.fees ? String(editLeadData.fees) : '');
-      setBatchTrack(editLeadData.batch_track || 'Normal');
+      setFees(
+        editLeadData.primary_fees
+          ? String(editLeadData.primary_fees)
+          : editLeadData.fees
+          ? String(editLeadData.fees)
+          : '',
+      );
+      setBatchTrack({
+        id: editLeadData.batch_track_id || 1,
+        name: editLeadData.batch_track || 'Normal',
+      });
 
       if (editLeadData.next_follow_up_date || editLeadData.next_followup_date) {
         setNextFollowUpDate(
@@ -195,7 +229,7 @@ export default function AddLead({ navigation, route }) {
       const list = response?.data?.result || [];
       setBranchesOptions(list);
       if (isEditMode && editLeadData.branch_id) {
-        const found = list.find(x => x.branch_id === editLeadData.branch_id);
+        const found = list.find(x => x.id === editLeadData.branch_id);
         if (found) setBranch(found);
       }
     } catch (error) {
@@ -209,8 +243,11 @@ export default function AddLead({ navigation, route }) {
       const list = response?.data?.data || [];
       setRegionsOptions(list);
       if (isEditMode && editLeadData.region_id) {
-        const found = list.find(x => x.region_id === editLeadData.region_id);
+        const found = list.find(x => x.id === editLeadData.region_id);
         if (found) setRegion(found);
+        if (editLeadData.region_id != 3) {
+          getBranchData(editLeadData.region_id);
+        }
       }
     } catch (error) {
       console.log('region error', error);
@@ -222,8 +259,13 @@ export default function AddLead({ navigation, route }) {
       const response = await getAllAreas();
       const list = response?.data?.data || [];
       dispatch(storeAreaList(list));
-      if (isEditMode && editLeadData.area_id) {
-        const found = list.find(x => x.id === editLeadData.area_id);
+      if (isEditMode && (editLeadData.area_id || editLeadData.district)) {
+        const found = list.find(
+          x =>
+            x.id === editLeadData.area_id ||
+            x.name === editLeadData.area_id ||
+            x.name === editLeadData.district,
+        );
         if (found) setArea(found);
       }
     } catch (error) {
@@ -260,8 +302,15 @@ export default function AddLead({ navigation, route }) {
       const response = await getTechnologies();
       const list = response?.data?.data || [];
       dispatch(storeCourseList(list));
-      if (isEditMode && editLeadData.course_id) {
-        const found = list.find(x => x.course_id === editLeadData.course_id);
+      if (
+        isEditMode &&
+        (editLeadData.primary_course_id || editLeadData.course_id)
+      ) {
+        const targetCourseId =
+          editLeadData.primary_course_id || editLeadData.course_id;
+
+        const found = list.find(x => x.id === targetCourseId);
+
         if (found) setPrimaryCourse(found);
       }
     } catch (error) {
@@ -289,10 +338,13 @@ export default function AddLead({ navigation, route }) {
         }
       });
       setLeadTypeOptions(update_lead_status);
-      if (isEditMode && editLeadData.lead_source) {
-        const found = update_lead_status.find(
-          x => x.id === editLeadData.lead_source,
-        );
+      if (
+        isEditMode &&
+        (editLeadData.lead_type_id || editLeadData.lead_source)
+      ) {
+        const targetLeadSource =
+          editLeadData.lead_type_id || editLeadData.lead_source;
+        const found = update_lead_status.find(x => x.id === targetLeadSource);
         if (found) setLeadSource(found);
       }
     } catch (error) {
@@ -322,6 +374,7 @@ export default function AddLead({ navigation, route }) {
     labelField,
     onSelect,
     searchPlaceholder = 'Search...',
+    selectedValue = null,
   ) => {
     setSearchQuery('');
     setPickerConfig({
@@ -332,6 +385,7 @@ export default function AddLead({ navigation, route }) {
       })),
       onSelect,
       searchPlaceholder,
+      selectedValue,
     });
     setPickerModalVisible(true);
   };
@@ -349,23 +403,24 @@ export default function AddLead({ navigation, route }) {
     try {
       const payload = { area_name: name };
       const res = await createArea(payload);
-      if (res?.data?.success || res?.status === 200) {
-        CommonMessage('success', 'Area added successfully');
-        // Refresh Areas options
-        const response = await getAllAreas();
-        const newList = response?.data?.data || [];
-        dispatch(storeAreaList(newList));
+      CommonMessage('success', 'Area added successfully');
+      // Refresh Areas options
+      const response = await getAllAreas();
+      const newList = response?.data?.data || [];
+      dispatch(storeAreaList(newList));
 
-        // Auto select the new area
-        const newlyCreated =
-          newList.find(x => x.name.toLowerCase() === name.toLowerCase()) ||
-          newList[newList.length - 1];
-        if (newlyCreated) setArea(newlyCreated);
+      // Auto select the new area
+      const newlyCreated =
+        newList.find(x => x.name.toLowerCase() === name.toLowerCase()) ||
+        newList[newList.length - 1];
+      if (newlyCreated) setArea(newlyCreated);
 
-        setAddModalVisible(false);
-      }
+      setAddModalVisible(false);
     } catch (error) {
-      CommonMessage('error', 'Failed to add area');
+      CommonMessage(
+        'error',
+        error?.response?.data?.details || 'Failed to add area',
+      );
     } finally {
       setNewItemLoading(false);
     }
@@ -377,24 +432,24 @@ export default function AddLead({ navigation, route }) {
     try {
       const payload = { course_name: name };
       const res = await createTechnology(payload);
-      if (res?.data?.success || res?.status === 200) {
-        CommonMessage('success', 'Course added successfully');
-        // Refresh Courses list
-        const response = await getTechnologies();
-        const newList = response?.data?.data || [];
-        dispatch(storeCourseList(newList));
+      CommonMessage('success', 'Course added successfully');
+      // Refresh Courses list
+      const response = await getTechnologies();
+      const newList = response?.data?.data || [];
+      dispatch(storeCourseList(newList));
 
-        // Auto select the new course
-        const newlyCreated =
-          newList.find(
-            x => x.course_name.toLowerCase() === name.toLowerCase(),
-          ) || newList[newList.length - 1];
-        if (newlyCreated) setPrimaryCourse(newlyCreated);
+      // Auto select the new course
+      const newlyCreated =
+        newList.find(x => x.name.toLowerCase() === name.toLowerCase()) ||
+        newList[newList.length - 1];
+      if (newlyCreated) setPrimaryCourse(newlyCreated);
 
-        setAddModalVisible(false);
-      }
+      setAddModalVisible(false);
     } catch (error) {
-      CommonMessage('error', 'Failed to add course');
+      CommonMessage(
+        'error',
+        error?.response?.data?.details || 'Failed to add course',
+      );
     } finally {
       setNewItemLoading(false);
     }
@@ -441,8 +496,10 @@ export default function AddLead({ navigation, route }) {
       isValid = false;
     }
     if (!branch) {
-      newErrors.branch = 'Please select Branch';
-      isValid = false;
+      if (region.id != 3) {
+        newErrors.branch = 'Please select Branch';
+        isValid = false;
+      }
     }
     if (!leadStatus) {
       newErrors.leadStatus = 'Please select Lead Status';
@@ -473,11 +530,15 @@ export default function AddLead({ navigation, route }) {
   const handleFormSubmit = async () => {
     if (!validateForm()) return;
 
-    setSubmitLoading(true);
+    // setSubmitLoading(true);
     const today = new Date();
+    const getLoginUserDetails = await AsyncStorage.getItem('loginUserDetails');
+    const convertAsJson = JSON.parse(getLoginUserDetails);
+    console.log('convertAsJson', convertAsJson);
 
     const payload = {
       ...(isEditMode && { lead_id: editLeadData.id || editLeadData.lead_id }),
+      user_id: convertAsJson?.user_id || '',
       name: candidateName,
       phone_code: mobileDialCode,
       phone: mobileNumber,
@@ -513,7 +574,7 @@ export default function AddLead({ navigation, route }) {
         ? formatToBackendIST(expectedDateJoin)
         : null,
       region_id: region.region_id || region.id,
-      branch_id: branch.branch_id || branch.id,
+      branch_id: branch ? branch.id : '',
       batch_track_id: batchTrack && batchTrack.id,
       comments: comments,
       is_reentry: false,
@@ -522,6 +583,7 @@ export default function AddLead({ navigation, route }) {
         ? true
         : false,
     };
+    console.log('payload', payload);
 
     try {
       let res;
@@ -533,12 +595,14 @@ export default function AddLead({ navigation, route }) {
         res = await createLead(payload);
         CommonMessage('success', 'Lead created successfully');
       }
-      navigation.goBack();
+      formReset();
     } catch (error) {
-      console.log('Form Submit error', error);
+      console.log('Form Submit error', error.response);
       CommonMessage(
         'error',
-        isEditMode ? 'Failed to update lead' : 'Failed to create lead',
+        isEditMode
+          ? 'Failed to update lead'
+          : error?.response?.data?.details || 'Failed to create lead',
       );
     } finally {
       setSubmitLoading(false);
@@ -549,6 +613,35 @@ export default function AddLead({ navigation, route }) {
     item.label.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
+  const formReset = () => {
+    setCandidateName('');
+    setEmail('');
+    setMobileNumber('');
+    setMobileDialCode('91');
+    setMobileCountryCode('in');
+    setWhatsappNumber('');
+    setWhatsappDialCode('91');
+    setWhatsappCountryCode('in');
+    setLeadSource(null);
+    setCountry({ name: 'India', code: 'in' });
+    setState({ name: 'Tamil Nadu', code: 'TN' });
+    setStateOptions(STATE_DATA['in'] || []);
+    setArea(null);
+    setPrimaryCourse(null);
+    setFees('');
+    setAddCourse(false);
+    setRegion(null);
+    setBranch(null);
+    setBatchTrack({ id: 1, name: 'Normal' });
+    setLeadStatus(null);
+    setNextFollowUpDate(null);
+    setShowNextDatePicker(false);
+    setFollowupStatus(null);
+    setExpectedDateJoin(null);
+    setShowExpectedDatePicker(false);
+    setComments('');
+    setErrors({});
+  };
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
@@ -644,6 +737,7 @@ export default function AddLead({ navigation, route }) {
                     setErrors(prev => ({ ...prev, leadSource: null }));
                   },
                   'Search lead sources...',
+                  leadSource ? leadSource.name : null,
                 )
               }
               error={errors.leadSource}
@@ -666,6 +760,7 @@ export default function AddLead({ navigation, route }) {
                     setPickerModalVisible(false);
                   },
                   'Search countries...',
+                  country ? country.name : null,
                 )
               }
             />
@@ -685,6 +780,7 @@ export default function AddLead({ navigation, route }) {
                     setPickerModalVisible(false);
                   },
                   'Search states...',
+                  state ? state.name : null,
                 )
               }
             />
@@ -708,6 +804,7 @@ export default function AddLead({ navigation, route }) {
                         setErrors(prev => ({ ...prev, area: null }));
                       },
                       'Search areas...',
+                      area ? area.name : null,
                     )
                   }
                   error={errors.area}
@@ -752,6 +849,7 @@ export default function AddLead({ navigation, route }) {
                         setErrors(prev => ({ ...prev, primaryCourse: null }));
                       },
                       'Search courses...',
+                      primaryCourse ? primaryCourse.name : null,
                     )
                   }
                   error={errors.primaryCourse}
@@ -796,34 +894,42 @@ export default function AddLead({ navigation, route }) {
                     setRegion(item);
                     setPickerModalVisible(false);
                     setErrors(prev => ({ ...prev, region: null }));
-                    getBranchData(item.id);
+                    if (item.id != 3) {
+                      getBranchData(item.id);
+                    } else {
+                      setBranch(null);
+                    }
                   },
                   'Search regions...',
+                  region ? region.name : null,
                 )
               }
               error={errors.region}
             />
 
             {/* Branch Name Selector */}
-            <CommonSelectField
-              label="Branch Name *"
-              placeholder="Select Branch"
-              selectedValue={branch ? branch.name : null}
-              onPress={() =>
-                showPicker(
-                  'Select Branch',
-                  branchesOptions,
-                  'name',
-                  item => {
-                    setBranch(item);
-                    setPickerModalVisible(false);
-                    setErrors(prev => ({ ...prev, branch: null }));
-                  },
-                  'Search branches...',
-                )
-              }
-              error={errors.branch}
-            />
+            {region?.id != 3 && (
+              <CommonSelectField
+                label="Branch Name *"
+                placeholder="Select Branch"
+                selectedValue={branch ? branch.name : null}
+                onPress={() =>
+                  showPicker(
+                    'Select Branch',
+                    branchesOptions,
+                    'name',
+                    item => {
+                      setBranch(item);
+                      setPickerModalVisible(false);
+                      setErrors(prev => ({ ...prev, branch: null }));
+                    },
+                    'Search branches...',
+                    branch ? branch.name : null,
+                  )
+                }
+                error={errors.branch}
+              />
+            )}
 
             {/* Batch Track Selector */}
             <CommonSelectField
@@ -859,6 +965,11 @@ export default function AddLead({ navigation, route }) {
                     setPickerModalVisible(false);
                   },
                   'Search batch tracks...',
+                  batchTrack
+                    ? typeof batchTrack === 'string'
+                      ? batchTrack
+                      : batchTrack.name
+                    : null,
                 )
               }
             />
@@ -883,6 +994,7 @@ export default function AddLead({ navigation, route }) {
                     setErrors(prev => ({ ...prev, leadStatus: null }));
                   },
                   'Search status...',
+                  leadStatus ? leadStatus.name : null,
                 )
               }
               error={errors.leadStatus}
@@ -895,7 +1007,8 @@ export default function AddLead({ navigation, route }) {
               value={nextFollowUpDate}
               onDateChange={val => {
                 setNextFollowUpDate(val);
-                if (val) setErrors(prev => ({ ...prev, nextFollowUpDate: null }));
+                if (val)
+                  setErrors(prev => ({ ...prev, nextFollowUpDate: null }));
               }}
               error={errors.nextFollowUpDate}
             />
@@ -916,6 +1029,7 @@ export default function AddLead({ navigation, route }) {
                     setErrors(prev => ({ ...prev, followupStatus: null }));
                   },
                   'Search followup status...',
+                  followupStatus ? followupStatus.name : null,
                 )
               }
               error={errors.followupStatus}
@@ -1003,13 +1117,28 @@ export default function AddLead({ navigation, route }) {
                   keyboardShouldPersistTaps="handled"
                   renderItem={({ item }) => (
                     <TouchableOpacity
-                      style={styles.pickerItemRow}
+                      style={[
+                        styles.pickerItemRow,
+                        item.label === pickerConfig.selectedValue && {
+                          backgroundColor: '#F0F3F7',
+                        },
+                      ]}
                       onPress={() => pickerConfig.onSelect(item)}
                     >
                       {item.flag && (
                         <Text style={styles.pickerFlag}>{item.flag}</Text>
                       )}
-                      <Text style={styles.pickerItemLabel}>{item.label}</Text>
+                      <Text
+                        style={[
+                          styles.pickerItemLabel,
+                          item.label === pickerConfig.selectedValue && {
+                            color: '#5D6AD1',
+                            fontWeight: 'bold',
+                          },
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
                       {item.prefix && (
                         <Text style={styles.pickerPrefix}>{item.prefix}</Text>
                       )}
@@ -1275,7 +1404,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '75%',
-    padding: 16,
+    // padding: 16,
     paddingBottom: 30,
   },
   addModalContainer: {
@@ -1292,6 +1421,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingTop: 18,
+    paddingHorizontal: 16,
     marginBottom: 16,
   },
   modalTitle: {
@@ -1305,6 +1436,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F3F7',
     borderRadius: 8,
     paddingHorizontal: 12,
+    marginHorizontal: 16,
     height: 44,
     marginBottom: 16,
   },
@@ -1318,6 +1450,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#F0F3F7',
   },

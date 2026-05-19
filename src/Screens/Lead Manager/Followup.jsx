@@ -679,9 +679,15 @@ const Followup = ({ isSubView }) => {
           snapPoints={['90%']}
           enablePanDownToClose
           topInset={80}
+          enableContentPanningGesture={true}
+          enableHandlePanningGesture={true}
         >
           <BottomSheetScrollView
             contentContainerStyle={styles.bottomSheetContent}
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
+            keyboardShouldPersistTaps="handled"
+            bounces={false}
           >
             <Text style={styles.bsTitle}>Lead Follow-Up</Text>
 

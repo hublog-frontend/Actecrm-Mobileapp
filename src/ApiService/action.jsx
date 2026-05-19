@@ -4,8 +4,8 @@ import * as RootNavigation from './RootNavigation';
 
 // Replace with your actual API URL. Since React Native doesn't use import.meta.env by default,
 // you might want to use a constant or a library like react-native-config.
-// const BASE_URL = 'https://switch-smirk-doozy.ngrok-free.dev';
-const BASE_URL = 'https://actecrm.com';
+const BASE_URL = 'https://switch-smirk-doozy.ngrok-free.dev';
+// const BASE_URL = 'https://actecrm.com';
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -209,7 +209,7 @@ export const getAllAreas = async payload => {
 
 export const createArea = async payload => {
   try {
-    const response = await api.post('/api/addArea', payload);
+    const response = await api.post('/api/insertArea', payload);
     return response;
   } catch (error) {
     throw error;

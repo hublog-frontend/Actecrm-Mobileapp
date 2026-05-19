@@ -120,8 +120,8 @@ const Login = ({ navigation }) => {
       console.log('user permissions error', error);
     } finally {
       setTimeout(() => {
-        setLoading(false);
         navigation.replace('MainTabs');
+        setLoading(false);
       }, 300);
     }
   };
