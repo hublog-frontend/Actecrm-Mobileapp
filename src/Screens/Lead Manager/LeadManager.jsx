@@ -13,6 +13,7 @@ import Leads from './Leads';
 import LiveLeads from './LiveLeads';
 import Junk from './Junk';
 import GlobalSearchHeader from '../../Common/GlobalSearchHeader';
+import Header from '../../Common/Header';
 
 const { width } = Dimensions.get('window');
 
@@ -49,6 +50,7 @@ const LeadManager = ({ isSubView }) => {
 
   return (
     <SafeAreaView style={!isSubView && styles.container}>
+      {!isSubView && <Header />}
       <View style={styles.tabBarContainer}>
         <ScrollView
           horizontal

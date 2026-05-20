@@ -12,7 +12,7 @@ export default function CommonTextArea({
   height = 100,
   ...props
 }) {
-  const handleChangeText = (text) => {
+  const handleChangeText = text => {
     let rawValue = text.replace(/^\s+/, ''); // Removes leading spaces
 
     const cleanLabel = label ? label.replace(/\*/g, '').trim() : '';
@@ -58,7 +58,7 @@ export default function CommonTextArea({
         cursorColor="#5D6AD1"
         {...props}
       />
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? <Text style={styles.errorText}>{label + error}</Text> : null}
     </View>
   );
 }

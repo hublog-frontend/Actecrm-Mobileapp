@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   TextInput,
@@ -9,8 +9,8 @@ import {
   ActivityIndicator,
   Modal,
   ScrollView,
-  TouchableWithoutFeedback,
   Keyboard,
+  Pressable,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,6 +22,7 @@ const SearchScreen = () => {
   const [results, setResults] = useState([]);
   const [selectedLead, setSelectedLead] = useState(null);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+  const [selectionKey, setSelectionKey] = useState(0);
 
   const handleLeadPress = lead => {
     Keyboard.dismiss();
@@ -81,7 +82,7 @@ const SearchScreen = () => {
             <ActivityIndicator
               size="large"
               color="#5D6AD1"
-              style={{ marginTop: 50 }}
+              style={styles.loader}
             />
           ) : query.length === 0 ? (
             <View style={styles.emptyState}>
@@ -161,37 +162,43 @@ const SearchScreen = () => {
               showsVerticalScrollIndicator={false}
             >
               {selectedLead && (
-                <View>
+                <Pressable onPress={() => setSelectionKey(prev => prev + 1)}>
                   <Text style={styles.sectionHeading}>Basic Information</Text>
                   <View style={styles.card}>
                     <DetailRow
                       icon="person-outline"
                       label="Name"
                       value={selectedLead.name}
+                      selectionKey={selectionKey}
                     />
                     <DetailRow
                       icon="mail-outline"
                       label="Email"
                       value={selectedLead.email}
+                      selectionKey={selectionKey}
                     />
                     <DetailRow
                       icon="call-outline"
                       label="Mobile"
                       value={selectedLead.phone}
+                      selectionKey={selectionKey}
                     />
                     <DetailRow
                       icon="logo-whatsapp"
                       label="Whatsapp"
                       value={selectedLead.whatsapp}
+                      selectionKey={selectionKey}
                     />
                     <DetailRow
                       icon="location-outline"
                       label="Area"
                       value={selectedLead.area_id}
+                      selectionKey={selectionKey}
                     />
                     <DetailRow
                       icon="person-circle-outline"
                       label="Lead Executive"
+                      selectionKey={selectionKey}
                       value={
                         selectedLead.lead_assigned_to_name
                           ? `${selectedLead.lead_assigned_to_id} (${selectedLead.lead_assigned_to_name})`
@@ -202,24 +209,20 @@ const SearchScreen = () => {
                       icon="calendar-outline"
                       label="Created At"
                       value={selectedLead.created_date}
+                      selectionKey={selectionKey}
                     />
                     <DetailRow
                       icon="calendar-outline"
                       label="Next Followup"
                       value={selectedLead.next_follow_up_date}
+                      selectionKey={selectionKey}
                     />
                     <DetailRow
                       icon="chatbox-ellipses-outline"
                       label="Comments"
                       value={selectedLead.comments}
                       hideBorder
-                    />
-                    <DetailRow
-                      icon="person-add-outline"
-                      label="Is Customer"
-                      value={selectedLead.is_customer_reg == 1 ? 'Yes' : 'No'}
-                      isHighlight={selectedLead.is_customer_reg != 1}
-                      hideBorder
+                      selectionKey={selectionKey}
                     />
                   </View>
 
@@ -229,10 +232,12 @@ const SearchScreen = () => {
                       icon="book-outline"
                       label="Course"
                       value={selectedLead.primary_course}
+                      selectionKey={selectionKey}
                     />
                     <DetailRow
                       icon="cash-outline"
                       label="Course Fees"
+                      selectionKey={selectionKey}
                       value={
                         selectedLead.primary_fees
                           ? `₹${selectedLead.primary_fees}`
@@ -243,29 +248,42 @@ const SearchScreen = () => {
                       icon="map-outline"
                       label="Region"
                       value={selectedLead.region_name}
+                      selectionKey={selectionKey}
                     />
                     <DetailRow
                       icon="business-outline"
                       label="Branch"
                       value={selectedLead.branch_name}
+                      selectionKey={selectionKey}
                     />
                     <DetailRow
                       icon="time-outline"
                       label="Batch Track"
                       value={selectedLead.batch_track}
+                      selectionKey={selectionKey}
                     />
                     <DetailRow
                       icon="funnel-outline"
                       label="Lead Source"
                       value={selectedLead.lead_type}
+                      selectionKey={selectionKey}
                     />
                     <DetailRow
                       icon="star-outline"
                       label="Lead Status"
                       value={selectedLead.lead_status}
+                      selectionKey={selectionKey}
+                    />
+                    <DetailRow
+                      icon="person-add-outline"
+                      label="Is Customer"
+                      selectionKey={selectionKey}
+                      value={selectedLead.is_customer_reg === 1 ? 'Yes' : 'No'}
+                      isHighlight={selectedLead.is_customer_reg !== 1}
+                      hideBorder
                     />
                   </View>
-                </View>
+                </Pressable>
               )}
             </ScrollView>
           </View>
@@ -275,26 +293,38 @@ const SearchScreen = () => {
   );
 };
 
-const DetailRow = ({ icon, label, value, isHighlight, hideBorder }) => (
-  <View style={[styles.detailRow, hideBorder && { borderBottomWidth: 0 }]}>
-    <View style={styles.detailLabelContainer}>
-      {icon && (
-        <View style={styles.iconWrapper}>
-          <Icon name={icon} size={16} color="#5D6AD1" />
-        </View>
-      )}
-      <Text style={styles.detailLabel}>{label}</Text>
+const DetailRow = ({
+  icon,
+  label,
+  value,
+  isHighlight,
+  hideBorder,
+  selectionKey,
+}) => {
+  return (
+    <View style={[styles.detailRow, hideBorder && styles.noBorder]}>
+      <View style={styles.detailLabelContainer}>
+        {icon && (
+          <View style={styles.iconWrapper}>
+            <Icon name={icon} size={16} color="#5D6AD1" />
+          </View>
+        )}
+        <Text style={styles.detailLabel}>{label}</Text>
+      </View>
+      <View style={styles.detailValueContainer}>
+        <Pressable onPress={() => {}} style={styles.valuePressable}>
+          <Text
+            key={selectionKey}
+            style={[styles.detailValue, isHighlight && styles.highlightValue]}
+            selectable={true}
+          >
+            {value || '-'}
+          </Text>
+        </Pressable>
+      </View>
     </View>
-    <View style={styles.detailValueContainer}>
-      <Text
-        style={[styles.detailValue, isHighlight && styles.highlightValue]}
-        selectable={true}
-      >
-        {value || '-'}
-      </Text>
-    </View>
-  </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -500,6 +530,18 @@ const styles = StyleSheet.create({
     color: '#E53E3E',
     fontWeight: '700',
   },
+  loader: {
+    marginTop: 50,
+  },
+  noBorder: {
+    borderBottomWidth: 0,
+  },
+  // valuePressable: {
+  //   flex: 1,
+  //   alignItems: 'flex-end',
+  //   justifyContent: 'center',
+  //   minHeight: 28,
+  // },
 });
 
 export default SearchScreen;

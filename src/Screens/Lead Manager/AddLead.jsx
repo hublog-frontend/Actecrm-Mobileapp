@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,11 +14,20 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Switch,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { formatToBackendIST, priceCategory } from '../../Common/Validation';
+import {
+  addressValidator,
+  emailValidator,
+  formatToBackendIST,
+  mobileValidator,
+  nameValidator,
+  priceCategory,
+  selectValidator,
+} from '../../Common/Validation';
 import { STATE_DATA } from '../../Common/States';
 import { CommonMessage } from '../../Common/CommonMessage';
 import { storeCourseList, storeAreaList } from '../../Redux/Slice';
@@ -39,6 +48,8 @@ import {
   createLead,
   updateLead,
   getLeadStatus,
+  assignLiveLead,
+  leadEmailAndMobileValidator,
 } from '../../ApiService/action';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -55,7 +66,79 @@ const followupStatusOptions = [
 export default function AddLead({ navigation, route }) {
   const dispatch = useDispatch();
   const editLeadData = route?.params?.lead;
-  const isEditMode = !!editLeadData;
+  const isFromLiveLeads = !!route?.params?.isFromLiveLeads;
+  const isEditMode = !!editLeadData && !isFromLiveLeads;
+  const isSubmitted = useRef(false);
+
+  useEffect(() => {
+    const backAction = () => {
+      console.log('Mobile back button clicked');
+      console.log('isFromLiveLeads', isFromLiveLeads);
+      if (isFromLiveLeads) {
+        assignLeadAndGoBack();
+      } else {
+        navigation.goBack();
+      }
+
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, []);
+
+  const assignLeadAndGoBack = async () => {
+    try {
+      const getLoginUserDetails = await AsyncStorage.getItem(
+        'loginUserDetails',
+      );
+
+      const convertAsJson = JSON.parse(getLoginUserDetails);
+
+      const payload = {
+        user_id: convertAsJson?.user_id || convertAsJson?.id,
+        lead_id: editLeadData.id,
+        is_assigned: false,
+      };
+
+      await assignLiveLead(payload);
+
+      navigation.goBack();
+    } catch (error) {
+      console.log('assign live lead error', error);
+
+      navigation.goBack();
+    }
+  };
+
+  // useEffect(() => {
+  //   return () => {
+  //     // If we came from Live Leads and did NOT submit/save the lead, release it!
+  //     if (isFromLiveLeads && !isSubmitted.current && editLeadData?.id) {
+  //       const releaseLead = async () => {
+  //         try {
+  //           const getLoginUserDetails = await AsyncStorage.getItem(
+  //             'loginUserDetails',
+  //           );
+  //           const convertAsJson = JSON.parse(getLoginUserDetails);
+  //           const payload = {
+  //             user_id: convertAsJson?.user_id || convertAsJson?.id,
+  //             lead_id: editLeadData.id,
+  //             is_assigned: false,
+  //           };
+  //           await assignLiveLead(payload);
+  //         } catch (error) {
+  //           console.log('assign live lead error', error);
+  //         }
+  //       };
+  //       releaseLead();
+  //     }
+  //   };
+  // }, [isFromLiveLeads, editLeadData]);
 
   const permissions = useSelector(state => state.userpermissions || []);
   const courseList = useSelector(state => state.courselist || []);
@@ -89,6 +172,10 @@ export default function AddLead({ navigation, route }) {
   const [showExpectedDatePicker, setShowExpectedDatePicker] = useState(false);
   const [comments, setComments] = useState('');
   const [errors, setErrors] = useState({});
+  const [validationTrigger, setValidationTrigger] = useState(false);
+
+  const initialEmailRef = useRef('');
+  const initialMobileRef = useRef('');
 
   // API Lists State
   const [leadTypeOptions, setLeadTypeOptions] = useState([]);
@@ -120,11 +207,13 @@ export default function AddLead({ navigation, route }) {
 
   // Pre-fill fields for editing
   useEffect(() => {
-    if (isEditMode) {
+    if (isEditMode || isFromLiveLeads) {
       console.log('editLeadData', editLeadData);
 
       setCandidateName(editLeadData.name || '');
       setEmail(editLeadData.email || '');
+      initialEmailRef.current = editLeadData.email || '';
+      initialMobileRef.current = editLeadData.phone || '';
 
       const targetPhoneCode = editLeadData.phone_code
         ? String(editLeadData.phone_code).startsWith('+')
@@ -217,7 +306,7 @@ export default function AddLead({ navigation, route }) {
 
       setComments(editLeadData.comments || editLeadData.comment || '');
     }
-  }, [editLeadData, isEditMode]);
+  }, [editLeadData, isEditMode, isFromLiveLeads]);
 
   // Dynamic API Option loading chain
   const getBranchData = async region_id => {
@@ -228,7 +317,7 @@ export default function AddLead({ navigation, route }) {
       const response = await getBranches(payload);
       const list = response?.data?.result || [];
       setBranchesOptions(list);
-      if (isEditMode && editLeadData.branch_id) {
+      if ((isEditMode || isFromLiveLeads) && editLeadData.branch_id) {
         const found = list.find(x => x.id === editLeadData.branch_id);
         if (found) setBranch(found);
       }
@@ -242,7 +331,7 @@ export default function AddLead({ navigation, route }) {
       const response = await getRegions();
       const list = response?.data?.data || [];
       setRegionsOptions(list);
-      if (isEditMode && editLeadData.region_id) {
+      if ((isEditMode || isFromLiveLeads) && editLeadData.region_id) {
         const found = list.find(x => x.id === editLeadData.region_id);
         if (found) setRegion(found);
         if (editLeadData.region_id != 3) {
@@ -259,7 +348,10 @@ export default function AddLead({ navigation, route }) {
       const response = await getAllAreas();
       const list = response?.data?.data || [];
       dispatch(storeAreaList(list));
-      if (isEditMode && (editLeadData.area_id || editLeadData.district)) {
+      if (
+        (isEditMode || isFromLiveLeads) &&
+        (editLeadData.area_id || editLeadData.district)
+      ) {
         const found = list.find(
           x =>
             x.id === editLeadData.area_id ||
@@ -284,7 +376,7 @@ export default function AddLead({ navigation, route }) {
       const response = await getLeadStatus();
       const list = response?.data?.result || [];
       setLeadStatusOptions(list);
-      if (isEditMode) {
+      if (isEditMode || isFromLiveLeads) {
         const targetStatusId =
           editLeadData.lead_status_id || editLeadData.lead_status;
         const found = list.find(
@@ -305,13 +397,17 @@ export default function AddLead({ navigation, route }) {
       const list = response?.data?.data || [];
       dispatch(storeCourseList(list));
       if (
-        isEditMode &&
-        (editLeadData.primary_course_id || editLeadData.course_id)
+        (isEditMode || isFromLiveLeads) &&
+        (editLeadData.primary_course_id ||
+          editLeadData.course_id ||
+          editLeadData.course)
       ) {
         const targetCourseId =
           editLeadData.primary_course_id || editLeadData.course_id;
 
-        const found = list.find(x => x.id === targetCourseId);
+        const found = list.find(
+          x => x.id === targetCourseId || x.name === editLeadData.course,
+        );
 
         if (found) setPrimaryCourse(found);
       }
@@ -341,7 +437,7 @@ export default function AddLead({ navigation, route }) {
       });
       setLeadTypeOptions(update_lead_status);
       if (
-        isEditMode &&
+        (isEditMode || isFromLiveLeads) &&
         (editLeadData.lead_type_id || editLeadData.lead_source)
       ) {
         const targetLeadSource =
@@ -460,67 +556,40 @@ export default function AddLead({ navigation, route }) {
     let newErrors = {};
     let isValid = true;
 
-    if (!candidateName.trim()) {
-      newErrors.candidateName = 'Please enter Candidate Name';
-      isValid = false;
-    }
-    if (!mobileNumber.trim() || mobileNumber.length < 8) {
-      newErrors.mobileNumber = 'Please enter a valid Mobile Number';
-      isValid = false;
-    }
-    if (!whatsappNumber.trim() || whatsappNumber.length < 8) {
-      newErrors.whatsappNumber = 'Please enter a valid WhatsApp Number';
-      isValid = false;
-    }
-    if (!email.trim() || !email.includes('@')) {
-      newErrors.email = 'Please enter a valid Email';
-      isValid = false;
-    }
-    if (!leadSource) {
-      newErrors.leadSource = 'Please select Lead Source';
-      isValid = false;
-    }
-    if (!area) {
-      newErrors.area = 'Please select Area';
-      isValid = false;
-    }
-    if (!primaryCourse) {
-      newErrors.primaryCourse = 'Please select Primary Course';
-      isValid = false;
-    }
-    if (!fees.trim()) {
-      newErrors.fees = 'Please enter Course Fees';
-      isValid = false;
-    }
-    if (!region) {
-      newErrors.region = 'Please select Region';
-      isValid = false;
-    }
-    if (!branch) {
-      if (region.id != 3) {
-        newErrors.branch = 'Please select Branch';
-        isValid = false;
-      }
-    }
-    if (!leadStatus) {
-      newErrors.leadStatus = 'Please select Lead Status';
-      isValid = false;
-    }
-    if (!nextFollowUpDate) {
-      newErrors.nextFollowUpDate = 'Please select Next Follow-Up Date';
-      isValid = false;
-    }
-    if (!followupStatus) {
-      newErrors.followupStatus = 'Please select Followup Status';
-      isValid = false;
-    }
-    if (!comments.trim()) {
-      newErrors.comments = 'Please enter Comments';
-      isValid = false;
-    }
-
+    newErrors.candidateName = nameValidator(candidateName);
+    newErrors.mobileNumber = mobileValidator(mobileNumber);
+    newErrors.whatsappNumber = mobileValidator(whatsappNumber);
+    newErrors.email = emailValidator(email);
+    newErrors.leadSource = selectValidator(leadSource);
+    newErrors.area = selectValidator(area);
+    newErrors.primaryCourse = addressValidator(primaryCourse);
+    newErrors.fees = selectValidator(fees);
+    newErrors.region = selectValidator(region);
+    newErrors.branch = region && region?.id == 3 ? '' : selectValidator(branch);
+    newErrors.leadStatus = selectValidator(leadStatus);
+    newErrors.nextFollowUpDate = selectValidator(nextFollowUpDate);
+    newErrors.followupStatus = selectValidator(followupStatus);
+    newErrors.comments = addressValidator(comments);
     setErrors(newErrors);
 
+    if (
+      newErrors.candidateName ||
+      newErrors.mobileNumber ||
+      newErrors.whatsappNumber ||
+      newErrors.email ||
+      newErrors.leadSource ||
+      newErrors.area ||
+      newErrors.primaryCourse ||
+      newErrors.fees ||
+      newErrors.region ||
+      newErrors.branch ||
+      newErrors.leadStatus ||
+      newErrors.nextFollowUpDate ||
+      newErrors.followupStatus ||
+      newErrors.comments
+    ) {
+      isValid = false;
+    }
     if (!isValid) {
       CommonMessage('error', 'Please fill all required fields correctly');
     }
@@ -528,10 +597,77 @@ export default function AddLead({ navigation, route }) {
     return isValid;
   };
 
+  const checkExists = async (emailToCheck, mobileToCheck) => {
+    let emailExists = false;
+    let mobileExists = false;
+
+    try {
+      if (emailToCheck) {
+        const payload = { email: emailToCheck };
+        const response = await leadEmailAndMobileValidator(payload);
+        console.log('lead email validator res', response);
+        if (response?.data?.data === true) {
+          emailExists = true;
+        }
+      }
+    } catch (error) {
+      console.log('email validation error', error);
+    }
+
+    try {
+      if (mobileToCheck) {
+        const payload = { mobile: mobileToCheck };
+        const response = await leadEmailAndMobileValidator(payload);
+        console.log('lead mobile validator res', response);
+        if (response?.data?.data === true) {
+          mobileExists = true;
+        }
+      }
+    } catch (error) {
+      console.log('mobile validation error', error);
+    }
+
+    return { emailExists, mobileExists };
+  };
+
   const handleFormSubmit = async () => {
+    setValidationTrigger(true);
     if (!validateForm()) return;
 
-    // setSubmitLoading(true);
+    setSubmitLoading(true);
+
+    const emailToCheck =
+      !editLeadData || email !== initialEmailRef.current ? email.trim() : '';
+    const mobileToCheck =
+      !editLeadData || mobileNumber !== initialMobileRef.current
+        ? mobileNumber.trim()
+        : '';
+
+    if (emailToCheck || mobileToCheck) {
+      try {
+        const { emailExists, mobileExists } = await checkExists(
+          emailToCheck,
+          mobileToCheck,
+        );
+
+        if (emailExists || mobileExists) {
+          let newErrors = {};
+          if (emailExists) {
+            newErrors.email = 'Email address already exists';
+          }
+          if (mobileExists) {
+            newErrors.mobileNumber = 'Mobile number already exists';
+          }
+          setErrors(prev => ({ ...prev, ...newErrors }));
+          CommonMessage('error', 'Email or Mobile number already exists');
+          setSubmitLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.error('Error during email/mobile validation:', err);
+      }
+    }
+
     const today = new Date();
     const getLoginUserDetails = await AsyncStorage.getItem('loginUserDetails');
     const convertAsJson = JSON.parse(getLoginUserDetails);
@@ -588,15 +724,20 @@ export default function AddLead({ navigation, route }) {
 
     try {
       let res;
-      if (isEditMode) {
+      if (isEditMode && !isFromLiveLeads) {
         payload.lead_id = editLeadData.id || editLeadData.lead_id;
         res = await updateLead(payload);
         CommonMessage('success', 'Lead updated successfully');
+        isSubmitted.current = true;
       } else {
         res = await createLead(payload);
         CommonMessage('success', 'Lead created successfully');
+        isSubmitted.current = true;
       }
       formReset();
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      }
     } catch (error) {
       console.log('Form Submit error', error.response);
       CommonMessage(
@@ -615,6 +756,7 @@ export default function AddLead({ navigation, route }) {
   );
 
   const formReset = () => {
+    setValidationTrigger(false);
     setCandidateName('');
     setEmail('');
     setMobileNumber('');
@@ -661,14 +803,23 @@ export default function AddLead({ navigation, route }) {
             <View style={styles.header}>
               {navigation.canGoBack() ? (
                 <TouchableOpacity
-                  onPress={() => navigation.goBack()}
+                  onPress={() => {
+                    if (isFromLiveLeads) {
+                      assignLeadAndGoBack();
+                    } else {
+                      navigation.goBack();
+                    }
+                  }}
                   style={styles.closeBtn}
                 >
                   <Icon name="close" size={24} color="#1A3353" />
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('Lead Manager')}
+                  onPress={() => {
+                    console.log('lead managerrrrrrrrrr');
+                    navigation.navigate('Lead Manager');
+                  }}
                   style={styles.closeBtn}
                 >
                   <Icon name="chevron-back" size={24} color="#1A3353" />
@@ -693,7 +844,15 @@ export default function AddLead({ navigation, route }) {
                   label="Candidate Name *"
                   placeholder="Candidate Name"
                   value={candidateName}
-                  onChangeText={setCandidateName}
+                  onChangeText={value => {
+                    setCandidateName(value);
+                    if (validationTrigger) {
+                      setErrors(prev => ({
+                        ...prev,
+                        candidateName: nameValidator(value),
+                      }));
+                    }
+                  }}
                   error={errors.candidateName}
                 />
 
@@ -701,7 +860,30 @@ export default function AddLead({ navigation, route }) {
                 <PhoneWithCountry
                   label="Mobile Number *"
                   value={mobileNumber}
-                  onChange={setMobileNumber}
+                  onChange={async value => {
+                    const mob = value;
+                    setMobileNumber(mob);
+                    if (validationTrigger || isFromLiveLeads) {
+                      const mobileValitaion = mobileValidator(mob);
+                      setErrors(prev => ({
+                        ...prev,
+                        mobileNumber: mobileValitaion,
+                      }));
+                      if (mobileValitaion === '') {
+                        const payload = { mobile: mob };
+                        const response = await leadEmailAndMobileValidator(
+                          payload,
+                        );
+                        console.log('lead mobile validator res', response);
+                        if (response?.data?.data === true) {
+                          setErrors(prev => ({
+                            ...prev,
+                            mobileNumber: 'already exists',
+                          }));
+                        }
+                      }
+                    }
+                  }}
                   selectedCountry={mobileCountryCode}
                   countryCode={setMobileDialCode}
                   onCountryChange={setMobileCountryCode}
@@ -712,7 +894,15 @@ export default function AddLead({ navigation, route }) {
                 <PhoneWithCountry
                   label="WhatsApp Number *"
                   value={whatsappNumber}
-                  onChange={setWhatsappNumber}
+                  onChange={value => {
+                    setWhatsappNumber(value);
+                    if (validationTrigger) {
+                      setErrors(prev => ({
+                        ...prev,
+                        whatsappNumber: mobileValidator(value),
+                      }));
+                    }
+                  }}
                   selectedCountry={whatsappCountryCode}
                   countryCode={setWhatsappDialCode}
                   onCountryChange={setWhatsappCountryCode}
@@ -726,7 +916,30 @@ export default function AddLead({ navigation, route }) {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={async value => {
+                    const em = value;
+                    setEmail(em);
+                    if (validationTrigger || isFromLiveLeads) {
+                      const emailValitaion = emailValidator(em);
+                      setErrors(prev => ({
+                        ...prev,
+                        email: emailValitaion,
+                      }));
+                      if (emailValitaion === '') {
+                        const payload = { email: em };
+                        const response = await leadEmailAndMobileValidator(
+                          payload,
+                        );
+                        console.log('lead mobile validator res', response);
+                        if (response?.data?.data === true) {
+                          setErrors(prev => ({
+                            ...prev,
+                            email: 'Email already exists',
+                          }));
+                        }
+                      }
+                    }
+                  }}
                   error={errors.email}
                 />
 
@@ -743,7 +956,12 @@ export default function AddLead({ navigation, route }) {
                       item => {
                         setLeadSource(item);
                         setPickerModalVisible(false);
-                        setErrors(prev => ({ ...prev, leadSource: null }));
+                        if (validationTrigger) {
+                          setErrors(prev => ({
+                            ...prev,
+                            leadSource: selectValidator(item),
+                          }));
+                        }
                       },
                       'Search lead sources...',
                       leadSource ? leadSource.name : null,
@@ -767,6 +985,12 @@ export default function AddLead({ navigation, route }) {
                         setState(null);
                         setStateOptions(STATE_DATA[item.code] || []);
                         setPickerModalVisible(false);
+                        if (validationTrigger) {
+                          setErrors(prev => ({
+                            ...prev,
+                            country: selectValidator(item),
+                          }));
+                        }
                       },
                       'Search countries...',
                       country ? country.name : null,
@@ -787,6 +1011,12 @@ export default function AddLead({ navigation, route }) {
                       item => {
                         setState(item);
                         setPickerModalVisible(false);
+                        if (validationTrigger) {
+                          setErrors(prev => ({
+                            ...prev,
+                            state: selectValidator(item),
+                          }));
+                        }
                       },
                       'Search states...',
                       state ? state.name : null,
@@ -810,13 +1040,18 @@ export default function AddLead({ navigation, route }) {
                           item => {
                             setArea(item);
                             setPickerModalVisible(false);
-                            setErrors(prev => ({ ...prev, area: null }));
+                            if (validationTrigger) {
+                              setErrors(prev => ({
+                                ...prev,
+                                area: selectValidator(item),
+                              }));
+                            }
                           },
                           'Search areas...',
                           area ? area.name : null,
                         )
                       }
-                      error={errors.area}
+                      error={errors.area ? 'Area' + errors.area : ''}
                     />
                     <TouchableOpacity
                       style={styles.quickAddButton}
@@ -855,16 +1090,22 @@ export default function AddLead({ navigation, route }) {
                           item => {
                             setPrimaryCourse(item);
                             setPickerModalVisible(false);
-                            setErrors(prev => ({
-                              ...prev,
-                              primaryCourse: null,
-                            }));
+                            if (validationTrigger) {
+                              setErrors(prev => ({
+                                ...prev,
+                                primaryCourse: selectValidator(item),
+                              }));
+                            }
                           },
                           'Search courses...',
                           primaryCourse ? primaryCourse.name : null,
                         )
                       }
-                      error={errors.primaryCourse}
+                      error={
+                        errors.primaryCourse
+                          ? 'Primary Course' + errors.primaryCourse
+                          : ''
+                      }
                     />
                     <TouchableOpacity
                       style={styles.quickAddButton}
@@ -888,7 +1129,15 @@ export default function AddLead({ navigation, route }) {
                   placeholder="Course Fees"
                   keyboardType="numeric"
                   value={fees}
-                  onChangeText={setFees}
+                  onChangeText={value => {
+                    setFees(value);
+                    if (validationTrigger) {
+                      setErrors(prev => ({
+                        ...prev,
+                        fees: selectValidator(value),
+                      }));
+                    }
+                  }}
                   error={errors.fees}
                 />
 
@@ -904,12 +1153,20 @@ export default function AddLead({ navigation, route }) {
                       'name',
                       item => {
                         setRegion(item);
+                        if (validationTrigger) {
+                          setErrors(prev => ({
+                            ...prev,
+                            region: selectValidator(item),
+                          }));
+                        }
                         setPickerModalVisible(false);
-                        setErrors(prev => ({ ...prev, region: null }));
                         if (item.id != 3) {
                           getBranchData(item.id);
                         } else {
                           setBranch(null);
+                          setErrors({
+                            branch: '',
+                          });
                         }
                       },
                       'Search regions...',
@@ -933,7 +1190,12 @@ export default function AddLead({ navigation, route }) {
                         item => {
                           setBranch(item);
                           setPickerModalVisible(false);
-                          setErrors(prev => ({ ...prev, branch: null }));
+                          if (validationTrigger) {
+                            setErrors(prev => ({
+                              ...prev,
+                              branch: selectValidator(item),
+                            }));
+                          }
                         },
                         'Search branches...',
                         branch ? branch.name : null,
@@ -975,6 +1237,12 @@ export default function AddLead({ navigation, route }) {
                       item => {
                         setBatchTrack(item);
                         setPickerModalVisible(false);
+                        if (validationTrigger) {
+                          setErrors(prev => ({
+                            ...prev,
+                            batchTrack: selectValidator(item),
+                          }));
+                        }
                       },
                       'Search batch tracks...',
                       batchTrack
@@ -1003,7 +1271,12 @@ export default function AddLead({ navigation, route }) {
                       item => {
                         setLeadStatus(item);
                         setPickerModalVisible(false);
-                        setErrors(prev => ({ ...prev, leadStatus: null }));
+                        if (validationTrigger) {
+                          setErrors(prev => ({
+                            ...prev,
+                            leadStatus: selectValidator(item),
+                          }));
+                        }
                       },
                       'Search status...',
                       leadStatus ? leadStatus.name : null,
@@ -1020,7 +1293,12 @@ export default function AddLead({ navigation, route }) {
                   onDateChange={val => {
                     setNextFollowUpDate(val);
                     if (val)
-                      setErrors(prev => ({ ...prev, nextFollowUpDate: null }));
+                      if (validationTrigger) {
+                        setErrors(prev => ({
+                          ...prev,
+                          nextFollowUpDate: selectValidator(val),
+                        }));
+                      }
                   }}
                   error={errors.nextFollowUpDate}
                 />
@@ -1038,7 +1316,12 @@ export default function AddLead({ navigation, route }) {
                       item => {
                         setFollowupStatus(item);
                         setPickerModalVisible(false);
-                        setErrors(prev => ({ ...prev, followupStatus: null }));
+                        if (validationTrigger) {
+                          setErrors(prev => ({
+                            ...prev,
+                            followupStatus: selectValidator(item),
+                          }));
+                        }
                       },
                       'Search followup status...',
                       followupStatus ? followupStatus.name : null,
@@ -1052,7 +1335,16 @@ export default function AddLead({ navigation, route }) {
                   label="Expected Date Join"
                   placeholder="Select Date"
                   value={expectedDateJoin}
-                  onDateChange={setExpectedDateJoin}
+                  onDateChange={val => {
+                    setExpectedDateJoin(val);
+                    if (val)
+                      if (validationTrigger) {
+                        setErrors(prev => ({
+                          ...prev,
+                          expectedDateJoin: selectValidator(val),
+                        }));
+                      }
+                  }}
                 />
 
                 {/* Comments Selector */}
@@ -1062,7 +1354,14 @@ export default function AddLead({ navigation, route }) {
                   value={comments}
                   onChangeText={val => {
                     setComments(val);
-                    if (val) setErrors(prev => ({ ...prev, comments: null }));
+                    if (val) {
+                      if (validationTrigger) {
+                        setErrors(prev => ({
+                          ...prev,
+                          comments: addressValidator(val),
+                        }));
+                      }
+                    }
                   }}
                   error={errors.comments}
                 />

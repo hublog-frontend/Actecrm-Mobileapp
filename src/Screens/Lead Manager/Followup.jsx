@@ -363,11 +363,7 @@ const Followup = ({ isSubView }) => {
             onPress={() => {
               setSelectedLead(item);
               setActionId(item.lead_action_id || 1);
-              setNextDate(
-                item.next_follow_up_date
-                  ? new Date(item.next_follow_up_date)
-                  : new Date(),
-              );
+              setNextDate(new Date());
               followupSheetRef.current?.expand();
             }}
           >

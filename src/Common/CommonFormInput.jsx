@@ -64,7 +64,7 @@ export default function CommonFormInput({
         cursorColor="#5D6AD1"
         {...props}
       />
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? <Text style={styles.errorText}>{label + error}</Text> : null}
     </View>
   );
 }

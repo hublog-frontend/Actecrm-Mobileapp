@@ -29,7 +29,9 @@ export default function CommonSelectField({
         </Text>
         <Icon name={rightIcon} size={18} color="#7D8DA1" />
       </TouchableOpacity>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? (
+        <Text style={styles.errorText}>{`${label ? label : ''} ${error}`}</Text>
+      ) : null}
     </View>
   );
 }

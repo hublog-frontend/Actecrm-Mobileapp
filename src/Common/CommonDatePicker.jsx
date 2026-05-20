@@ -23,12 +23,7 @@ export default function CommonDatePicker({
         onPress={() => setShowPicker(true)}
         activeOpacity={0.8}
       >
-        <Text
-          style={[
-            styles.pickerValue,
-            !value && styles.placeholderText,
-          ]}
-        >
+        <Text style={[styles.pickerValue, !value && styles.placeholderText]}>
           {value ? moment(value).format('DD MMM YYYY') : placeholder}
         </Text>
         <Icon name="calendar-outline" size={18} color="#7D8DA1" />
@@ -52,7 +47,7 @@ export default function CommonDatePicker({
           }}
         />
       )}
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? <Text style={styles.errorText}>{label + error}</Text> : null}
     </View>
   );
 }

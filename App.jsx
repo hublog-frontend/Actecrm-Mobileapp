@@ -17,6 +17,7 @@ import Login from './src/Login/Login';
 import TabNavigator from './src/Navigation/TabNavigator';
 import AddLead from './src/Screens/Lead Manager/AddLead';
 import store from './src/Redux/Store';
+import { NotificationProvider } from './src/Context/NotificationContext';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,19 +27,21 @@ function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>
-        <SafeAreaProvider>
-          <NavigationContainer ref={navigationRef}>
-            <StatusBar
-              barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-              backgroundColor={isDarkMode ? '#000' : '#fff'}
-            />
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="Login" component={Login} />
-              <Stack.Screen name="MainTabs" component={TabNavigator} />
-              <Stack.Screen name="AddLead" component={AddLead} />
-            </Stack.Navigator>
-          </NavigationContainer>
-        </SafeAreaProvider>
+        <NotificationProvider>
+          <SafeAreaProvider>
+            <NavigationContainer ref={navigationRef}>
+              <StatusBar
+                barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+                backgroundColor={isDarkMode ? '#000' : '#fff'}
+              />
+              <Stack.Navigator screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="Login" component={Login} />
+                <Stack.Screen name="MainTabs" component={TabNavigator} />
+                <Stack.Screen name="AddLead" component={AddLead} />
+              </Stack.Navigator>
+            </NavigationContainer>
+          </SafeAreaProvider>
+        </NotificationProvider>
       </Provider>
     </GestureHandlerRootView>
   );

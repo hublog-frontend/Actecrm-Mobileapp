@@ -4,7 +4,7 @@ import * as RootNavigation from './RootNavigation';
 
 // Replace with your actual API URL. Since React Native doesn't use import.meta.env by default,
 // you might want to use a constant or a library like react-native-config.
-const BASE_URL = 'https://switch-smirk-doozy.ngrok-free.dev';
+export const BASE_URL = 'https://switch-smirk-doozy.ngrok-free.dev';
 // const BASE_URL = 'https://actecrm.com';
 
 const api = axios.create({
@@ -255,4 +255,83 @@ export const globalFilter = async value => {
   }
 };
 
+// Live Leads APIs
+export const getWebsiteLead = async payload => {
+  try {
+    const response = await api.post('/api/getWebsiteLead', payload);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const assignLiveLead = async payload => {
+  try {
+    const response = await api.put('/api/assignLiveLead', payload);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const manualAssign = async payload => {
+  try {
+    const response = await api.put('/api/manualAssign', payload);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateJunkValue = async payload => {
+  try {
+    const response = await api.put('/api/updateJunkValue', payload);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getPageColumns = async user_id => {
+  try {
+    const response = await api.get(`/api/getPageColumns?user_id=${user_id}`);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updatePageColumns = async payload => {
+  try {
+    const response = await api.post('/api/updatePageColumns', payload);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Real-time Notification fetch action
+export const getNotifications = async payload => {
+  try {
+    const response = await api.get('/api/getNotifications', {
+      params: payload,
+    });
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const leadEmailAndMobileValidator = async (payload) => {
+  try {
+    const response = await api.get("/api/checkEmailMblExists", {
+      params: payload,
+    });
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export default api;
+

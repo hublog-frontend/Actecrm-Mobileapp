@@ -31,6 +31,7 @@ const tron = Reactotron.configure({
   // })
   .useReactNative({
     networking: true, // 👈 THIS MUST BE TRUE OR EXPLICITLY PASSED
+    ignoreUrls: /symbolicate/,
   })
   .connect();
 

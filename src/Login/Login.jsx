@@ -10,6 +10,7 @@ import {
   StatusBar,
   Image,
   ActivityIndicator,
+  DeviceEventEmitter,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -175,6 +176,7 @@ const Login = ({ navigation }) => {
 
       // CommonMessage('success', 'Login successful!');
       await getUserDownlineData(loginUserDetails?.data?.user_id);
+      DeviceEventEmitter.emit('callGetNotificationApi');
     } catch (error) {
       setLoading(false);
       console.log('login error', error);
