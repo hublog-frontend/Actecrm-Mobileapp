@@ -20,7 +20,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import moment from 'moment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CommonMessage } from '../../Common/CommonMessage';
-import { formatToBackendIST } from '../../Common/Validation';
+import { addressValidator, formatToBackendIST } from '../../Common/Validation';
 import {
   getWebsiteLead,
   assignLiveLead,
@@ -31,6 +31,7 @@ import {
   getAllDownlineUsers,
 } from '../../ApiService/action';
 import styles from './LeadManagerstyles';
+import CommonTextArea from '../../Common/CommonTextArea';
 
 const LiveLeads = ({ isSubView, isActive }) => {
   const navigation = useNavigation();
@@ -78,6 +79,7 @@ const LiveLeads = ({ isSubView, isActive }) => {
   // Junk Modal State
   const [junkModalVisible, setJunkModalVisible] = useState(false);
   const [junkReason, setJunkReason] = useState('');
+  const [junkReasonError, setJunkReasonError] = useState('');
   const [junkLeadIds, setJunkLeadIds] = useState([]);
   const [junkLoading, setJunkLoading] = useState(false);
 
@@ -371,20 +373,21 @@ const LiveLeads = ({ isSubView, isActive }) => {
   const openJunkModal = ids => {
     setJunkLeadIds(ids);
     setJunkReason('');
+    setJunkReasonError('');
     setJunkModalVisible(true);
   };
 
   const handleJunkSubmit = async () => {
-    if (!junkReason.trim()) {
-      CommonMessage('error', 'Please input comments/reason');
-      return;
-    }
+    const junkReasonValidate = addressValidator(junkReason);
+    setJunkReasonError(junkReasonValidate);
+    if (junkReasonValidate) return;
+
     setJunkLoading(true);
     try {
       const payload = {
         lead_ids: junkLeadIds,
         is_junk: true,
-        reason: junkReason.trim(),
+        reason: junkReason,
       };
       await updateJunkValue(payload);
       CommonMessage('success', 'Lead(s) moved to junk');
@@ -813,7 +816,7 @@ const LiveLeads = ({ isSubView, isActive }) => {
             {selectedIds.length} Selected
           </Text>
           <View style={localStyles.batchFooterBtns}>
-            {permissions.includes('Assign Lead') && (
+            {/* {permissions.includes('Assign Lead') && (
               <TouchableOpacity
                 onPress={() => openAssignModal(selectedIds)}
                 style={localStyles.batchBtnOutline}
@@ -821,7 +824,7 @@ const LiveLeads = ({ isSubView, isActive }) => {
                 <Icon name="person-add-outline" size={16} color="#5D6AD1" />
                 <Text style={localStyles.batchBtnOutlineText}>Assign</Text>
               </TouchableOpacity>
-            )}
+            )} */}
             <TouchableOpacity
               onPress={() => openJunkModal(selectedIds)}
               style={localStyles.batchBtnSolid}
@@ -897,13 +900,16 @@ const LiveLeads = ({ isSubView, isActive }) => {
               Please input the reason or comment for junking lead(s):
             </Text>
 
-            <TextInput
-              multiline
-              numberOfLines={4}
+            <CommonTextArea
+              label={'Comments'}
               placeholder="Input reason here..."
               style={localStyles.modalInput}
               value={junkReason}
-              onChangeText={setJunkReason}
+              onChangeText={value => {
+                setJunkReason(value);
+                setJunkReasonError(addressValidator(value));
+              }}
+              error={junkReasonError}
             />
 
             <View style={localStyles.dialogButtons}>
