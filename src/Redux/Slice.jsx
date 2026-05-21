@@ -90,6 +90,31 @@ const followUpFilterValuesSlice = createSlice({
   },
 });
 
+const junkLeadFilterValues = {
+  searchValue: null,
+  filterType: 1,
+  start_date: moment().subtract(6, 'days').format('YYYY-MM-DD'),
+  end_date: moment().format('YYYY-MM-DD'),
+  pageNumber: 1,
+  pageLimit: 10,
+};
+
+const junkLeadFilterValuesSlice = createSlice({
+  name: 'junkleadfiltervalues',
+  initialState: junkLeadFilterValues,
+  reducers: {
+    storeJunkLeadFilterValues(state, action) {
+      return {
+        ...state,
+        ...action.payload,
+      };
+    },
+    resetJunkLeadFilterValues() {
+      return junkLeadFilterValues;
+    },
+  },
+});
+
 const courseListSlice = createSlice({
   name: 'courselist',
   initialState,
@@ -127,6 +152,8 @@ export const { storeLeadFilterValues, resetLeadFilterValues } =
   leadFilterValuesSlice.actions;
 export const { storeFollowUpFilterValues, resetFollowUpFilterValues } =
   followUpFilterValuesSlice.actions;
+export const { storeJunkLeadFilterValues, resetJunkLeadFilterValues } =
+  junkLeadFilterValuesSlice.actions;
 export const { storeCourseList } = courseListSlice.actions;
 export const { storeAreaList } = areaListSlice.actions;
 export const { storeFollowupStatusCounts } = followUpStatusCountsSlice.actions;
@@ -136,6 +163,7 @@ export const childUsersReducer = childUsersSlice.reducer;
 export const downlineUsersReducer = downlineUsersSlice.reducer;
 export const leadFilterValuesReducer = leadFilterValuesSlice.reducer;
 export const followUpFilterValuesReducer = followUpFilterValuesSlice.reducer;
+export const junkLeadFilterValuesReducer = junkLeadFilterValuesSlice.reducer;
 export const courseListReducer = courseListSlice.reducer;
 export const areaListReducer = areaListSlice.reducer;
 export const followUpStatusCountsReducer = followUpStatusCountsSlice.reducer;

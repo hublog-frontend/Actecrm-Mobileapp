@@ -331,9 +331,27 @@ export const readNotification = async payload => {
   }
 };
 
-export const leadEmailAndMobileValidator = async (payload) => {
+export const getJunkLeads = async payload => {
   try {
-    const response = await api.get("/api/checkEmailMblExists", {
+    const response = await api.post('/api/getJunkLeads', payload);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteJunkLeads = async payload => {
+  try {
+    const response = await api.put('/api/moveToTrash', payload);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const leadEmailAndMobileValidator = async payload => {
+  try {
+    const response = await api.get('/api/checkEmailMblExists', {
       params: payload,
     });
     return response;
@@ -343,4 +361,3 @@ export const leadEmailAndMobileValidator = async (payload) => {
 };
 
 export default api;
-
