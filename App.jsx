@@ -19,7 +19,100 @@ import AddLead from './src/Screens/Lead Manager/AddLead';
 import store from './src/Redux/Store';
 import { NotificationProvider } from './src/Context/NotificationContext';
 
+import { View, ActivityIndicator, DeviceEventEmitter } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserDownline, getUserPermissions } from './src/ApiService/action';
+import {
+  storeChildUsers,
+  storeDownlineUsers,
+  storeUserPermissions,
+} from './src/Redux/Slice';
+import { useDispatch } from 'react-redux';
+import { useState, useEffect } from 'react';
+
 const Stack = createNativeStackNavigator();
+
+function RootNavigator() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [initialRoute, setInitialRoute] = useState('Login');
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const checkLogin = async () => {
+      try {
+        const token = await AsyncStorage.getItem('AccessToken');
+        const userDetailsStr = await AsyncStorage.getItem('loginUserDetails');
+        if (token && userDetailsStr) {
+          const userDetails = JSON.parse(userDetailsStr);
+          const userIdVal = userDetails?.user_id || userDetails?.id;
+          if (userIdVal) {
+            // Fetch downline
+            const response = await getUserDownline(userIdVal);
+            const child_users = response?.data?.data?.child_users || [];
+            const downline_users = response?.data?.data?.downline_users || [];
+            const user_roles = response?.data?.data?.roles || [];
+
+            dispatch(storeChildUsers(child_users));
+            dispatch(storeDownlineUsers(downline_users));
+
+            // Fetch permissions
+            const permissionsResponse = await getUserPermissions({
+              role_ids: user_roles,
+            });
+            const permissions = permissionsResponse?.data?.data || [];
+            if (permissions.length >= 1) {
+              const updateData = permissions.map(
+                item => item.permission_name,
+              );
+              dispatch(storeUserPermissions(updateData));
+            }
+
+            DeviceEventEmitter.emit('callGetNotificationApi');
+            setInitialRoute('MainTabs');
+          }
+        }
+      } catch (error) {
+        console.log('Error restoring session in App.jsx', error);
+        if (
+          error?.response?.status === 401 ||
+          error?.response?.status === 403
+        ) {
+          await AsyncStorage.removeItem('AccessToken');
+          await AsyncStorage.removeItem('loginUserDetails');
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    checkLogin();
+  }, [dispatch]);
+
+  if (isLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#FFFFFF',
+        }}
+      >
+        <ActivityIndicator size="large" color="#1E90FF" />
+      </View>
+    );
+  }
+
+  return (
+    <Stack.Navigator
+      screenOptions={{ headerShown: false }}
+      initialRouteName={initialRoute}
+    >
+      <Stack.Screen name="Login" component={Login} />
+      <Stack.Screen name="MainTabs" component={TabNavigator} />
+      <Stack.Screen name="AddLead" component={AddLead} />
+    </Stack.Navigator>
+  );
+}
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -34,11 +127,7 @@ function App() {
                 barStyle={isDarkMode ? 'light-content' : 'dark-content'}
                 backgroundColor={isDarkMode ? '#000' : '#fff'}
               />
-              <Stack.Navigator screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="Login" component={Login} />
-                <Stack.Screen name="MainTabs" component={TabNavigator} />
-                <Stack.Screen name="AddLead" component={AddLead} />
-              </Stack.Navigator>
+              <RootNavigator />
             </NavigationContainer>
           </SafeAreaProvider>
         </NotificationProvider>

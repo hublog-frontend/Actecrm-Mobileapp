@@ -437,7 +437,8 @@ const Followup = ({ isSubView }) => {
         updated_by: convertAsJson?.user_id || 0,
         updated_date: formatToBackendIST(new Date()),
       };
-
+      console.log('payloadddd', payload);
+      // return;
       await updateFollowUp(payload);
       CommonMessage('success', 'Follow-up updated');
       followupSheetRef.current?.close();

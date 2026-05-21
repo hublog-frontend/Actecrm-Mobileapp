@@ -73,7 +73,6 @@ export default function AddLead({ navigation, route }) {
   useEffect(() => {
     const backAction = () => {
       console.log('Mobile back button clicked');
-      console.log('isFromLiveLeads', isFromLiveLeads);
       if (isFromLiveLeads) {
         assignLeadAndGoBack();
       } else {
@@ -204,108 +203,166 @@ export default function AddLead({ navigation, route }) {
   const [newItemLoading, setNewItemLoading] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
+  //junk handle
+  const [isPreviousJunk, setIsPreviousJunk] = useState(false);
 
   // Pre-fill fields for editing
   useEffect(() => {
-    if (isEditMode || isFromLiveLeads) {
-      console.log('editLeadData', editLeadData);
+    const loadEditData = async () => {
+      if (isEditMode || isFromLiveLeads) {
+        console.log('editLeadData', editLeadData);
 
-      setCandidateName(editLeadData.name || '');
-      setEmail(editLeadData.email || '');
-      initialEmailRef.current = editLeadData.email || '';
-      initialMobileRef.current = editLeadData.phone || '';
+        setCandidateName(editLeadData.name || '');
+        setEmail(editLeadData.email || '');
+        initialEmailRef.current = editLeadData.email || '';
+        initialMobileRef.current = editLeadData.phone || '';
 
-      const targetPhoneCode = editLeadData.phone_code
-        ? String(editLeadData.phone_code).startsWith('+')
-          ? String(editLeadData.phone_code)
-          : `+${editLeadData.phone_code}`
-        : null;
-      const foundMob =
-        COUNTRIES.find(c => c.prefix === targetPhoneCode) ||
-        COUNTRIES.find(c => c.code === 'in');
-      setMobileDialCode(
-        editLeadData.phone_code
-          ? String(editLeadData.phone_code).replace('+', '')
-          : '91',
-      );
-      setMobileCountryCode(foundMob ? foundMob.code : 'in');
-      setMobileNumber(editLeadData.phone || '');
+        const targetPhoneCode = editLeadData.phone_code
+          ? String(editLeadData.phone_code).startsWith('+')
+            ? String(editLeadData.phone_code)
+            : `+${editLeadData.phone_code}`
+          : null;
 
-      const targetWAPhoneCode = editLeadData.whatsapp_phone_code
-        ? String(editLeadData.whatsapp_phone_code).startsWith('+')
-          ? String(editLeadData.whatsapp_phone_code)
-          : `+${editLeadData.whatsapp_phone_code}`
-        : null;
-      const foundWA =
-        COUNTRIES.find(c => c.prefix === targetWAPhoneCode) ||
-        COUNTRIES.find(c => c.code === 'in');
-      setWhatsappDialCode(
-        editLeadData.whatsapp_phone_code
-          ? String(editLeadData.whatsapp_phone_code).replace('+', '')
-          : '91',
-      );
-      setWhatsappCountryCode(foundWA ? foundWA.code : 'in');
-      setWhatsappNumber(
-        editLeadData.whatsapp || editLeadData.whatsapp_no || '',
-      );
+        const foundMob =
+          COUNTRIES.find(c => c.prefix === targetPhoneCode) ||
+          COUNTRIES.find(c => c.code === 'in');
 
-      const defaultCountryCode = editLeadData.country
-        ? editLeadData.country.toLowerCase()
-        : 'in';
-      const foundCountry = COUNTRIES.find(
-        c =>
-          c.code.toLowerCase() === defaultCountryCode ||
-          c.name.toLowerCase() === defaultCountryCode,
-      ) || { name: 'India', code: 'in' };
-      setCountry(foundCountry);
-
-      const stateCode = editLeadData.state
-        ? editLeadData.state.toUpperCase()
-        : 'TN';
-      const availableStates = STATE_DATA[foundCountry.code] || [];
-      const foundState = availableStates.find(
-        s => s.code === stateCode || s.name.toUpperCase() === stateCode,
-      ) || { name: 'Tamil Nadu', code: 'TN' };
-      setState(foundState);
-      setStateOptions(availableStates);
-      setFees(
-        editLeadData.primary_fees
-          ? String(editLeadData.primary_fees)
-          : editLeadData.fees
-          ? String(editLeadData.fees)
-          : '',
-      );
-      setBatchTrack({
-        id: editLeadData.batch_track_id || 1,
-        name: editLeadData.batch_track || 'Normal',
-      });
-
-      if (editLeadData.next_follow_up_date || editLeadData.next_followup_date) {
-        setNextFollowUpDate(
-          new Date(
-            editLeadData.next_follow_up_date || editLeadData.next_followup_date,
-          ),
+        setMobileDialCode(
+          editLeadData.phone_code
+            ? String(editLeadData.phone_code).replace('+', '')
+            : '91',
         );
-      }
 
-      const foundFollowup = followupStatusOptions.find(
-        x =>
-          x.id === editLeadData.lead_status_id ||
-          x.name === editLeadData.followup_status ||
-          x.name === editLeadData.lead_action_name,
-      );
-      if (foundFollowup) setFollowupStatus(foundFollowup);
+        setMobileCountryCode(foundMob ? foundMob.code : 'in');
+        setMobileNumber(editLeadData.phone || '');
 
-      if (editLeadData.expected_date_join || editLeadData.expected_join_date) {
-        setExpectedDateJoin(
-          new Date(
-            editLeadData.expected_date_join || editLeadData.expected_join_date,
-          ),
+        const targetWAPhoneCode = editLeadData.whatsapp_phone_code
+          ? String(editLeadData.whatsapp_phone_code).startsWith('+')
+            ? String(editLeadData.whatsapp_phone_code)
+            : `+${editLeadData.whatsapp_phone_code}`
+          : null;
+
+        const foundWA =
+          COUNTRIES.find(c => c.prefix === targetWAPhoneCode) ||
+          COUNTRIES.find(c => c.code === 'in');
+
+        setWhatsappDialCode(
+          editLeadData.whatsapp_phone_code
+            ? String(editLeadData.whatsapp_phone_code).replace('+', '')
+            : '91',
         );
-      }
 
-      setComments(editLeadData.comments || editLeadData.comment || '');
-    }
+        setWhatsappCountryCode(foundWA ? foundWA.code : 'in');
+
+        setWhatsappNumber(
+          editLeadData.whatsapp || editLeadData.whatsapp_no || '',
+        );
+
+        const defaultCountryCode = editLeadData.country
+          ? editLeadData.country.toLowerCase()
+          : 'in';
+
+        const foundCountry = COUNTRIES.find(
+          c =>
+            c.code.toLowerCase() === defaultCountryCode ||
+            c.name.toLowerCase() === defaultCountryCode,
+        ) || { name: 'India', code: 'in' };
+
+        setCountry(foundCountry);
+
+        const stateCode = editLeadData.state
+          ? editLeadData.state.toUpperCase()
+          : 'TN';
+
+        const availableStates = STATE_DATA[foundCountry.code] || [];
+
+        const foundState = availableStates.find(
+          s => s.code === stateCode || s.name.toUpperCase() === stateCode,
+        ) || { name: 'Tamil Nadu', code: 'TN' };
+
+        setState(foundState);
+        setStateOptions(availableStates);
+
+        setFees(
+          editLeadData.primary_fees
+            ? String(editLeadData.primary_fees)
+            : editLeadData.fees
+            ? String(editLeadData.fees)
+            : '',
+        );
+
+        setBatchTrack({
+          id: editLeadData.batch_track_id || 1,
+          name: editLeadData.batch_track || 'Normal',
+        });
+
+        if (
+          editLeadData.next_follow_up_date ||
+          editLeadData.next_followup_date
+        ) {
+          setNextFollowUpDate(
+            new Date(
+              editLeadData.next_follow_up_date ||
+                editLeadData.next_followup_date,
+            ),
+          );
+        }
+
+        const foundFollowup = followupStatusOptions.find(
+          x =>
+            x.id === editLeadData.lead_status_id ||
+            x.name === editLeadData.followup_status ||
+            x.name === editLeadData.lead_action_name,
+        );
+
+        if (foundFollowup) {
+          setFollowupStatus(foundFollowup);
+        }
+
+        if (
+          editLeadData.expected_date_join ||
+          editLeadData.expected_join_date
+        ) {
+          setExpectedDateJoin(
+            new Date(
+              editLeadData.expected_date_join ||
+                editLeadData.expected_join_date,
+            ),
+          );
+        }
+
+        setComments(editLeadData.comments || editLeadData.comment || '');
+
+        if (isFromLiveLeads) {
+          try {
+            const { emailExists, mobileExists } = await checkExists(
+              editLeadData?.email,
+              editLeadData?.phone,
+            );
+
+            if (emailExists || mobileExists) {
+              let newErrors = {};
+
+              if (emailExists) {
+                newErrors.email = 'Email address already exists';
+              }
+
+              if (mobileExists) {
+                newErrors.mobileNumber = 'Mobile number already exists';
+              }
+
+              setErrors(prev => ({ ...prev, ...newErrors }));
+
+              CommonMessage('error', 'Email or Mobile number already exists');
+            }
+          } catch (err) {
+            console.error('Error during email/mobile validation:', err);
+          }
+        }
+      }
+    };
+
+    loadEditData();
   }, [editLeadData, isEditMode, isFromLiveLeads]);
 
   // Dynamic API Option loading chain
@@ -375,11 +432,20 @@ export default function AddLead({ navigation, route }) {
     try {
       const response = await getLeadStatus();
       const list = response?.data?.result || [];
-      setLeadStatusOptions(list);
+      const filterList = list.filter(f => f.id != 5);
+      setLeadStatusOptions(filterList);
       if (isEditMode || isFromLiveLeads) {
         const targetStatusId =
           editLeadData.lead_status_id || editLeadData.lead_status;
-        const found = list.find(
+        if (
+          targetStatusId.lead_status_id == 4 ||
+          targetStatusId.lead_status_id == 5
+        ) {
+          setIsPreviousJunk(true);
+        } else {
+          setIsPreviousJunk(false);
+        }
+        const found = filterList.find(
           x => x.id === targetStatusId || x.name === targetStatusId,
         );
         if (found) setLeadStatus(found);
@@ -479,6 +545,9 @@ export default function AddLead({ navigation, route }) {
       items: items.map(item => ({
         ...item,
         label: typeof item === 'string' ? item : item[labelField] || '',
+        disabled:
+          title === 'Select Lead Status' &&
+          (item.id === 6 || (editLeadData && (item.id === 4 || item.id === 5))),
       })),
       onSelect,
       searchPlaceholder,
@@ -699,10 +768,10 @@ export default function AddLead({ navigation, route }) {
       lead_action_id: followupStatus.id,
       ...(isEditMode && {
         is_previous_junk:
-          (editLeadData.lead_status_id === 4 ||
-            editLeadData.lead_status_id === 5) &&
-          leadStatus.id !== 4 &&
-          leadStatus.id !== 5,
+          isPreviousJunk &&
+          leadStatus &&
+          leadStatus.id != 4 &&
+          leadStatus.id != 5,
       }),
       next_follow_up_date: nextFollowUpDate
         ? formatToBackendIST(nextFollowUpDate)
@@ -1301,6 +1370,7 @@ export default function AddLead({ navigation, route }) {
                       }
                   }}
                   error={errors.nextFollowUpDate}
+                  disabled={leadStatus && leadStatus.id == 6 ? true : false}
                 />
 
                 {/* Followup Status (Lead Action) Selector */}
@@ -1328,6 +1398,7 @@ export default function AddLead({ navigation, route }) {
                     )
                   }
                   error={errors.followupStatus}
+                  disabled={leadStatus && leadStatus.id == 6 ? true : false}
                 />
 
                 {/* Expected Date Join Selector */}
@@ -1432,30 +1503,48 @@ export default function AddLead({ navigation, route }) {
                       keyboardShouldPersistTaps="handled"
                       renderItem={({ item }) => (
                         <TouchableOpacity
+                          disabled={item.disabled}
                           style={[
                             styles.pickerItemRow,
+
                             item.label === pickerConfig.selectedValue && {
                               backgroundColor: '#F0F3F7',
                             },
+
+                            item.disabled && styles.disabledPickerItem,
                           ]}
-                          onPress={() => pickerConfig.onSelect(item)}
+                          onPress={() => {
+                            if (!item.disabled) {
+                              pickerConfig.onSelect(item);
+                            }
+                          }}
                         >
                           {item.flag && (
                             <Text style={styles.pickerFlag}>{item.flag}</Text>
                           )}
+
                           <Text
                             style={[
                               styles.pickerItemLabel,
+
                               item.label === pickerConfig.selectedValue && {
                                 color: '#5D6AD1',
                                 fontWeight: 'bold',
                               },
+
+                              item.disabled && styles.disabledPickerItemText,
                             ]}
                           >
                             {item.label}
                           </Text>
+
                           {item.prefix && (
-                            <Text style={styles.pickerPrefix}>
+                            <Text
+                              style={[
+                                styles.pickerPrefix,
+                                item.disabled && styles.disabledPickerItemText,
+                              ]}
+                            >
                               {item.prefix}
                             </Text>
                           )}
@@ -1825,5 +1914,13 @@ const styles = StyleSheet.create({
   saveBtnText: {
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  disabledPickerItem: {
+    backgroundColor: '#F8FAFC',
+    opacity: 0.5,
+  },
+
+  disabledPickerItemText: {
+    color: '#94A3B8',
   },
 });

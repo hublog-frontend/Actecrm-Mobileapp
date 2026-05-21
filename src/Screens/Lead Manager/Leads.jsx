@@ -42,7 +42,7 @@ const Leads = ({ isSubView, isActive }) => {
   const [search, setSearch] = useState('');
 
   const [isFocused, setIsFocused] = useState(false);
-  const [filterType, setFilterType] = useState(2); // Default to Search by Name
+  const [filterType, setFilterType] = useState(1); // Default to Search by Mobile
   const [showFilterOptions, setShowFilterOptions] = useState(false);
   const [allDownliners, setAllDownliners] = useState([]);
 
