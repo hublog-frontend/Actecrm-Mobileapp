@@ -165,6 +165,7 @@ export const NotificationProvider = ({ children }) => {
     <NotificationContext.Provider
       value={{
         notifications,
+        setNotifications,
         unreadCount,
         setUnreadCount,
         fetchNotifications,

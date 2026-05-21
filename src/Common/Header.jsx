@@ -11,6 +11,7 @@ import {
   Dimensions,
   Pressable,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,17 +19,21 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { NotificationContext } from '../Context/NotificationContext';
 import * as RootNavigation from '../ApiService/RootNavigation';
 import moment from 'moment';
+import { getNotifications, readNotification } from '../ApiService/action';
 
 const { width } = Dimensions.get('window');
 const drawerWidth = width * 0.78;
 
 const Header = () => {
-  const { notifications, unreadCount, setUnreadCount } =
+  const { notifications, unreadCount, setUnreadCount, setNotifications } =
     useContext(NotificationContext);
   const [loginUser, setLoginUser] = useState(null);
   const [userName, setUserName] = useState('User');
   const [notificationModalVisible, setNotificationModalVisible] =
     useState(false);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
   // Left Drawer States
   const [drawerVisible, setDrawerVisible] = useState(false);
@@ -133,26 +138,178 @@ const Header = () => {
     }
   };
 
-  const renderNotificationItem = ({ item }) => {
-    const timeLabel = item.created_date
-      ? moment(item.created_date).fromNow()
+  const fetchNotifications = async (pageNumber = 1) => {
+    try {
+      const detailsStr = await AsyncStorage.getItem('loginUserDetails');
+
+      const details = JSON.parse(detailsStr);
+
+      const payload = {
+        user_id: details?.user_id,
+        page: pageNumber,
+      };
+
+      const res = await getNotifications(payload);
+
+      const data = res?.data?.data || [];
+
+      if (pageNumber === 1) {
+        setNotifications(data);
+
+        // initial unread count
+        const initialUnread = data.filter(n => n.is_read === 0).length;
+
+        setUnreadCount(initialUnread);
+      } else {
+        setNotifications(prev => [...prev, ...data]);
+      }
+
+      // if no data means no more pages
+      setHasMore(data.length > 0);
+
+      setPage(pageNumber);
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const renderNotificationItem = ({ item, index }) => {
+    const timeLabel = item.created_at
+      ? moment(item.created_at).fromNow()
       : 'Just now';
 
+    const message = (() => {
+      try {
+        return JSON.parse(item.message);
+      } catch {
+        return item.message;
+      }
+    })();
+
+    const isTicketNotification =
+      item.title === 'Ticket Assigned' ||
+      item.title === 'New comment added to the ticket';
+
+    const isServerRaised = item.title === 'Server Raised';
+
+    const getMessage = () => {
+      if (
+        (item.title === 'Payment Rejected' ||
+          item.title === 'Trainer Rejected' ||
+          item.title === 'Server Raised') &&
+        typeof message === 'object'
+      ) {
+        return `Customer Name: ${message.customer_name ?? '-'} | 
+Mobile: ${message.customer_phonecode ?? ''}${message.customer_phone ?? ''} | 
+Course: ${message.customer_course ?? '-'}`;
+      }
+
+      if (item.title === 'Ticket Assigned' && typeof message === 'object') {
+        return `Title: ${message.title ?? '-'} | 
+Category: ${message.category_name ?? '-'} | 
+Priority: ${message.priority ?? '-'}`;
+      }
+
+      if (
+        item.title === 'New comment added to the ticket' &&
+        typeof message === 'object'
+      ) {
+        return `Title: ${message.title ?? '-'} | 
+Category: ${message.category_name ?? '-'} | 
+Comment: ${message.comment ?? '-'}`;
+      }
+
+      if (
+        item.title === 'Trainer Payment Rejected' &&
+        typeof message === 'object'
+      ) {
+        return `Trainer Name: ${message.trainer_name ?? '-'} | 
+Mobile: +91 ${message.trainer_mobile ?? ''}`;
+      }
+
+      return typeof message === 'string' ? message : JSON.stringify(message);
+    };
+
     return (
-      <View style={styles.notificationItem}>
-        <View style={styles.notificationIconBg}>
-          <Icon name="information-circle" size={22} color="#5D6AD1" />
+      <TouchableOpacity
+        activeOpacity={0.8}
+        style={[
+          styles.notificationItem,
+          {
+            backgroundColor:
+              item.is_read == 0 ? 'rgba(91,105,202,0.11)' : '#FFFFFF',
+          },
+        ]}
+        onPress={() => handleMarkAsRead(item)}
+      >
+        <View
+          style={[
+            styles.notificationIconBg,
+            isTicketNotification || isServerRaised
+              ? styles.ticketNotificationBg
+              : styles.warningNotificationBg,
+          ]}
+        >
+          {isTicketNotification ? (
+            <Icon name="ticket-outline" size={22} color="#5b69ca" />
+          ) : (
+            <Icon name="warning" size={22} color="#d32f2f" />
+          )}
         </View>
+
         <View style={styles.notificationContent}>
-          <Text style={styles.notificationText}>
-            {item.message || 'New update received.'}
-          </Text>
-          <Text style={styles.notificationTime}>{timeLabel}</Text>
+          <View style={styles.notificationHeader}>
+            <Text
+              style={[
+                styles.notificationTitle,
+                item.is_read == 0 && styles.notificationUnreadTitle,
+              ]}
+            >
+              {item.title}
+            </Text>
+
+            <Text style={styles.notificationTime}>{timeLabel}</Text>
+          </View>
+
+          <Text style={styles.notificationText}>{getMessage()}</Text>
         </View>
-      </View>
+
+        {item.is_read == 0 && <View style={styles.unreadIndicator} />}
+      </TouchableOpacity>
     );
   };
 
+  const loadMoreNotifications = () => {
+    if (loadingMore || !hasMore) {
+      return;
+    }
+
+    setLoadingMore(true);
+
+    fetchNotifications(page + 1);
+  };
+
+  const handleMarkAsRead = async item => {
+    try {
+      // avoid calling API again if already read
+      if (item.is_read == 1) {
+        return;
+      }
+
+      const payload = {
+        id: item.id,
+      };
+
+      await readNotification(payload);
+
+      // update local state immediately
+      fetchNotifications();
+    } catch (error) {
+      console.log('Read notification error:', error?.response);
+    }
+  };
   return (
     <>
       <View style={styles.container}>
@@ -352,7 +509,7 @@ const Header = () => {
                     onPress={handleMarkAllRead}
                     style={styles.markReadBtn}
                   >
-                    <Text style={styles.markReadText}>Mark all as read</Text>
+                    {/* <Text style={styles.markReadText}>Mark all as read</Text> */}
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity
@@ -373,6 +530,17 @@ const Header = () => {
                   item.id?.toString() || index.toString()
                 }
                 contentContainerStyle={styles.listContent}
+                onEndReached={loadMoreNotifications}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={
+                  loadingMore ? (
+                    <ActivityIndicator
+                      size="small"
+                      color="#5D6AD1"
+                      style={{ marginVertical: 16 }}
+                    />
+                  ) : null
+                }
               />
             ) : (
               <View style={styles.emptyContainer}>
@@ -383,7 +551,9 @@ const Header = () => {
                     color="#7D8DA1"
                   />
                 </View>
+
                 <Text style={styles.emptyTitle}>All caught up!</Text>
+
                 <Text style={styles.emptySubtitle}>
                   You have no new notifications right now.
                 </Text>
@@ -731,6 +901,75 @@ const styles = StyleSheet.create({
     color: '#7D8DA1',
     marginTop: 6,
     fontWeight: '500',
+  },
+  notificationItem: {
+    flexDirection: 'row',
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 10,
+    position: 'relative',
+  },
+
+  notificationIconBg: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+
+  ticketNotificationBg: {
+    backgroundColor: 'rgba(91,105,202,0.12)',
+  },
+
+  warningNotificationBg: {
+    backgroundColor: 'rgba(211,47,47,0.12)',
+  },
+
+  notificationContent: {
+    flex: 1,
+  },
+
+  notificationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+
+  notificationTitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+    flex: 1,
+    marginRight: 10,
+  },
+
+  notificationUnreadTitle: {
+    color: '#1A3353',
+    fontWeight: '700',
+  },
+
+  notificationText: {
+    fontSize: 13,
+    color: '#4B5563',
+    lineHeight: 20,
+  },
+
+  notificationTime: {
+    fontSize: 11,
+    color: '#9CA3AF',
+  },
+
+  unreadIndicator: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#5D6AD1',
+    position: 'absolute',
+    right: 12,
+    top: 12,
   },
   emptyContainer: {
     flex: 1,

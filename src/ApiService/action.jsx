@@ -322,6 +322,15 @@ export const getNotifications = async payload => {
   }
 };
 
+export const readNotification = async payload => {
+  try {
+    const response = await api.put('/api/readNotification', payload);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const leadEmailAndMobileValidator = async (payload) => {
   try {
     const response = await api.get("/api/checkEmailMblExists", {

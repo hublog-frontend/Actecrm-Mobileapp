@@ -307,10 +307,10 @@ const Leads = ({ isSubView, isActive }) => {
                 filterType == 1
                   ? 'Search By Mobile'
                   : filterType == 2
-                  ? 'Search By Name'
-                  : filterType == 3
-                  ? 'Search By Email'
-                  : 'Search By Course'
+                    ? 'Search By Name'
+                    : filterType == 3
+                      ? 'Search By Email'
+                      : 'Search By Course'
               }
               value={search}
               onChangeText={handleSearchChange}

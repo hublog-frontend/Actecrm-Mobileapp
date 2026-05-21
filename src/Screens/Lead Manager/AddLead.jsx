@@ -188,7 +188,7 @@ export default function AddLead({ navigation, route }) {
   const [pickerConfig, setPickerConfig] = useState({
     title: '',
     items: [],
-    onSelect: () => {},
+    onSelect: () => { },
     searchPlaceholder: '',
   });
 
@@ -197,7 +197,7 @@ export default function AddLead({ navigation, route }) {
     title: '',
     label: '',
     placeholder: '',
-    onSave: () => {},
+    onSave: () => { },
   });
   const [newItemName, setNewItemName] = useState('');
   const [newItemLoading, setNewItemLoading] = useState(false);
@@ -287,8 +287,8 @@ export default function AddLead({ navigation, route }) {
           editLeadData.primary_fees
             ? String(editLeadData.primary_fees)
             : editLeadData.fees
-            ? String(editLeadData.fees)
-            : '',
+              ? String(editLeadData.fees)
+              : '',
         );
 
         setBatchTrack({
@@ -303,7 +303,7 @@ export default function AddLead({ navigation, route }) {
           setNextFollowUpDate(
             new Date(
               editLeadData.next_follow_up_date ||
-                editLeadData.next_followup_date,
+              editLeadData.next_followup_date,
             ),
           );
         }
@@ -326,7 +326,7 @@ export default function AddLead({ navigation, route }) {
           setExpectedDateJoin(
             new Date(
               editLeadData.expected_date_join ||
-                editLeadData.expected_join_date,
+              editLeadData.expected_join_date,
             ),
           );
         }
@@ -420,11 +420,6 @@ export default function AddLead({ navigation, route }) {
     } catch (error) {
       dispatch(storeAreaList([]));
       console.log('areas error', error);
-    } finally {
-      setTimeout(() => {
-        getRegionData();
-        getLeadStatusData();
-      }, 300);
     }
   };
 
@@ -452,8 +447,6 @@ export default function AddLead({ navigation, route }) {
       }
     } catch (error) {
       console.log('lead status fetch error', error);
-    } finally {
-      setScreenLoading(false);
     }
   };
 
@@ -480,10 +473,6 @@ export default function AddLead({ navigation, route }) {
     } catch (error) {
       dispatch(storeCourseList([]));
       console.log('course error', error);
-    } finally {
-      setTimeout(() => {
-        getAreasData();
-      }, 300);
     }
   };
 
@@ -514,19 +503,36 @@ export default function AddLead({ navigation, route }) {
     } catch (error) {
       setLeadTypeOptions([]);
       console.log('lead type error', error);
-    } finally {
-      setTimeout(() => {
-        getCourseData();
-      }, 300);
     }
   };
 
   useEffect(() => {
-    const initLoad = async () => {
+    let active = true;
+    const initLoad = () => {
       setScreenLoading(true);
-      await getLeadTypeData();
+      const loadData = async () => {
+        try {
+          await Promise.all([
+            getLeadTypeData(),
+            getCourseData(),
+            getAreasData(),
+            getRegionData(),
+            getLeadStatusData(),
+          ]);
+        } catch (error) {
+          console.log('Error initializing AddLead screen:', error);
+        } finally {
+          if (active) {
+            setScreenLoading(false);
+          }
+        }
+      };
+      loadData();
     };
     initLoad();
+    return () => {
+      active = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
