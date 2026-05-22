@@ -20,11 +20,13 @@ import { NotificationContext } from '../Context/NotificationContext';
 import * as RootNavigation from '../ApiService/RootNavigation';
 import moment from 'moment';
 import { getNotifications, readNotification } from '../ApiService/action';
+import { useTheme } from '../Context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 const drawerWidth = width * 0.78;
 
 const Header = () => {
+  const { theme } = useTheme();
   const { notifications, unreadCount, setUnreadCount, setNotifications } =
     useContext(NotificationContext);
   const [loginUser, setLoginUser] = useState(null);
@@ -201,34 +203,33 @@ const Header = () => {
           item.title === 'Server Raised') &&
         typeof message === 'object'
       ) {
-        return `Customer Name: ${message.customer_name ?? '-'} | 
-Mobile: ${message.customer_phonecode ?? ''}${message.customer_phone ?? ''} | 
-Course: ${message.customer_course ?? '-'}`;
+        return `Customer Name: ${message.customer_name ?? '-'} | \nMobile: ${
+          message.customer_phonecode ?? ''
+        }${message.customer_phone ?? ''} | \nCourse: ${
+          message.customer_course ?? '-'
+        }`;
       }
-
       if (item.title === 'Ticket Assigned' && typeof message === 'object') {
-        return `Title: ${message.title ?? '-'} | 
-Category: ${message.category_name ?? '-'} | 
-Priority: ${message.priority ?? '-'}`;
+        return `Title: ${message.title ?? '-'} | \nCategory: ${
+          message.category_name ?? '-'
+        } | \nPriority: ${message.priority ?? '-'}`;
       }
-
       if (
         item.title === 'New comment added to the ticket' &&
         typeof message === 'object'
       ) {
-        return `Title: ${message.title ?? '-'} | 
-Category: ${message.category_name ?? '-'} | 
-Comment: ${message.comment ?? '-'}`;
+        return `Title: ${message.title ?? '-'} | \nCategory: ${
+          message.category_name ?? '-'
+        } | \nComment: ${message.comment ?? '-'}`;
       }
-
       if (
         item.title === 'Trainer Payment Rejected' &&
         typeof message === 'object'
       ) {
-        return `Trainer Name: ${message.trainer_name ?? '-'} | 
-Mobile: +91 ${message.trainer_mobile ?? ''}`;
+        return `Trainer Name: ${message.trainer_name ?? '-'} | \nMobile: +91 ${
+          message.trainer_mobile ?? ''
+        }`;
       }
-
       return typeof message === 'string' ? message : JSON.stringify(message);
     };
 
@@ -239,7 +240,7 @@ Mobile: +91 ${message.trainer_mobile ?? ''}`;
           styles.notificationItem,
           {
             backgroundColor:
-              item.is_read == 0 ? 'rgba(91,105,202,0.11)' : '#FFFFFF',
+              item.is_read == 0 ? theme.primaryLight : theme.surfaceSecondary,
           },
         ]}
         onPress={() => handleMarkAsRead(item)}
@@ -253,9 +254,9 @@ Mobile: +91 ${message.trainer_mobile ?? ''}`;
           ]}
         >
           {isTicketNotification ? (
-            <Icon name="ticket-outline" size={22} color="#5b69ca" />
+            <Icon name="ticket-outline" size={22} color={theme.primary} />
           ) : (
-            <Icon name="warning" size={22} color="#d32f2f" />
+            <Icon name="warning" size={22} color={theme.error} />
           )}
         </View>
 
@@ -264,19 +265,31 @@ Mobile: +91 ${message.trainer_mobile ?? ''}`;
             <Text
               style={[
                 styles.notificationTitle,
-                item.is_read == 0 && styles.notificationUnreadTitle,
+                { color: theme.textSecondary },
+                item.is_read == 0 && {
+                  color: theme.textPrimary,
+                  fontWeight: '700',
+                },
               ]}
             >
               {item.title}
             </Text>
-
-            <Text style={styles.notificationTime}>{timeLabel}</Text>
+            <Text style={[styles.notificationTime, { color: theme.textMuted }]}>
+              {timeLabel}
+            </Text>
           </View>
-
-          <Text style={styles.notificationText}>{getMessage()}</Text>
+          <Text
+            style={[styles.notificationText, { color: theme.textSecondary }]}
+          >
+            {getMessage()}
+          </Text>
         </View>
 
-        {item.is_read == 0 && <View style={styles.unreadIndicator} />}
+        {item.is_read == 0 && (
+          <View
+            style={[styles.unreadIndicator, { backgroundColor: theme.primary }]}
+          />
+        )}
       </TouchableOpacity>
     );
   };
@@ -312,8 +325,16 @@ Mobile: +91 ${message.trainer_mobile ?? ''}`;
   };
   return (
     <>
-      <View style={styles.container}>
-        {/* Left Side: Avatar and Welcome Greeting (Interactive to open Left Drawer) */}
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: theme.surface,
+            borderBottomColor: theme.borderLight,
+          },
+        ]}
+      >
+        {/* Left Side: Avatar and Welcome Greeting */}
         <TouchableOpacity
           style={styles.leftContainer}
           onPress={openDrawer}
@@ -323,18 +344,29 @@ Mobile: +91 ${message.trainer_mobile ?? ''}`;
             <Text style={styles.avatarText}>{getInitials(userName)}</Text>
           </View>
           <View style={styles.textContainer}>
-            <Text style={styles.greetingText}>Hi, {userName}</Text>
-            <Text style={styles.subText}>Welcome back</Text>
+            <Text style={[styles.greetingText, { color: theme.textPrimary }]}>
+              Hi, {userName}
+            </Text>
+            <Text style={[styles.subText, { color: theme.textSecondary }]}>
+              Welcome back
+            </Text>
           </View>
         </TouchableOpacity>
 
         {/* Right Side: Notification Icon */}
         <TouchableOpacity
-          style={styles.notificationButton}
+          style={[
+            styles.notificationButton,
+            { backgroundColor: theme.surfaceSecondary },
+          ]}
           onPress={() => setNotificationModalVisible(true)}
           activeOpacity={0.7}
         >
-          <Icon name="notifications-outline" size={20} color="#1A3353" />
+          <Icon
+            name="notifications-outline"
+            size={20}
+            color={theme.textPrimary}
+          />
           {unreadCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>
@@ -345,10 +377,9 @@ Mobile: +91 ${message.trainer_mobile ?? ''}`;
         </TouchableOpacity>
       </View>
 
-      {/* 1. Left Side Menu Drawer Modal overlay */}
+      {/* 1. Left Side Menu Drawer */}
       {drawerVisible && (
         <View style={[StyleSheet.absoluteFill, styles.drawerOverlay]}>
-          {/* Fading Backdrop */}
           <Animated.View
             style={[
               StyleSheet.absoluteFill,
@@ -364,11 +395,13 @@ Mobile: +91 ${message.trainer_mobile ?? ''}`;
             <Pressable style={StyleSheet.absoluteFill} onPress={closeDrawer} />
           </Animated.View>
 
-          {/* Sliding Drawer Sidebar Container */}
           <Animated.View
             style={[
               styles.drawerContainer,
-              { transform: [{ translateX: slideAnim }] },
+              {
+                backgroundColor: theme.surface,
+                transform: [{ translateX: slideAnim }],
+              },
             ]}
           >
             <SafeAreaView style={styles.drawerSafeArea}>
@@ -376,11 +409,24 @@ Mobile: +91 ${message.trainer_mobile ?? ''}`;
                 contentContainerStyle={styles.drawerScrollView}
                 showsVerticalScrollIndicator={false}
               >
-                {/* Profile Header Card */}
+                {/* Profile Header */}
                 <View style={styles.drawerProfileHeader}>
                   <View style={styles.largeAvatarContainer}>
-                    <View style={styles.largeAvatarCircle}>
-                      <Text style={styles.largeAvatarText}>
+                    <View
+                      style={[
+                        styles.largeAvatarCircle,
+                        {
+                          backgroundColor: theme.surfaceSecondary,
+                          borderColor: theme.border,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.largeAvatarText,
+                          { color: theme.primary },
+                        ]}
+                      >
                         {getInitials(userName)}
                       </Text>
                     </View>
@@ -392,73 +438,44 @@ Mobile: +91 ${message.trainer_mobile ?? ''}`;
                     </TouchableOpacity>
                   </View>
 
-                  <Text style={styles.drawerProfileName}>
+                  <Text
+                    style={[
+                      styles.drawerProfileName,
+                      { color: theme.textPrimary },
+                    ]}
+                  >
                     {`${loginUser?.user_id} | ${userName}`}
                   </Text>
                   <View style={styles.drawerProfileRole}>
-                    <Icon name="call" size={14} color="#667C94" />
-                    <Text style={styles.phoneText}>
+                    <Icon name="call" size={14} color={theme.textSecondary} />
+                    <Text
+                      style={[styles.phoneText, { color: theme.textSecondary }]}
+                    >
                       {loginUser?.phone || '-'}
                     </Text>
                   </View>
-                  <Text style={styles.drawerProfileLocation}>
+                  <Text
+                    style={[
+                      styles.drawerProfileLocation,
+                      { color: theme.textMuted },
+                    ]}
+                  >
                     {loginUser?.location ||
                       loginUser?.branch_name ||
                       'Chennai, Tamil Nadu, India'}
                   </Text>
                 </View>
 
-                {/* Divider */}
-                <View style={styles.drawerDivider} />
+                <View
+                  style={[
+                    styles.drawerDivider,
+                    { backgroundColor: theme.borderLight },
+                  ]}
+                />
 
-                {/* Main Menu Options */}
-                <View style={styles.drawerMenuContainer}></View>
+                <View style={styles.drawerMenuContainer} />
 
-                {/* Settings & Bottom Profile Details Section */}
                 <View style={styles.bottomSection}>
-                  {/* <TouchableOpacity
-                    style={styles.settingsItem}
-                    activeOpacity={0.7}
-                  >
-                    <Icon name="settings-outline" size={20} color="#1A3353" />
-                    <Text style={styles.settingsText}>Settings</Text>
-                  </TouchableOpacity> */}
-
-                  {/* Profile Details Card on bottom */}
-                  {/* <View style={styles.profileDetailsCard}>
-                    <Text style={styles.detailsCardTitle}>Profile Details</Text>
-
-                    {loginUser?.email && (
-                      <View style={styles.detailCardRow}>
-                        <Icon name="mail-outline" size={14} color="#7D8DA1" />
-                        <Text style={styles.detailCardText}>
-                          {loginUser.email}
-                        </Text>
-                      </View>
-                    )}
-
-                    {loginUser?.phone && (
-                      <View style={styles.detailCardRow}>
-                        <Icon name="call-outline" size={14} color="#7D8DA1" />
-                        <Text style={styles.detailCardText}>
-                          {loginUser.phone}
-                        </Text>
-                      </View>
-                    )}
-
-                    <View style={styles.detailCardRow}>
-                      <Icon
-                        name="finger-print-outline"
-                        size={14}
-                        color="#7D8DA1"
-                      />
-                      <Text style={styles.detailCardText}>
-                        User ID: {loginUser?.user_id || 'ACTE-1024'}
-                      </Text>
-                    </View>
-                  </View> */}
-
-                  {/* Logout Button */}
                   <Pressable
                     style={({ pressed }) => [
                       styles.logoutBtn,
@@ -491,37 +508,44 @@ Mobile: +91 ${message.trainer_mobile ?? ''}`;
         </View>
       )}
 
-      {/* 2. Notifications Drawer Modal */}
+      {/* 2. Notifications Modal */}
       <Modal
         animationType="slide"
         transparent={true}
         visible={notificationModalVisible}
         onRequestClose={() => setNotificationModalVisible(false)}
       >
-        <SafeAreaView style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            {/* Modal Header */}
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Notifications</Text>
+        <SafeAreaView
+          style={[styles.modalOverlay, { backgroundColor: theme.overlay }]}
+        >
+          <View
+            style={[styles.modalContent, { backgroundColor: theme.surface }]}
+          >
+            <View
+              style={[
+                styles.modalHeader,
+                { borderBottomColor: theme.borderLight },
+              ]}
+            >
+              <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>
+                Notifications
+              </Text>
               <View style={styles.modalActions}>
                 {unreadCount > 0 && (
                   <TouchableOpacity
                     onPress={handleMarkAllRead}
                     style={styles.markReadBtn}
-                  >
-                    {/* <Text style={styles.markReadText}>Mark all as read</Text> */}
-                  </TouchableOpacity>
+                  />
                 )}
                 <TouchableOpacity
                   onPress={() => setNotificationModalVisible(false)}
                   style={styles.closeBtn}
                 >
-                  <Icon name="close" size={24} color="#1A3353" />
+                  <Icon name="close" size={24} color={theme.textPrimary} />
                 </TouchableOpacity>
               </View>
             </View>
 
-            {/* Notifications List */}
             {notifications && notifications.length > 0 ? (
               <FlatList
                 data={notifications}
@@ -536,7 +560,7 @@ Mobile: +91 ${message.trainer_mobile ?? ''}`;
                   loadingMore ? (
                     <ActivityIndicator
                       size="small"
-                      color="#5D6AD1"
+                      color={theme.primary}
                       style={{ marginVertical: 16 }}
                     />
                   ) : null
@@ -544,17 +568,24 @@ Mobile: +91 ${message.trainer_mobile ?? ''}`;
               />
             ) : (
               <View style={styles.emptyContainer}>
-                <View style={styles.emptyIconBg}>
+                <View
+                  style={[
+                    styles.emptyIconBg,
+                    { backgroundColor: theme.surfaceSecondary },
+                  ]}
+                >
                   <Icon
                     name="notifications-off-outline"
                     size={48}
-                    color="#7D8DA1"
+                    color={theme.textSecondary}
                   />
                 </View>
-
-                <Text style={styles.emptyTitle}>All caught up!</Text>
-
-                <Text style={styles.emptySubtitle}>
+                <Text style={[styles.emptyTitle, { color: theme.textPrimary }]}>
+                  All caught up!
+                </Text>
+                <Text
+                  style={[styles.emptySubtitle, { color: theme.textSecondary }]}
+                >
                   You have no new notifications right now.
                 </Text>
               </View>

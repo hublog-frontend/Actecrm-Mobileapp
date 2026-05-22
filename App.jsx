@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { StatusBar, useColorScheme } from 'react-native';
+import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -18,6 +18,7 @@ import TabNavigator from './src/Navigation/TabNavigator';
 import AddLead from './src/Screens/Lead Manager/AddLead';
 import store from './src/Redux/Store';
 import { NotificationProvider } from './src/Context/NotificationContext';
+import { ThemeProvider, useTheme } from './src/Context/ThemeContext';
 
 import { View, ActivityIndicator, DeviceEventEmitter } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -125,25 +126,31 @@ function RootNavigator() {
 }
 
 function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-  console.log('isDarkMode', isDarkMode);
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>
-        <NotificationProvider>
-          <SafeAreaProvider>
-            <NavigationContainer ref={navigationRef}>
-              <StatusBar
-                barStyle={'dark-content'}
-                backgroundColor={isDarkMode ? '#000' : '#fff'}
-              />
-              <RootNavigator />
-            </NavigationContainer>
-          </SafeAreaProvider>
-        </NotificationProvider>
+        <ThemeProvider>
+          <NotificationProvider>
+            <SafeAreaProvider>
+              <AppContent />
+            </SafeAreaProvider>
+          </NotificationProvider>
+        </ThemeProvider>
       </Provider>
     </GestureHandlerRootView>
+  );
+}
+
+function AppContent() {
+  const { theme } = useTheme();
+  return (
+    <NavigationContainer ref={navigationRef}>
+      <StatusBar
+        barStyle={theme.statusBarStyle}
+        backgroundColor={theme.statusBarBg}
+      />
+      <RootNavigator />
+    </NavigationContainer>
   );
 }
 

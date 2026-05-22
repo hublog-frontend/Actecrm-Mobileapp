@@ -17,6 +17,7 @@ import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import moment from 'moment';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import styles from './LeadManagerstyles';
+import { useTheme } from '../../Context/ThemeContext';
 import {
   getLeads,
   assignLead,
@@ -29,6 +30,7 @@ import CommonMuiCustomDatePicker from '../../Common/CommonMuiCustomDatePicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Leads = ({ isSubView, isActive }) => {
+  const { theme } = useTheme();
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const filterValues = useSelector(state => state.leadfiltervalues);
@@ -209,11 +211,12 @@ const Leads = ({ isSubView, isActive }) => {
 
   const renderLeadCard = ({ item }) => {
     const isReEntryPossible = checkReEntry(item.created_date);
-
     return (
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: theme.surface }]}>
         <View style={styles.cardHeader}>
-          <Text style={styles.name}>{item.name}</Text>
+          <Text style={[styles.name, { color: theme.textPrimary }]}>
+            {item.name}
+          </Text>
           <View
             style={[
               styles.statusBadge,
@@ -223,29 +226,35 @@ const Leads = ({ isSubView, isActive }) => {
             <Text style={styles.statusText}>{item.lead_status}</Text>
           </View>
         </View>
-
         <View style={styles.cardBody}>
           <View style={styles.detailRow}>
-            <Icon name="mail-outline" size={14} color="#667C94" />
-            <Text style={styles.detailText} selectable={true}>
+            <Icon name="mail-outline" size={14} color={theme.textSecondary} />
+            <Text
+              style={[styles.detailText, { color: theme.textSecondary }]}
+              selectable={true}
+            >
               {item.email || 'No email'}
             </Text>
           </View>
           <View style={styles.detailRow}>
-            <Icon name="call-outline" size={14} color="#667C94" />
-            <Text style={styles.detailText} selectable={true}>
+            <Icon name="call-outline" size={14} color={theme.textSecondary} />
+            <Text
+              style={[styles.detailText, { color: theme.textSecondary }]}
+              selectable={true}
+            >
               {item.phone}
             </Text>
           </View>
           <View style={styles.detailRow}>
-            <Icon name="globe-outline" size={14} color="#667C94" />
-            <Text style={styles.detailText}>
+            <Icon name="globe-outline" size={14} color={theme.textSecondary} />
+            <Text style={[styles.detailText, { color: theme.textSecondary }]}>
               {item.lead_type || 'Source unknown'}
             </Text>
           </View>
         </View>
-
-        <View style={styles.cardFooter}>
+        <View
+          style={[styles.cardFooter, { borderTopColor: theme.borderLight }]}
+        >
           <View style={styles.communicationIcons}>
             <TouchableOpacity onPress={() => handleCall(item.phone)}>
               <Icon name="call" size={20} color="#2ECC71" />
@@ -257,21 +266,7 @@ const Leads = ({ isSubView, isActive }) => {
               <Icon name="logo-whatsapp" size={20} color="#25D366" />
             </TouchableOpacity>
           </View>
-
           <View style={{ flexDirection: 'row' }}>
-            {/* {isReEntryPossible && (
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() =>
-                  Alert.alert('Re-entry', 'Lead is over 45 days old.')
-                }
-              >
-                <Icon name="refresh-circle" size={18} color="#E67E22" />
-                <Text style={[styles.actionText, { color: '#E67E22' }]}>
-                  Re-entry
-                </Text>
-              </TouchableOpacity>
-            )} */}
             <TouchableOpacity
               style={[
                 styles.actionButton,
@@ -280,33 +275,21 @@ const Leads = ({ isSubView, isActive }) => {
                   : {},
               ]}
               disabled={editLeadId !== null}
-              // onPress={() => {
-              //   setEditLeadId(item.id);
-              //   setTimeout(() => {
-              //     navigation.navigate('AddLead', { lead: item });
-              //   }, 1000);
-              //   setEditLeadId(null);
-              // }}
               onPress={() => handleEdit(item)}
             >
               {editLeadId == item.id ? (
                 <ActivityIndicator
                   size="small"
-                  color="#5D6AD1"
+                  color={theme.primary}
                   style={{ marginRight: 6 }}
                 />
               ) : (
-                <Icon name="create-outline" size={18} color="#5D6AD1" />
+                <Icon name="create-outline" size={18} color={theme.primary} />
               )}
-              <Text style={styles.actionText}>Edit</Text>
+              <Text style={[styles.actionText, { color: theme.primary }]}>
+                Edit
+              </Text>
             </TouchableOpacity>
-            {/* <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => assignSheetRef.current?.expand()}
-            >
-              <Icon name="person-add-outline" size={18} color="#5D6AD1" />
-              <Text style={styles.actionText}>Assign</Text>
-            </TouchableOpacity> */}
           </View>
         </View>
       </View>
@@ -330,14 +313,25 @@ const Leads = ({ isSubView, isActive }) => {
     <View
       style={[
         styles.container,
+        { backgroundColor: theme.background },
         isSubView && { backgroundColor: 'transparent' },
       ]}
     >
       <>
-        <View style={styles.header}>
-          <View style={styles.searchContainer}>
+        <View
+          style={[
+            styles.header,
+            { backgroundColor: theme.surface, borderBottomColor: theme.border },
+          ]}
+        >
+          <View
+            style={[
+              styles.searchContainer,
+              { backgroundColor: theme.surfaceSecondary },
+            ]}
+          >
             <TextInput
-              style={styles.searchInput}
+              style={[styles.searchInput, { color: theme.textPrimary }]}
               placeholder={
                 filterType == 1
                   ? 'Search By Mobile'
@@ -347,7 +341,7 @@ const Leads = ({ isSubView, isActive }) => {
                   ? 'Search By Email'
                   : 'Search By Course'
               }
-              placeholderTextColor={'gray'}
+              placeholderTextColor={theme.textMuted}
               value={search}
               onChangeText={handleSearchChange}
               onSubmitEditing={() => fetchLeads(1, true)}
@@ -356,14 +350,14 @@ const Leads = ({ isSubView, isActive }) => {
             />
             {search.length > 0 && (
               <TouchableOpacity onPress={() => handleSearchChange('')}>
-                <Icon name="close-circle" size={18} color="#A0AEC0" />
+                <Icon name="close-circle" size={18} color={theme.textMuted} />
               </TouchableOpacity>
             )}
             <TouchableOpacity
               style={styles.filterIcon}
               onPress={() => setShowFilterOptions(!showFilterOptions)}
             >
-              <Icon name="filter" size={20} color="#5D6AD1" />
+              <Icon name="filter" size={20} color={theme.primary} />
             </TouchableOpacity>
           </View>
 
@@ -374,7 +368,9 @@ const Leads = ({ isSubView, isActive }) => {
                 activeOpacity={1}
                 onPress={() => setShowFilterOptions(false)}
               />
-              <View style={styles.filterMenu}>
+              <View
+                style={[styles.filterMenu, { backgroundColor: theme.surface }]}
+              >
                 {[
                   { id: 1, label: 'Search by Mobile' },
                   { id: 2, label: 'Search by Name' },
@@ -398,9 +394,16 @@ const Leads = ({ isSubView, isActive }) => {
                           : 'radio-button-off'
                       }
                       size={18}
-                      color="#5D6AD1"
+                      color={theme.primary}
                     />
-                    <Text style={styles.filterMenuText}>{opt.label}</Text>
+                    <Text
+                      style={[
+                        styles.filterMenuText,
+                        { color: theme.textPrimary },
+                      ]}
+                    >
+                      {opt.label}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -408,7 +411,7 @@ const Leads = ({ isSubView, isActive }) => {
           )}
         </View>
 
-        <View style={{ backgroundColor: '#FFFFFF', paddingTop: 10 }}>
+        <View style={{ backgroundColor: theme.surface, paddingTop: 10 }}>
           <CommonMuiCustomDatePicker
             value={[filterValues.start_date, filterValues.end_date]}
             onDateChange={range => {
@@ -427,7 +430,7 @@ const Leads = ({ isSubView, isActive }) => {
         <View
           style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
         >
-          <ActivityIndicator size="large" color="#5D6AD1" />
+          <ActivityIndicator size="large" color={theme.primary} />
         </View>
       ) : (
         <FlatList
@@ -449,12 +452,20 @@ const Leads = ({ isSubView, isActive }) => {
                   alignItems: 'center',
                 }}
               >
-                {loading && <ActivityIndicator size="large" color="#5D6AD1" />}
+                {loading && (
+                  <ActivityIndicator size="large" color={theme.primary} />
+                )}
               </View>
             ) : null
           }
           ListEmptyComponent={
-            <Text style={{ textAlign: 'center', marginTop: 20 }}>
+            <Text
+              style={{
+                textAlign: 'center',
+                marginTop: 20,
+                color: theme.textSecondary,
+              }}
+            >
               No leads found
             </Text>
           }
@@ -467,12 +478,14 @@ const Leads = ({ isSubView, isActive }) => {
         index={-1}
         snapPoints={['50%']}
         enablePanDownToClose
+        backgroundStyle={{ backgroundColor: theme.surface }}
       >
         <BottomSheetView style={styles.bottomSheetContent}>
-          <Text style={styles.bsTitle}>Filters</Text>
-          {/* Filter content here */}
+          <Text style={[styles.bsTitle, { color: theme.textPrimary }]}>
+            Filters
+          </Text>
           <TouchableOpacity
-            style={styles.submitButton}
+            style={[styles.submitButton, { backgroundColor: theme.primary }]}
             onPress={() => filterSheetRef.current?.close()}
           >
             <Text style={styles.submitButtonText}>Apply Filters</Text>

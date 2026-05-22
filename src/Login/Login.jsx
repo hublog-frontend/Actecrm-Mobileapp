@@ -2,12 +2,10 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StatusBar,
   Image,
   ActivityIndicator,
   DeviceEventEmitter,
@@ -15,7 +13,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { styles } from './LoginStyles';
 import CommonTextInput from '../Common/CommonTextInput';
 import { CommonMessage } from '../Common/CommonMessage';
 import { useDispatch } from 'react-redux';
@@ -34,10 +31,57 @@ import {
   passwordValidator,
   formatToBackendIST,
 } from '../Common/Validation';
+import { useTheme } from '../Context/ThemeContext';
 
 const logo = require('../assets/acte-logo.png');
 
+const { height } = require('react-native').Dimensions.get('window');
+
+const loginStyles = require('react-native').StyleSheet.create({
+  container: { flex: 1 },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingTop: height * 0.1,
+    paddingBottom: 40,
+  },
+  logoSection: { marginBottom: 20, alignItems: 'flex-start' },
+  logoImage: { width: 120, height: 48 },
+  headerSection: { marginBottom: 32 },
+  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 4 },
+  subtitle: { fontSize: 16 },
+  formSection: { width: '100%' },
+  eyeIcon: { padding: 8 },
+  rememberSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderWidth: 1.5,
+    borderRadius: 6,
+    marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rememberText: { fontSize: 15, fontWeight: '500' },
+  signInButton: {
+    height: 56,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  signInButtonText: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
+});
+
 const Login = ({ navigation }) => {
+  const { theme } = useTheme();
   const [userId, setUserId] = useState('');
   const [userIdError, setUserIdError] = useState('');
   const [password, setPassword] = useState('');
@@ -192,87 +236,108 @@ const Login = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView
+      style={[loginStyles.container, { backgroundColor: theme.background }]}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContainer}
+          contentContainerStyle={loginStyles.scrollContainer}
           showsVerticalScrollIndicator={false}
         >
-          {/* Logo Section */}
-          <View style={styles.logoSection}>
+          {/* Logo */}
+          <View style={loginStyles.logoSection}>
             <Image
               source={logo}
-              style={styles.logoImage}
+              style={loginStyles.logoImage}
               resizeMode="contain"
             />
           </View>
 
-          {/* Header Section */}
-          <View style={styles.headerSection}>
-            <Text style={styles.title}>Sign In</Text>
-            <Text style={styles.subtitle}>to access CRM</Text>
+          {/* Header */}
+          <View style={loginStyles.headerSection}>
+            <Text style={[loginStyles.title, { color: theme.textPrimary }]}>
+              Sign In
+            </Text>
+            <Text
+              style={[loginStyles.subtitle, { color: theme.textSecondary }]}
+            >
+              to access CRM
+            </Text>
           </View>
 
-          {/* Form Section */}
-          <View style={styles.formSection}>
+          {/* Form */}
+          <View style={loginStyles.formSection}>
             <CommonTextInput
               label={'User Id'}
               value={userId}
               onChangeText={handleUserIdChange}
               placeholder="Enter User Id"
-              placeholderTextColor="#A0AEC0"
+              placeholderTextColor={theme.textMuted}
               error={userIdError}
             />
 
-            {/* Password Input */}
             <View style={{ marginTop: 20 }}>
               <CommonTextInput
                 label="Password"
                 value={password}
                 secureTextEntry={!showPassword}
                 placeholder="Enter Password"
-                placeholderTextColor="#A0AEC0"
+                placeholderTextColor={theme.textMuted}
                 onChangeText={handlePasswordChange}
                 error={passwordError}
                 errorFontSize={passwordError.includes('must contain') ? 9 : 11}
                 rightComponent={
                   <TouchableOpacity
                     onPress={() => setShowPassword(!showPassword)}
-                    style={styles.eyeIcon}
+                    style={loginStyles.eyeIcon}
                   >
                     <Icon
                       name={showPassword ? 'eye-outline' : 'eye-off-outline'}
                       size={22}
-                      color="#7D8DA1"
+                      color={theme.textSecondary}
                     />
                   </TouchableOpacity>
                 }
               />
             </View>
 
-            {/* Remember Me Checkbox */}
+            {/* Remember Me */}
             <TouchableOpacity
-              style={styles.rememberSection}
+              style={loginStyles.rememberSection}
               onPress={() => setRememberMe(!rememberMe)}
               activeOpacity={0.7}
             >
               <View
-                style={[styles.checkbox, rememberMe && styles.checkboxActive]}
+                style={[
+                  loginStyles.checkbox,
+                  { borderColor: theme.border, backgroundColor: theme.inputBg },
+                  rememberMe && {
+                    backgroundColor: theme.primary,
+                    borderColor: theme.primary,
+                  },
+                ]}
               >
                 {rememberMe && (
                   <Text style={{ color: '#FFF', fontSize: 12 }}>✓</Text>
                 )}
               </View>
-              <Text style={styles.rememberText}>Remember Me</Text>
+              <Text
+                style={[loginStyles.rememberText, { color: theme.textPrimary }]}
+              >
+                Remember Me
+              </Text>
             </TouchableOpacity>
 
             {/* Sign In Button */}
             <TouchableOpacity
-              style={[styles.signInButton, loading && { opacity: 0.7 }]}
+              style={[
+                loginStyles.signInButton,
+                { backgroundColor: theme.primary },
+                loading && { opacity: 0.7 },
+              ]}
               onPress={handleSignIn}
               activeOpacity={0.8}
               disabled={loading}
@@ -280,7 +345,7 @@ const Login = ({ navigation }) => {
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.signInButtonText}>Sign In</Text>
+                <Text style={loginStyles.signInButtonText}>Sign In</Text>
               )}
             </TouchableOpacity>
           </View>

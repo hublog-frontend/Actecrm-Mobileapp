@@ -4,10 +4,13 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import LeadManager from '../Screens/Lead Manager/LeadManager';
 import SearchScreen from '../Screens/Search/SearchScreen';
 import AddLead from '../Screens/Lead Manager/AddLead';
+import { useTheme } from '../Context/ThemeContext';
 
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
+  const { theme } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -20,19 +23,22 @@ const TabNavigator = () => {
             iconName = focused ? 'add-circle' : 'add-circle-outline';
           } else if (route.name === 'Search') {
             iconName = focused ? 'search' : 'search-outline';
-          } else if (route.name === 'Junk') {
-            iconName = focused ? 'trash' : 'trash-outline';
           }
 
           return <Icon name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#5D6AD1',
-        tabBarInactiveTintColor: '#7D8DA1',
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: theme.textSecondary,
         headerShown: false,
         tabBarStyle: {
           height: 60,
           paddingBottom: 10,
           paddingTop: 5,
+          backgroundColor: theme.surface,
+          borderTopColor: theme.border,
+        },
+        tabBarLabelStyle: {
+          color: theme.textSecondary,
         },
       })}
     >

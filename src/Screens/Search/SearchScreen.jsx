@@ -15,8 +15,10 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { globalFilter } from '../../ApiService/action';
+import { useTheme } from '../../Context/ThemeContext';
 
 const SearchScreen = () => {
+  const { theme } = useTheme();
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
@@ -56,22 +58,33 @@ const SearchScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.surface }]}>
       <View style={styles.container}>
-        <View style={styles.searchHeader}>
-          <View style={styles.inputContainer}>
-            <Icon name="search" size={20} color="#A0AEC0" />
+        {/* Search Header */}
+        <View
+          style={[
+            styles.searchHeader,
+            { borderBottomColor: theme.borderLight },
+          ]}
+        >
+          <View
+            style={[
+              styles.inputContainer,
+              { backgroundColor: theme.surfaceSecondary },
+            ]}
+          >
+            <Icon name="search" size={20} color={theme.textMuted} />
             <TextInput
               autoFocus
-              style={styles.input}
+              style={[styles.input, { color: theme.textPrimary }]}
               placeholder="Search across leads, phone..."
               value={query}
               onChangeText={handleSearch}
-              placeholderTextColor="#A0AEC0"
+              placeholderTextColor={theme.textMuted}
             />
             {query.length > 0 && (
               <TouchableOpacity onPress={() => setQuery('')}>
-                <Icon name="close-circle" size={18} color="#A0AEC0" />
+                <Icon name="close-circle" size={18} color={theme.textMuted} />
               </TouchableOpacity>
             )}
           </View>
@@ -81,14 +94,18 @@ const SearchScreen = () => {
           {loading ? (
             <ActivityIndicator
               size="large"
-              color="#5D6AD1"
+              color={theme.primary}
               style={styles.loader}
             />
           ) : query.length === 0 ? (
             <View style={styles.emptyState}>
-              <Icon name="search-outline" size={80} color="#F0F3F7" />
-              <Text style={styles.emptyTitle}>Global Search</Text>
-              <Text style={styles.emptySubtitle}>
+              <Icon name="search-outline" size={80} color={theme.borderLight} />
+              <Text style={[styles.emptyTitle, { color: theme.textPrimary }]}>
+                Global Search
+              </Text>
+              <Text
+                style={[styles.emptySubtitle, { color: theme.textSecondary }]}
+              >
                 Search across all modules and leads
               </Text>
             </View>
@@ -99,26 +116,46 @@ const SearchScreen = () => {
               keyboardShouldPersistTaps="handled"
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={styles.resultItem}
-                  onPress={() => {
-                    handleLeadPress(item);
-                  }}
+                  style={[
+                    styles.resultItem,
+                    { borderBottomColor: theme.borderLight },
+                  ]}
+                  onPress={() => handleLeadPress(item)}
                 >
-                  <View style={styles.iconCircle}>
-                    <Icon name="person" size={20} color="#5D6AD1" />
+                  <View
+                    style={[
+                      styles.iconCircle,
+                      { backgroundColor: theme.primaryLight },
+                    ]}
+                  >
+                    <Icon name="person" size={20} color={theme.primary} />
                   </View>
                   <View style={styles.resultText}>
-                    <Text style={styles.resultTitle}>{item.name}</Text>
-                    <Text style={styles.resultSubtitle}>
+                    <Text
+                      style={[styles.resultTitle, { color: theme.textPrimary }]}
+                    >
+                      {item.name}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.resultSubtitle,
+                        { color: theme.textSecondary },
+                      ]}
+                    >
                       {[item.email, item.phone].filter(Boolean).join(' | ')}
                     </Text>
                   </View>
-                  <Icon name="chevron-forward" size={16} color="#CBD5E0" />
+                  <Icon name="chevron-forward" size={16} color={theme.border} />
                 </TouchableOpacity>
               )}
               ListEmptyComponent={
                 <View style={styles.noResultsContainer}>
-                  <Text style={styles.noResultsText}>
+                  <Text
+                    style={[
+                      styles.noResultsText,
+                      { color: theme.textSecondary },
+                    ]}
+                  >
                     No results found for "{query}"
                   </Text>
                 </View>
@@ -135,23 +172,48 @@ const SearchScreen = () => {
         animationType="slide"
         onRequestClose={() => setDetailsModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={[styles.modalOverlay, { backgroundColor: theme.overlay }]}>
           <TouchableOpacity
             style={StyleSheet.absoluteFill}
             activeOpacity={1}
             onPress={() => setDetailsModalVisible(false)}
           />
-          <View style={styles.detailsModalContainer}>
+          <View
+            style={[
+              styles.detailsModalContainer,
+              { backgroundColor: theme.background },
+            ]}
+          >
             {/* Header */}
-            <View style={styles.detailsHeader}>
-              <View style={styles.dragIndicator} />
+            <View
+              style={[
+                styles.detailsHeader,
+                {
+                  backgroundColor: theme.surface,
+                  borderBottomColor: theme.borderLight,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.dragIndicator,
+                  { backgroundColor: theme.border },
+                ]}
+              />
               <View style={styles.headerRow}>
-                <Text style={styles.detailsTitle}>Lead Details</Text>
+                <Text
+                  style={[styles.detailsTitle, { color: theme.textPrimary }]}
+                >
+                  Lead Details
+                </Text>
                 <TouchableOpacity
                   onPress={() => setDetailsModalVisible(false)}
-                  style={styles.closeButton}
+                  style={[
+                    styles.closeButton,
+                    { backgroundColor: theme.primaryLight },
+                  ]}
                 >
-                  <Icon name="close" size={24} color="#1A3353" />
+                  <Icon name="close" size={24} color={theme.primary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -163,42 +225,60 @@ const SearchScreen = () => {
             >
               {selectedLead && (
                 <Pressable onPress={() => setSelectionKey(prev => prev + 1)}>
-                  <Text style={styles.sectionHeading}>Basic Information</Text>
-                  <View style={styles.card}>
+                  <Text
+                    style={[styles.sectionHeading, { color: theme.primary }]}
+                  >
+                    Basic Information
+                  </Text>
+                  <View
+                    style={[
+                      styles.card,
+                      {
+                        backgroundColor: theme.surface,
+                        borderColor: theme.border,
+                      },
+                    ]}
+                  >
                     <DetailRow
                       icon="person-outline"
                       label="Name"
                       value={selectedLead.name}
                       selectionKey={selectionKey}
+                      theme={theme}
                     />
                     <DetailRow
                       icon="mail-outline"
                       label="Email"
                       value={selectedLead.email}
                       selectionKey={selectionKey}
+                      theme={theme}
                     />
                     <DetailRow
                       icon="call-outline"
                       label="Mobile"
                       value={selectedLead.phone}
                       selectionKey={selectionKey}
+                      theme={theme}
                     />
                     <DetailRow
                       icon="logo-whatsapp"
                       label="Whatsapp"
                       value={selectedLead.whatsapp}
                       selectionKey={selectionKey}
+                      theme={theme}
                     />
                     <DetailRow
                       icon="location-outline"
                       label="Area"
                       value={selectedLead.area_id}
                       selectionKey={selectionKey}
+                      theme={theme}
                     />
                     <DetailRow
                       icon="person-circle-outline"
                       label="Lead Executive"
                       selectionKey={selectionKey}
+                      theme={theme}
                       value={
                         selectedLead.lead_assigned_to_name
                           ? `${selectedLead.lead_assigned_to_id} (${selectedLead.lead_assigned_to_name})`
@@ -210,12 +290,14 @@ const SearchScreen = () => {
                       label="Created At"
                       value={selectedLead.created_date}
                       selectionKey={selectionKey}
+                      theme={theme}
                     />
                     <DetailRow
                       icon="calendar-outline"
                       label="Next Followup"
                       value={selectedLead.next_follow_up_date}
                       selectionKey={selectionKey}
+                      theme={theme}
                     />
                     <DetailRow
                       icon="chatbox-ellipses-outline"
@@ -223,21 +305,36 @@ const SearchScreen = () => {
                       value={selectedLead.comments}
                       hideBorder
                       selectionKey={selectionKey}
+                      theme={theme}
                     />
                   </View>
 
-                  <Text style={styles.sectionHeading}>Course Details</Text>
-                  <View style={styles.card}>
+                  <Text
+                    style={[styles.sectionHeading, { color: theme.primary }]}
+                  >
+                    Course Details
+                  </Text>
+                  <View
+                    style={[
+                      styles.card,
+                      {
+                        backgroundColor: theme.surface,
+                        borderColor: theme.border,
+                      },
+                    ]}
+                  >
                     <DetailRow
                       icon="book-outline"
                       label="Course"
                       value={selectedLead.primary_course}
                       selectionKey={selectionKey}
+                      theme={theme}
                     />
                     <DetailRow
                       icon="cash-outline"
                       label="Course Fees"
                       selectionKey={selectionKey}
+                      theme={theme}
                       value={
                         selectedLead.primary_fees
                           ? `₹${selectedLead.primary_fees}`
@@ -249,35 +346,41 @@ const SearchScreen = () => {
                       label="Region"
                       value={selectedLead.region_name}
                       selectionKey={selectionKey}
+                      theme={theme}
                     />
                     <DetailRow
                       icon="business-outline"
                       label="Branch"
                       value={selectedLead.branch_name}
                       selectionKey={selectionKey}
+                      theme={theme}
                     />
                     <DetailRow
                       icon="time-outline"
                       label="Batch Track"
                       value={selectedLead.batch_track}
                       selectionKey={selectionKey}
+                      theme={theme}
                     />
                     <DetailRow
                       icon="funnel-outline"
                       label="Lead Source"
                       value={selectedLead.lead_type}
                       selectionKey={selectionKey}
+                      theme={theme}
                     />
                     <DetailRow
                       icon="star-outline"
                       label="Lead Status"
                       value={selectedLead.lead_status}
                       selectionKey={selectionKey}
+                      theme={theme}
                     />
                     <DetailRow
                       icon="person-add-outline"
                       label="Is Customer"
                       selectionKey={selectionKey}
+                      theme={theme}
                       value={selectedLead.is_customer_reg === 1 ? 'Yes' : 'No'}
                       isHighlight={selectedLead.is_customer_reg !== 1}
                       hideBorder
@@ -300,22 +403,40 @@ const DetailRow = ({
   isHighlight,
   hideBorder,
   selectionKey,
+  theme,
 }) => {
   return (
-    <View style={[styles.detailRow, hideBorder && styles.noBorder]}>
+    <View
+      style={[
+        styles.detailRow,
+        hideBorder && styles.noBorder,
+        { borderBottomColor: theme.borderLight },
+      ]}
+    >
       <View style={styles.detailLabelContainer}>
         {icon && (
-          <View style={styles.iconWrapper}>
-            <Icon name={icon} size={16} color="#5D6AD1" />
+          <View
+            style={[
+              styles.iconWrapper,
+              { backgroundColor: theme.surfaceSecondary },
+            ]}
+          >
+            <Icon name={icon} size={16} color={theme.primary} />
           </View>
         )}
-        <Text style={styles.detailLabel}>{label}</Text>
+        <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
+          {label}
+        </Text>
       </View>
       <View style={styles.detailValueContainer}>
         <Pressable onPress={() => {}} style={styles.valuePressable}>
           <Text
             key={selectionKey}
-            style={[styles.detailValue, isHighlight && styles.highlightValue]}
+            style={[
+              styles.detailValue,
+              { color: theme.textPrimary },
+              isHighlight && { color: theme.error, fontWeight: '700' },
+            ]}
             selectable={true}
           >
             {value || '-'}

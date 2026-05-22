@@ -12,12 +12,13 @@ import Followup from './Followup';
 import Leads from './Leads';
 import LiveLeads from './LiveLeads';
 import Junk from './Junk';
-import GlobalSearchHeader from '../../Common/GlobalSearchHeader';
 import Header from '../../Common/Header';
+import { useTheme } from '../../Context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 const LeadManager = ({ isSubView }) => {
+  const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState('Followup');
   const [globalSearch, setGlobalSearch] = useState('');
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
@@ -32,16 +33,30 @@ const LeadManager = ({ isSubView }) => {
   const renderContent = () => {
     return (
       <View style={{ flex: 1 }}>
-        <View style={{ flex: 1, display: activeTab === 'Followup' ? 'flex' : 'none' }}>
+        <View
+          style={{
+            flex: 1,
+            display: activeTab === 'Followup' ? 'flex' : 'none',
+          }}
+        >
           <Followup isSubView={true} isActive={activeTab === 'Followup'} />
         </View>
-        <View style={{ flex: 1, display: activeTab === 'Leads' ? 'flex' : 'none' }}>
+        <View
+          style={{ flex: 1, display: activeTab === 'Leads' ? 'flex' : 'none' }}
+        >
           <Leads isSubView={true} isActive={activeTab === 'Leads'} />
         </View>
-        <View style={{ flex: 1, display: activeTab === 'LiveLeads' ? 'flex' : 'none' }}>
+        <View
+          style={{
+            flex: 1,
+            display: activeTab === 'LiveLeads' ? 'flex' : 'none',
+          }}
+        >
           <LiveLeads isSubView={true} isActive={activeTab === 'LiveLeads'} />
         </View>
-        <View style={{ flex: 1, display: activeTab === 'Junk' ? 'flex' : 'none' }}>
+        <View
+          style={{ flex: 1, display: activeTab === 'Junk' ? 'flex' : 'none' }}
+        >
           <Junk isSubView={true} isActive={activeTab === 'Junk'} />
         </View>
       </View>
@@ -49,9 +64,22 @@ const LeadManager = ({ isSubView }) => {
   };
 
   return (
-    <SafeAreaView style={!isSubView && styles.container}>
+    <SafeAreaView
+      style={[
+        !isSubView && styles.container,
+        { backgroundColor: theme.background },
+      ]}
+    >
       {!isSubView && <Header />}
-      <View style={styles.tabBarContainer}>
+      <View
+        style={[
+          styles.tabBarContainer,
+          {
+            backgroundColor: theme.surface,
+            borderBottomColor: theme.borderLight,
+          },
+        ]}
+      >
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -69,12 +97,23 @@ const LeadManager = ({ isSubView }) => {
               <Text
                 style={[
                   styles.tabLabel,
-                  activeTab === tab.id && styles.activeTabLabel,
+                  { color: theme.textSecondary },
+                  activeTab === tab.id && {
+                    color: theme.primary,
+                    fontWeight: '700',
+                  },
                 ]}
               >
                 {tab.label}
               </Text>
-              {activeTab === tab.id && <View style={styles.activeIndicator} />}
+              {activeTab === tab.id && (
+                <View
+                  style={[
+                    styles.activeIndicator,
+                    { backgroundColor: theme.primary },
+                  ]}
+                />
+              )}
             </TouchableOpacity>
           ))}
         </ScrollView>

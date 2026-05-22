@@ -52,6 +52,7 @@ import {
   leadEmailAndMobileValidator,
 } from '../../ApiService/action';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../../Context/ThemeContext';
 
 const followupStatusOptions = [
   { id: 1, name: 'Hot Follow Up' },
@@ -64,6 +65,7 @@ const followupStatusOptions = [
 ];
 
 export default function AddLead({ navigation, route }) {
+  const { theme } = useTheme();
   const dispatch = useDispatch();
   const editLeadData = route?.params?.lead;
   const isFromLiveLeads = !!route?.params?.isFromLiveLeads;
@@ -188,7 +190,7 @@ export default function AddLead({ navigation, route }) {
   const [pickerConfig, setPickerConfig] = useState({
     title: '',
     items: [],
-    onSelect: () => { },
+    onSelect: () => {},
     searchPlaceholder: '',
   });
 
@@ -197,7 +199,7 @@ export default function AddLead({ navigation, route }) {
     title: '',
     label: '',
     placeholder: '',
-    onSave: () => { },
+    onSave: () => {},
   });
   const [newItemName, setNewItemName] = useState('');
   const [newItemLoading, setNewItemLoading] = useState(false);
@@ -287,8 +289,8 @@ export default function AddLead({ navigation, route }) {
           editLeadData.primary_fees
             ? String(editLeadData.primary_fees)
             : editLeadData.fees
-              ? String(editLeadData.fees)
-              : '',
+            ? String(editLeadData.fees)
+            : '',
         );
 
         setBatchTrack({
@@ -303,7 +305,7 @@ export default function AddLead({ navigation, route }) {
           setNextFollowUpDate(
             new Date(
               editLeadData.next_follow_up_date ||
-              editLeadData.next_followup_date,
+                editLeadData.next_followup_date,
             ),
           );
         }
@@ -326,7 +328,7 @@ export default function AddLead({ navigation, route }) {
           setExpectedDateJoin(
             new Date(
               editLeadData.expected_date_join ||
-              editLeadData.expected_join_date,
+                editLeadData.expected_join_date,
             ),
           );
         }

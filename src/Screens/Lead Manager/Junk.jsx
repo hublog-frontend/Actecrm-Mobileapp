@@ -25,8 +25,10 @@ import {
 import { storeJunkLeadFilterValues } from '../../Redux/Slice';
 import CommonMuiCustomDatePicker from '../../Common/CommonMuiCustomDatePicker';
 import styles from './LeadManagerstyles';
+import { useTheme } from '../../Context/ThemeContext';
 
 const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
+  const { theme } = useTheme();
   const dispatch = useDispatch();
 
   // Redux Permissions & Filter Config
@@ -228,108 +230,141 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
     return { bg: '#F5F7FA', text: '#667C94' };
   };
 
-  // Custom Lead Card renderer
   const renderLeadCard = ({ item, index }) => {
     const isCardSelected = selectedIds.includes(item.id);
     const trainingModeStyles = getTrainingModeStyles(
       item.training || item.training_mode,
     );
     const slNo = (page - 1) * 10 + (index + 1);
-
     return (
       <TouchableOpacity
         activeOpacity={0.9}
         onPress={() => handleCardPress(item)}
         onLongPress={() => toggleSelectCard(item.id)}
-        style={[styles.card, isCardSelected && localStyles.cardSelected]}
+        style={[
+          styles.card,
+          { backgroundColor: theme.surface },
+          isCardSelected && {
+            backgroundColor: theme.primaryLight,
+            borderColor: theme.primary,
+            borderWidth: 1,
+          },
+        ]}
       >
-        {/* Checkbox indicator */}
         {selectedIds.length > 0 && (
           <View style={localStyles.checkboxContainer}>
             <Icon
               name={isCardSelected ? 'checkbox' : 'square-outline'}
               size={22}
-              color="#5D6AD1"
+              color={theme.primary}
             />
           </View>
         )}
-
         <View style={{ flex: 1 }}>
-          {/* Card Top Row */}
           <View style={styles.cardHeader}>
-            <Text style={styles.name} numberOfLines={1}>
+            <Text
+              style={[styles.name, { color: theme.textPrimary }]}
+              numberOfLines={1}
+            >
               {item.name}
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              {/* Sl. No Badge */}
-              <View style={localStyles.slNoBadge}>
-                <Text style={localStyles.slNoText}>Sl. No: {slNo}</Text>
+              <View
+                style={[
+                  localStyles.slNoBadge,
+                  { backgroundColor: theme.surfaceSecondary },
+                ]}
+              >
+                <Text
+                  style={[localStyles.slNoText, { color: theme.textSecondary }]}
+                >
+                  Sl. No: {slNo}
+                </Text>
               </View>
-
-              {/* Created Date formatted */}
-              <View style={localStyles.dateBadge}>
-                <Icon name="calendar-outline" size={10} color="#667C94" />
-                <Text style={localStyles.dateText}>
+              <View
+                style={[
+                  localStyles.dateBadge,
+                  { backgroundColor: theme.surfaceSecondary },
+                ]}
+              >
+                <Icon
+                  name="calendar-outline"
+                  size={10}
+                  color={theme.textSecondary}
+                />
+                <Text
+                  style={[localStyles.dateText, { color: theme.textSecondary }]}
+                >
                   {moment(item.created_date).format('MM/DD/YYYY')}
                 </Text>
               </View>
             </View>
           </View>
-
-          {/* Card Details Body */}
           <View style={styles.cardBody}>
-            {/* Course */}
             <View style={styles.detailRow}>
-              <Icon name="book-outline" size={14} color="#667C94" />
-              <Text style={styles.detailText} numberOfLines={1}>
+              <Icon name="book-outline" size={14} color={theme.textSecondary} />
+              <Text
+                style={[styles.detailText, { color: theme.textSecondary }]}
+                numberOfLines={1}
+              >
                 {item.course || 'No course specified'}
               </Text>
             </View>
-
-            {/* Email (clickable mailto) */}
             {item.email && (
               <TouchableOpacity
                 onPress={() => Linking.openURL(`mailto:${item.email}`)}
                 style={styles.detailRow}
               >
-                <Icon name="mail-outline" size={14} color="#5D6AD1" />
+                <Icon name="mail-outline" size={14} color={theme.primary} />
                 <Text
-                  style={[styles.detailText, localStyles.linkText]}
+                  style={[
+                    styles.detailText,
+                    { color: theme.primary, textDecorationLine: 'underline' },
+                  ]}
                   selectable={true}
                 >
                   {item.email}
                 </Text>
               </TouchableOpacity>
             )}
-
-            {/* Mobile / Phone (clickable call) */}
             {item.phone && (
               <TouchableOpacity
                 onPress={() => Linking.openURL(`tel:${item.phone}`)}
                 style={styles.detailRow}
               >
-                <Icon name="call-outline" size={14} color="#5D6AD1" />
+                <Icon name="call-outline" size={14} color={theme.primary} />
                 <Text
-                  style={[styles.detailText, localStyles.linkText]}
+                  style={[
+                    styles.detailText,
+                    { color: theme.primary, textDecorationLine: 'underline' },
+                  ]}
                   selectable={true}
                 >
                   {item.phone}
                 </Text>
               </TouchableOpacity>
             )}
-
-            {/* Location */}
             {item.location && (
               <View style={styles.detailRow}>
-                <Icon name="location-outline" size={14} color="#667C94" />
-                <Text style={styles.detailText}>{item.location}</Text>
+                <Icon
+                  name="location-outline"
+                  size={14}
+                  color={theme.textSecondary}
+                />
+                <Text
+                  style={[styles.detailText, { color: theme.textSecondary }]}
+                >
+                  {item.location}
+                </Text>
               </View>
             )}
-
-            {/* Training Mode Pill */}
             {(item.training || item.training_mode) && (
               <View style={styles.detailRow}>
-                <Icon name="ribbon-outline" size={14} color="#667C94" />
+                <Icon
+                  name="ribbon-outline"
+                  size={14}
+                  color={theme.textSecondary}
+                />
                 <View
                   style={[
                     localStyles.modeBadge,
@@ -347,32 +382,45 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
                 </View>
               </View>
             )}
-
-            {/* Comments Section */}
             {item.comments && (
-              <View style={[localStyles.notesContainer, { marginTop: 6 }]}>
+              <View
+                style={[
+                  localStyles.notesContainer,
+                  { marginTop: 6, borderTopColor: theme.borderLight },
+                ]}
+              >
                 <Icon
                   name="chatbox-ellipses-outline"
                   size={13}
-                  color="#667C94"
+                  color={theme.textSecondary}
                 />
                 <Text
-                  style={[styles.detailText, { fontStyle: 'italic', flex: 1 }]}
+                  style={[
+                    styles.detailText,
+                    {
+                      color: theme.textSecondary,
+                      fontStyle: 'italic',
+                      flex: 1,
+                    },
+                  ]}
                   numberOfLines={2}
                 >
                   Comment: {item.comments}
                 </Text>
               </View>
             )}
-
-            {/* Junk Reason Section */}
             {item.junk_reason && (
-              <View style={[localStyles.reasonContainer, { marginTop: 6 }]}>
-                <Icon name="warning-outline" size={13} color="#D32F2F" />
+              <View
+                style={[
+                  localStyles.reasonContainer,
+                  { marginTop: 6, borderTopColor: '#FFEBEE' },
+                ]}
+              >
+                <Icon name="warning-outline" size={13} color={theme.error} />
                 <Text
                   style={[
                     styles.detailText,
-                    { color: '#D32F2F', fontWeight: '500', flex: 1 },
+                    { color: theme.error, fontWeight: '500', flex: 1 },
                   ]}
                   numberOfLines={2}
                 >
@@ -381,10 +429,9 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
               </View>
             )}
           </View>
-
-          {/* Individual Action Row */}
-          <View style={styles.cardFooter}>
-            {/* Revert / Move to Live (Conditional on Permission) */}
+          <View
+            style={[styles.cardFooter, { borderTopColor: theme.borderLight }]}
+          >
             {permissions.includes('Revert to Live Leads') ? (
               <TouchableOpacity
                 onPress={() => {
@@ -393,16 +440,14 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
                 }}
                 style={styles.actionButton}
               >
-                <Icon name="refresh-outline" size={18} color="#5b69ca" />
-                <Text style={[styles.actionText, { color: '#5b69ca' }]}>
+                <Icon name="refresh-outline" size={18} color={theme.primary} />
+                <Text style={[styles.actionText, { color: theme.primary }]}>
                   Revert
                 </Text>
               </TouchableOpacity>
             ) : (
               <View />
             )}
-
-            {/* Delete Lead */}
             <TouchableOpacity
               onPress={() => {
                 setLeadId(item.id);
@@ -410,8 +455,8 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
               }}
               style={styles.actionButton}
             >
-              <Icon name="trash-outline" size={18} color="#d32f2f" />
-              <Text style={[styles.actionText, { color: '#d32f2f' }]}>
+              <Icon name="trash-outline" size={18} color={theme.error} />
+              <Text style={[styles.actionText, { color: theme.error }]}>
                 Delete
               </Text>
             </TouchableOpacity>
@@ -425,15 +470,26 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
     <View
       style={[
         styles.container,
+        { backgroundColor: theme.background },
         isSubView && { backgroundColor: 'transparent' },
       ]}
     >
       {/* Search Header */}
-      <View style={localStyles.stickyHeader}>
+      <View
+        style={[
+          localStyles.stickyHeader,
+          { backgroundColor: theme.surface, borderBottomColor: theme.border },
+        ]}
+      >
         <View style={{ paddingHorizontal: 16, paddingTop: 10 }}>
-          <View style={styles.searchContainer}>
+          <View
+            style={[
+              styles.searchContainer,
+              { backgroundColor: theme.surfaceSecondary },
+            ]}
+          >
             <TextInput
-              style={styles.searchInput}
+              style={[styles.searchInput, { color: theme.textPrimary }]}
               placeholder={
                 filterType === 1
                   ? 'Search By Mobile...'
@@ -443,30 +499,25 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
                   ? 'Search By Email...'
                   : 'Search By Course...'
               }
-              placeholderTextColor={'gray'}
+              placeholderTextColor={theme.textMuted}
               value={search}
               onChangeText={handleSearchChange}
               onSubmitEditing={() => fetchLeads(1, true)}
             />
-
             {search.length > 0 && (
               <TouchableOpacity onPress={() => handleSearchChange('')}>
-                <Icon name="close-circle" size={18} color="#A0AEC0" />
+                <Icon name="close-circle" size={18} color={theme.textMuted} />
               </TouchableOpacity>
             )}
-
-            {/* Filter Toggle Dialog */}
             <TouchableOpacity
               style={styles.filterIcon}
               onPress={() => setFilterModalVisible(true)}
             >
-              <Icon name="filter" size={20} color="#5D6AD1" />
+              <Icon name="filter" size={20} color={theme.primary} />
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Custom Date Range Picker */}
-        <View style={{ backgroundColor: '#FFFFFF', paddingTop: 10 }}>
+        <View style={{ backgroundColor: theme.surface, paddingTop: 10 }}>
           <CommonMuiCustomDatePicker
             value={[
               filterValues.start_date || getCurrentandPreviousweekDate()[0],
@@ -484,10 +535,9 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
         </View>
       </View>
 
-      {/* Leads List container */}
       {loading && leads.length === 0 ? (
         <View style={localStyles.centered}>
-          <ActivityIndicator size="large" color="#5D6AD1" />
+          <ActivityIndicator size="large" color={theme.primary} />
         </View>
       ) : (
         <FlatList
@@ -505,24 +555,33 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
           }
           ListEmptyComponent={
             <View style={localStyles.emptyContainer}>
-              <Icon name="trash-bin-outline" size={48} color="#CBD5E1" />
-              <Text style={localStyles.emptyText}>No junk leads found</Text>
+              <Icon name="trash-bin-outline" size={48} color={theme.border} />
+              <Text style={[localStyles.emptyText, { color: theme.textMuted }]}>
+                No junk leads found
+              </Text>
             </View>
           }
           ListFooterComponent={
             loading && leads.length > 0 ? (
               <View style={localStyles.footerLoader}>
-                <ActivityIndicator size="small" color="#5D6AD1" />
+                <ActivityIndicator size="small" color={theme.primary} />
               </View>
             ) : null
           }
         />
       )}
 
-      {/* BATCH ACTIONS STICKY FOOTER */}
+      {/* BATCH ACTIONS FOOTER */}
       {selectedIds.length > 0 && (
-        <View style={localStyles.batchFooter}>
-          <Text style={localStyles.batchFooterText}>
+        <View
+          style={[
+            localStyles.batchFooter,
+            { backgroundColor: theme.surface, borderTopColor: theme.border },
+          ]}
+        >
+          <Text
+            style={[localStyles.batchFooterText, { color: theme.textPrimary }]}
+          >
             {selectedIds.length} Selected
           </Text>
           <View style={localStyles.batchFooterBtns}>
@@ -532,10 +591,20 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
                   setLeadId(null);
                   setMoveModalVisible(true);
                 }}
-                style={localStyles.batchBtnOutline}
+                style={[
+                  localStyles.batchBtnOutline,
+                  { borderColor: theme.primary },
+                ]}
               >
-                <Icon name="refresh-outline" size={16} color="#5D6AD1" />
-                <Text style={localStyles.batchBtnOutlineText}>Revert</Text>
+                <Icon name="refresh-outline" size={16} color={theme.primary} />
+                <Text
+                  style={[
+                    localStyles.batchBtnOutlineText,
+                    { color: theme.primary },
+                  ]}
+                >
+                  Revert
+                </Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -552,7 +621,7 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
         </View>
       )}
 
-      {/* FILTER SEARCH OPTION BOTTOM SHEET */}
+      {/* FILTER MODAL */}
       <Modal
         visible={filterModalVisible}
         transparent
@@ -562,12 +631,25 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
         <TouchableOpacity
           activeOpacity={1}
           onPress={() => setFilterModalVisible(false)}
-          style={localStyles.modalOverlay}
+          style={[localStyles.modalOverlay, { backgroundColor: theme.overlay }]}
         >
-          <View style={localStyles.bottomSheetContainer}>
-            <View style={localStyles.modalDragHandle} />
-            <Text style={localStyles.modalTitle}>Search Filter Option</Text>
-
+          <View
+            style={[
+              localStyles.bottomSheetContainer,
+              { backgroundColor: theme.surface },
+            ]}
+          >
+            <View
+              style={[
+                localStyles.modalDragHandle,
+                { backgroundColor: theme.border },
+              ]}
+            />
+            <Text
+              style={[localStyles.modalTitle, { color: theme.textPrimary }]}
+            >
+              Search Filter Option
+            </Text>
             {[
               { id: 1, label: 'Search by Mobile' },
               { id: 2, label: 'Search by Name' },
@@ -576,7 +658,10 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
             ].map(opt => (
               <TouchableOpacity
                 key={opt.id}
-                style={localStyles.radioOption}
+                style={[
+                  localStyles.radioOption,
+                  { borderBottomColor: theme.borderLight },
+                ]}
                 onPress={() => {
                   setFilterType(opt.id);
                   setSearch('');
@@ -597,16 +682,20 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
                       : 'radio-button-off'
                   }
                   size={20}
-                  color="#5D6AD1"
+                  color={theme.primary}
                 />
-                <Text style={localStyles.radioLabel}>{opt.label}</Text>
+                <Text
+                  style={[localStyles.radioLabel, { color: theme.textPrimary }]}
+                >
+                  {opt.label}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
         </TouchableOpacity>
       </Modal>
 
-      {/* REVERT/MOVE CONFIRMATION DIALOG */}
+      {/* REVERT MODAL */}
       <Modal
         visible={moveModalVisible}
         transparent
@@ -616,13 +705,33 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
           setLeadId(null);
         }}
       >
-        <View style={localStyles.modalOverlayBg}>
-          <View style={localStyles.dialogBox}>
+        <View
+          style={[
+            localStyles.modalOverlayBg,
+            { backgroundColor: theme.overlay },
+          ]}
+        >
+          <View
+            style={[localStyles.dialogBox, { backgroundColor: theme.surface }]}
+          >
             <View style={localStyles.modalIconContainer}>
-              <Icon name="refresh-circle-outline" size={40} color="#5D6AD1" />
+              <Icon
+                name="refresh-circle-outline"
+                size={40}
+                color={theme.primary}
+              />
             </View>
-            <Text style={localStyles.dialogTitle}>Move to Live Lead</Text>
-            <Text style={localStyles.dialogSubTitle}>
+            <Text
+              style={[localStyles.dialogTitle, { color: theme.textPrimary }]}
+            >
+              Move to Live Lead
+            </Text>
+            <Text
+              style={[
+                localStyles.dialogSubTitle,
+                { color: theme.textSecondary },
+              ]}
+            >
               Are you sure want to move the Leads to Live Leads?
             </Text>
             <View style={localStyles.dialogButtons}>
@@ -631,15 +740,26 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
                   setMoveModalVisible(false);
                   setLeadId(null);
                 }}
-                style={localStyles.dialogCancelBtn}
+                style={[
+                  localStyles.dialogCancelBtn,
+                  { borderColor: theme.border },
+                ]}
               >
-                <Text style={localStyles.dialogCancelBtnText}>No</Text>
+                <Text
+                  style={[
+                    localStyles.dialogCancelBtnText,
+                    { color: theme.textSecondary },
+                  ]}
+                >
+                  No
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 disabled={buttonLoading}
                 onPress={handleRevertSubmit}
                 style={[
                   localStyles.dialogSaveBtn,
+                  { backgroundColor: theme.primary },
                   buttonLoading && { opacity: 0.7 },
                 ]}
               >
@@ -654,7 +774,7 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
         </View>
       </Modal>
 
-      {/* PERMANENT DELETION CONFIRMATION DIALOG */}
+      {/* DELETE MODAL */}
       <Modal
         visible={deleteModalVisible}
         transparent
@@ -664,13 +784,29 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
           setLeadId(null);
         }}
       >
-        <View style={localStyles.modalOverlayBg}>
-          <View style={localStyles.dialogBox}>
+        <View
+          style={[
+            localStyles.modalOverlayBg,
+            { backgroundColor: theme.overlay },
+          ]}
+        >
+          <View
+            style={[localStyles.dialogBox, { backgroundColor: theme.surface }]}
+          >
             <View style={localStyles.modalIconContainer}>
-              <Icon name="trash-bin-outline" size={40} color="#D32F2F" />
+              <Icon name="trash-bin-outline" size={40} color={theme.error} />
             </View>
-            <Text style={localStyles.dialogTitle}>Delete Lead</Text>
-            <Text style={localStyles.dialogSubTitle}>
+            <Text
+              style={[localStyles.dialogTitle, { color: theme.textPrimary }]}
+            >
+              Delete Lead
+            </Text>
+            <Text
+              style={[
+                localStyles.dialogSubTitle,
+                { color: theme.textSecondary },
+              ]}
+            >
               Are you sure want to delete the Lead?
             </Text>
             <View style={localStyles.dialogButtons}>
@@ -679,16 +815,26 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
                   setDeleteModalVisible(false);
                   setLeadId(null);
                 }}
-                style={localStyles.dialogCancelBtn}
+                style={[
+                  localStyles.dialogCancelBtn,
+                  { borderColor: theme.border },
+                ]}
               >
-                <Text style={localStyles.dialogCancelBtnText}>No</Text>
+                <Text
+                  style={[
+                    localStyles.dialogCancelBtnText,
+                    { color: theme.textSecondary },
+                  ]}
+                >
+                  No
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 disabled={buttonLoading}
                 onPress={handleDeleteSubmit}
                 style={[
                   localStyles.dialogSaveBtn,
-                  { backgroundColor: '#D32F2F' },
+                  { backgroundColor: theme.error },
                   buttonLoading && { opacity: 0.7 },
                 ]}
               >

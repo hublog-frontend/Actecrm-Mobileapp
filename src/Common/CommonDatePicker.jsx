@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
+import { useTheme } from '../Context/ThemeContext';
 
 export default function CommonDatePicker({
   label,
@@ -15,9 +16,9 @@ export default function CommonDatePicker({
   disabled = false,
   allowPastDates = false,
 }) {
+  const { theme } = useTheme();
   const [showPicker, setShowPicker] = useState(false);
 
-  // Default minimum date
   const calculatedMinimumDate = allowPastDates
     ? minimumDate
     : minimumDate || new Date();
@@ -25,7 +26,12 @@ export default function CommonDatePicker({
   return (
     <View style={styles.inputGroup}>
       {label && (
-        <Text style={[styles.inputLabel, disabled && styles.disabledLabel]}>
+        <Text
+          style={[
+            styles.inputLabel,
+            { color: disabled ? theme.textMuted : theme.textSecondary },
+          ]}
+        >
           {label}
         </Text>
       )}
@@ -33,13 +39,13 @@ export default function CommonDatePicker({
       <TouchableOpacity
         style={[
           styles.pickerSelector,
-          error && styles.errorInput,
-          disabled && styles.disabledInput,
+          {
+            borderColor: error ? theme.error : theme.border,
+            backgroundColor: disabled ? theme.surfaceSecondary : theme.surface,
+          },
         ]}
         onPress={() => {
-          if (!disabled) {
-            setShowPicker(true);
-          }
+          if (!disabled) setShowPicker(true);
         }}
         activeOpacity={0.8}
         disabled={disabled}
@@ -47,17 +53,16 @@ export default function CommonDatePicker({
         <Text
           style={[
             styles.pickerValue,
-            !value && styles.placeholderText,
-            disabled && styles.disabledText,
+            { color: value ? theme.textPrimary : theme.textMuted },
+            disabled && { color: theme.textMuted },
           ]}
         >
           {value ? moment(value).format('DD MMM YYYY') : placeholder}
         </Text>
-
         <Icon
           name="calendar-outline"
           size={18}
-          color={disabled ? '#B0B0B0' : '#7D8DA1'}
+          color={disabled ? theme.textMuted : theme.textSecondary}
         />
       </TouchableOpacity>
 
@@ -70,39 +75,25 @@ export default function CommonDatePicker({
           maximumDate={maximumDate}
           onChange={(event, selectedDate) => {
             setShowPicker(false);
-
-            if (event.type === 'set' && selectedDate) {
+            if (event.type === 'set' && selectedDate)
               onDateChange(selectedDate);
-            }
-
-            if (event.type === 'dismissed') {
-              onDateChange(null);
-            }
+            if (event.type === 'dismissed') onDateChange(null);
           }}
         />
       )}
 
-      {error ? <Text style={styles.errorText}>{label + error}</Text> : null}
+      {error ? (
+        <Text style={[styles.errorText, { color: theme.error }]}>
+          {label + error}
+        </Text>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  inputGroup: {
-    marginBottom: 16,
-  },
-
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#4A5568',
-    marginBottom: 8,
-  },
-
-  disabledLabel: {
-    color: '#A0AEC0',
-  },
-
+  inputGroup: { marginBottom: 16 },
+  inputLabel: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
   pickerSelector: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -110,37 +101,8 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#CBD5E0',
     paddingHorizontal: 12,
-    backgroundColor: '#FFFFFF',
   },
-
-  disabledInput: {
-    backgroundColor: '#F1F5F9',
-    borderColor: '#E2E8F0',
-  },
-
-  pickerValue: {
-    fontSize: 14,
-    color: '#1A3353',
-  },
-
-  disabledText: {
-    color: '#94A3B8',
-  },
-
-  placeholderText: {
-    color: '#A0AEC0',
-  },
-
-  errorInput: {
-    borderColor: '#E53E3E',
-  },
-
-  errorText: {
-    color: '#E53E3E',
-    fontSize: 11,
-    marginTop: 4,
-    fontWeight: '500',
-  },
+  pickerValue: { fontSize: 14 },
+  errorText: { fontSize: 11, marginTop: 4, fontWeight: '500' },
 });
