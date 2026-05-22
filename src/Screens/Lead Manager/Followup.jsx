@@ -710,27 +710,30 @@ const Followup = ({ isSubView }) => {
       <BottomSheet
         ref={followupSheetRef}
         index={-1}
-        snapPoints={['92%']}
+        snapPoints={['90%']}
         enablePanDownToClose
-        topInset={60}
-        enableContentPanningGesture={false}
-        enableHandlePanningGesture={true}
+        enableContentPanningGesture
+        enableHandlePanningGesture
         backgroundStyle={{ backgroundColor: theme.surface }}
         handleIndicatorStyle={{ backgroundColor: theme.border }}
+        topInset={60}
       >
         <BottomSheetScrollView
+          nestedScrollEnabled
+          simultaneousHandlers={followupSheetRef}
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={[
             styles.bottomSheetContent,
             { paddingBottom: 40 },
           ]}
-          showsVerticalScrollIndicator={true}
-          keyboardShouldPersistTaps="handled"
         >
           <Text style={[styles.bsTitle, { color: theme.textPrimary }]}>
             Lead Follow-Up
           </Text>
 
-          <Text style={styles.detailsHeading}>Lead Details</Text>
+          <Text style={[styles.detailsHeading, { color: theme.textPrimary }]}>
+            Lead Details
+          </Text>
           <View style={styles.detailGrid}>
             <View style={styles.detailItem}>
               <Text
@@ -816,7 +819,9 @@ const Followup = ({ isSubView }) => {
 
           <View style={styles.divider} />
 
-          <Text style={styles.detailsHeading}>Follow-Up History</Text>
+          <Text style={[styles.detailsHeading, { color: theme.textPrimary }]}>
+            Follow-Up History
+          </Text>
           {selectedLead?.histories && selectedLead.histories.length > 0 ? (
             <View
               style={[
@@ -915,7 +920,9 @@ const Followup = ({ isSubView }) => {
 
           <View style={styles.divider} />
 
-          <Text style={styles.detailsHeading}>Update Follow-Up</Text>
+          <Text style={[styles.detailsHeading, { color: theme.textPrimary }]}>
+            Update Follow-Up
+          </Text>
 
           <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
             Action
