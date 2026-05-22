@@ -488,6 +488,7 @@ const Followup = ({ isSubView }) => {
                   ? 'Search By Email'
                   : 'Search By Course'
               }
+              placeholderTextColor={'gray'}
               value={searchValue}
               onChangeText={handleSearch}
               onSubmitEditing={executeSearch}

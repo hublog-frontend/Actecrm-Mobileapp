@@ -134,7 +134,7 @@ function App() {
           <SafeAreaProvider>
             <NavigationContainer ref={navigationRef}>
               <StatusBar
-                barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+                barStyle={'dark-content'}
                 backgroundColor={isDarkMode ? '#000' : '#fff'}
               />
               <RootNavigator />

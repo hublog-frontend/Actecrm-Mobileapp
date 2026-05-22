@@ -443,6 +443,7 @@ const Junk = ({ isSubView, isActive, setJunkLeadCount }) => {
                   ? 'Search By Email...'
                   : 'Search By Course...'
               }
+              placeholderTextColor={'gray'}
               value={search}
               onChangeText={handleSearchChange}
               onSubmitEditing={() => fetchLeads(1, true)}
