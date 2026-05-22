@@ -126,6 +126,7 @@ function RootNavigator() {
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
+  console.log('isDarkMode', isDarkMode);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

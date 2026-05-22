@@ -1,14 +1,12 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as RootNavigation from './RootNavigation';
+import Config from './config';
 
-// Replace with your actual API URL. Since React Native doesn't use import.meta.env by default,
-// you might want to use a constant or a library like react-native-config.
-// export const BASE_URL = 'https://switch-smirk-doozy.ngrok-free.dev';
-const BASE_URL = 'https://actecrm.com';
+export const BASE_URL = Config.BASE_URL;
 
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: Config.BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },

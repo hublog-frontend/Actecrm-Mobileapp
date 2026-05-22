@@ -1,0 +1,10 @@
+/**
+ * App Configuration
+ * Update BASE_URL here or in .env (for reference/documentation).
+ * In React Native, environment values are read from this file at runtime.
+ */
+const Config = {
+  BASE_URL: 'https://actecrm.com',
+};
+
+export default Config;
