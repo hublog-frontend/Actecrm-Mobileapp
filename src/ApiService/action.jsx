@@ -4,8 +4,8 @@ import * as RootNavigation from './RootNavigation';
 
 // Replace with your actual API URL. Since React Native doesn't use import.meta.env by default,
 // you might want to use a constant or a library like react-native-config.
-export const BASE_URL = 'https://switch-smirk-doozy.ngrok-free.dev';
-// const BASE_URL = 'https://actecrm.com';
+// export const BASE_URL = 'https://switch-smirk-doozy.ngrok-free.dev';
+const BASE_URL = 'https://actecrm.com';
 
 const api = axios.create({
   baseURL: BASE_URL,

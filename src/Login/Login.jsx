@@ -156,6 +156,7 @@ const Login = ({ navigation }) => {
         user_id: userId,
         password: password,
         last_login_date: formatToBackendIST(new Date()),
+        platform: 'mobile',
       };
 
       const response = await LoginApi(payload);
