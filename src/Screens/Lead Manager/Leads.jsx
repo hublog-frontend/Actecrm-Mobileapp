@@ -15,7 +15,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import moment from 'moment';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import styles from './LeadManagerstyles';
 import {
   getLeads,
@@ -45,6 +45,7 @@ const Leads = ({ isSubView, isActive }) => {
   const [filterType, setFilterType] = useState(1); // Default to Search by Mobile
   const [showFilterOptions, setShowFilterOptions] = useState(false);
   const [allDownliners, setAllDownliners] = useState([]);
+  const [editLeadId, setEditLeadId] = useState(null);
 
   const isFetchingRef = useRef(false);
 
@@ -52,6 +53,12 @@ const Leads = ({ isSubView, isActive }) => {
   const filterSheetRef = useRef(null);
   const assignSheetRef = useRef(null);
   const paymentSheetRef = useRef(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setEditLeadId(null);
+    }, []),
+  );
 
   useEffect(() => {
     if (isActive === false) {
@@ -193,6 +200,13 @@ const Leads = ({ isSubView, isActive }) => {
     return now.diff(created, 'days') > 45;
   };
 
+  const handleEdit = item => {
+    setEditLeadId(item.id);
+    setTimeout(() => {
+      navigation.navigate('AddLead', { lead: item });
+    }, 300);
+  };
+
   const renderLeadCard = ({ item }) => {
     const isReEntryPossible = checkReEntry(item.created_date);
 
@@ -259,10 +273,31 @@ const Leads = ({ isSubView, isActive }) => {
               </TouchableOpacity>
             )} */}
             <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => navigation.navigate('AddLead', { lead: item })}
+              style={[
+                styles.actionButton,
+                editLeadId !== null && editLeadId !== item.id
+                  ? { opacity: 0.5 }
+                  : {},
+              ]}
+              disabled={editLeadId !== null}
+              // onPress={() => {
+              //   setEditLeadId(item.id);
+              //   setTimeout(() => {
+              //     navigation.navigate('AddLead', { lead: item });
+              //   }, 1000);
+              //   setEditLeadId(null);
+              // }}
+              onPress={() => handleEdit(item)}
             >
-              <Icon name="create-outline" size={18} color="#5D6AD1" />
+              {editLeadId == item.id ? (
+                <ActivityIndicator
+                  size="small"
+                  color="#5D6AD1"
+                  style={{ marginRight: 6 }}
+                />
+              ) : (
+                <Icon name="create-outline" size={18} color="#5D6AD1" />
+              )}
               <Text style={styles.actionText}>Edit</Text>
             </TouchableOpacity>
             {/* <TouchableOpacity
@@ -307,10 +342,10 @@ const Leads = ({ isSubView, isActive }) => {
                 filterType == 1
                   ? 'Search By Mobile'
                   : filterType == 2
-                    ? 'Search By Name'
-                    : filterType == 3
-                      ? 'Search By Email'
-                      : 'Search By Course'
+                  ? 'Search By Name'
+                  : filterType == 3
+                  ? 'Search By Email'
+                  : 'Search By Course'
               }
               value={search}
               onChangeText={handleSearchChange}
