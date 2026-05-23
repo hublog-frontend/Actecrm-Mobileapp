@@ -397,7 +397,9 @@ const Followup = ({ isSubView }) => {
             Next: {followUpLabel}
           </Text>
           {isOverdue ? (
-            <Text style={[followupCardStyles.overdueTag, { color: theme.error }]}>
+            <Text
+              style={[followupCardStyles.overdueTag, { color: theme.error }]}
+            >
               · Overdue
             </Text>
           ) : null}
@@ -412,7 +414,10 @@ const Followup = ({ isSubView }) => {
               style={followupCardStyles.commentIcon}
             />
             <Text
-              style={[followupCardStyles.commentText, { color: theme.textSecondary }]}
+              style={[
+                followupCardStyles.commentText,
+                { color: theme.textSecondary },
+              ]}
               numberOfLines={isCommentExpanded ? undefined : 1}
             >
               {item.comments}
@@ -423,11 +428,7 @@ const Followup = ({ isSubView }) => {
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
                 <Icon
-                  name={
-                    isCommentExpanded
-                      ? 'chevron-up'
-                      : 'chevron-down'
-                  }
+                  name={isCommentExpanded ? 'chevron-up' : 'chevron-down'}
                   size={14}
                   color={theme.primary}
                 />
@@ -606,11 +607,20 @@ const Followup = ({ isSubView }) => {
         <View
           style={[
             styles.searchContainer,
-            { backgroundColor: theme.surfaceSecondary },
+            {
+              backgroundColor: theme.surfaceSecondary,
+              borderColor: theme.border,
+              borderWidth: 0.5,
+            },
           ]}
         >
           <TextInput
-            style={[styles.searchInput, { color: theme.textPrimary }]}
+            style={[
+              styles.searchInput,
+              {
+                color: theme.textPrimary,
+              },
+            ]}
             placeholder={
               filterType == 1
                 ? 'Search By Mobile'
@@ -1225,7 +1235,7 @@ const followupCardStyles = StyleSheet.create({
   card: {
     borderWidth: 1,
     padding: 10,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   headerRow: {
     flexDirection: 'row',

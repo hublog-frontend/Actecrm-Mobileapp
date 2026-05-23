@@ -76,7 +76,10 @@ const SearchScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.surface }]}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: theme.surface }]}
+      edges={['left', 'right']}
+    >
       <View style={styles.container}>
         {/* Search Header */}
         <View
@@ -88,7 +91,11 @@ const SearchScreen = ({ navigation }) => {
           <View
             style={[
               styles.inputContainer,
-              { backgroundColor: theme.surfaceSecondary },
+              {
+                backgroundColor: theme.surfaceSecondary,
+                borderColor: theme.border,
+                borderWidth: 0.5,
+              },
             ]}
           >
             <Icon name="search" size={20} color={theme.textMuted} />

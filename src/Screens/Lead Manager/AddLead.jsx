@@ -877,6 +877,7 @@ export default function AddLead({ navigation, route }) {
       ) : (
         <SafeAreaView
           style={[styles.safeArea, { backgroundColor: theme.background }]}
+          edges={['left', 'right']}
         >
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

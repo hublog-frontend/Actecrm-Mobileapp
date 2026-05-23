@@ -354,7 +354,11 @@ const Leads = ({ isSubView, isActive }) => {
           <View
             style={[
               styles.searchContainer,
-              { backgroundColor: theme.surfaceSecondary },
+              {
+                backgroundColor: theme.surfaceSecondary,
+                borderColor: theme.border,
+                borderWidth: 0.5,
+              },
             ]}
           >
             <TextInput

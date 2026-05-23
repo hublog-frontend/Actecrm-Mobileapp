@@ -102,6 +102,7 @@ const LeadManager = ({ isSubView }) => {
         !isSubView && styles.container,
         { backgroundColor: theme.background },
       ]}
+      edges={['left', 'right']}
     >
       {!isSubView && <Header />}
       <View

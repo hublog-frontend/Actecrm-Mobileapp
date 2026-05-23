@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { StatusBar } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Provider } from 'react-redux';
@@ -145,14 +145,32 @@ function App() {
 
 function AppContent() {
   const { theme } = useTheme();
+
   return (
-    <NavigationContainer ref={navigationRef}>
-      <StatusBar
-        barStyle={theme.statusBarStyle}
-        backgroundColor={theme.statusBarBg}
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: theme.background,
+      }}
+    >
+      {/* Status bar background */}
+      <View
+        style={{
+          height: StatusBar.currentHeight,
+          backgroundColor: theme.statusBarBg,
+        }}
       />
-      <RootNavigator />
-    </NavigationContainer>
+
+      <StatusBar
+        translucent
+        backgroundColor="transparent"
+        barStyle={theme.statusBarStyle}
+      />
+
+      <NavigationContainer ref={navigationRef}>
+        <RootNavigator />
+      </NavigationContainer>
+    </View>
   );
 }
 

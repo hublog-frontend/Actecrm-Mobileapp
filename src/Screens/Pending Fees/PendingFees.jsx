@@ -387,7 +387,7 @@ const PendingFees = ({ navigation }) => {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.background }]}
-      edges={['top']}
+      edges={['left', 'right']}
     >
       <Header />
 
@@ -407,7 +407,11 @@ const PendingFees = ({ navigation }) => {
           <View
             style={[
               styles.searchContainer,
-              { backgroundColor: theme.surfaceSecondary },
+              {
+                backgroundColor: theme.surfaceSecondary,
+                borderColor: theme.border,
+                borderWidth: 0.5,
+              },
             ]}
           >
             <Icon name="search" size={18} color={theme.textMuted} />
@@ -561,6 +565,7 @@ const PendingFees = ({ navigation }) => {
         enablePanDownToClose
         backgroundStyle={{ backgroundColor: theme.surface }}
         handleIndicatorStyle={{ backgroundColor: theme.border }}
+        topInset={90}
       >
         <BottomSheetScrollView
           keyboardShouldPersistTaps="handled"

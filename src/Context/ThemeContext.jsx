@@ -39,10 +39,10 @@ export const darkTheme = {
   dark: true,
 
   // Backgrounds
-  background: '#0F172A',
-  surface: '#1E293B',
-  surfaceSecondary: '#263347',
-  inputBg: '#263347',
+  background: '#000',
+  surface: '#1b1e23',
+  surfaceSecondary: '#1b1e23',
+  inputBg: '#1b1e23',
 
   // Text
   textPrimary: '#F1F5F9',
@@ -50,8 +50,8 @@ export const darkTheme = {
   textMuted: '#64748B',
 
   // Borders
-  border: '#334155',
-  borderLight: '#1E293B',
+  border: '#5e6166',
+  borderLight: '#1b1e23',
 
   // Brand
   primary: '#7C8FE8',
@@ -59,7 +59,7 @@ export const darkTheme = {
 
   // Status Bar
   statusBarStyle: 'light-content',
-  statusBarBg: '#1E293B',
+  statusBarBg: '#1b1e23',
 
   // Misc
   error: '#FC8181',

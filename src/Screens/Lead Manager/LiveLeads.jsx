@@ -318,9 +318,15 @@ const LiveLeads = ({ isSubView, isActive }) => {
       } else if (formatMode === 'classroom') {
         return { bg: 'rgba(124, 143, 232, 0.15)', text: currentTheme.primary };
       } else if (formatMode === 'corporate') {
-        return { bg: 'rgba(148, 163, 184, 0.15)', text: currentTheme.textSecondary };
+        return {
+          bg: 'rgba(148, 163, 184, 0.15)',
+          text: currentTheme.textSecondary,
+        };
       }
-      return { bg: currentTheme.surfaceSecondary, text: currentTheme.textMuted };
+      return {
+        bg: currentTheme.surfaceSecondary,
+        text: currentTheme.textMuted,
+      };
     } else {
       if (formatMode === 'online') {
         return { bg: '#E8F5E9', text: '#2E7D32' };
@@ -492,7 +498,10 @@ const LiveLeads = ({ isSubView, isActive }) => {
         <View style={{ flex: 1 }}>
           {/* Card Top Row */}
           <View style={styles.cardHeader}>
-            <Text style={[styles.name, { color: theme.textPrimary }]} numberOfLines={1}>
+            <Text
+              style={[styles.name, { color: theme.textPrimary }]}
+              numberOfLines={1}
+            >
               {item.name}
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -515,7 +524,15 @@ const LiveLeads = ({ isSubView, isActive }) => {
                 <Text
                   style={[
                     styles.statusText,
-                    { color: theme.dark ? (isNewLead ? theme.primary : theme.error) : (isNewLead ? '#1565C0' : '#d32f2f') },
+                    {
+                      color: theme.dark
+                        ? isNewLead
+                          ? theme.primary
+                          : theme.error
+                        : isNewLead
+                        ? '#1565C0'
+                        : '#d32f2f',
+                    },
                   ]}
                 >
                   {isNewLead ? 'New' : 'Existing'}
@@ -546,7 +563,10 @@ const LiveLeads = ({ isSubView, isActive }) => {
             {/* Course */}
             <View style={styles.detailRow}>
               <Icon name="book-outline" size={14} color={theme.textSecondary} />
-              <Text style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
+              <Text
+                style={[styles.detailText, { color: theme.textSecondary }]}
+                numberOfLines={1}
+              >
                 {item.course || item.primary_course || 'No course specified'}
               </Text>
             </View>
@@ -559,7 +579,11 @@ const LiveLeads = ({ isSubView, isActive }) => {
               >
                 <Icon name="mail-outline" size={14} color={theme.primary} />
                 <Text
-                  style={[styles.detailText, localStyles.linkText, { color: theme.primary }]}
+                  style={[
+                    styles.detailText,
+                    localStyles.linkText,
+                    { color: theme.primary },
+                  ]}
                   selectable={true}
                 >
                   {item.email}
@@ -575,7 +599,11 @@ const LiveLeads = ({ isSubView, isActive }) => {
               >
                 <Icon name="call-outline" size={14} color={theme.primary} />
                 <Text
-                  style={[styles.detailText, localStyles.linkText, { color: theme.primary }]}
+                  style={[
+                    styles.detailText,
+                    localStyles.linkText,
+                    { color: theme.primary },
+                  ]}
                   selectable={true}
                 >
                   {item.phone}
@@ -584,19 +612,30 @@ const LiveLeads = ({ isSubView, isActive }) => {
             )}
 
             {/* Location (Conditional on Manage Columns) */}
-            {visibleColumns.includes('Location') && (item.location || item.area_id || item.district) && (
-              <View style={styles.detailRow}>
-                <Icon name="location-outline" size={14} color={theme.textSecondary} />
-                <Text style={[styles.detailText, { color: theme.textSecondary }]}>
-                  {item.location || item.area_id || item.district}
-                </Text>
-              </View>
-            )}
+            {visibleColumns.includes('Location') &&
+              (item.location || item.area_id || item.district) && (
+                <View style={styles.detailRow}>
+                  <Icon
+                    name="location-outline"
+                    size={14}
+                    color={theme.textSecondary}
+                  />
+                  <Text
+                    style={[styles.detailText, { color: theme.textSecondary }]}
+                  >
+                    {item.location || item.area_id || item.district}
+                  </Text>
+                </View>
+              )}
 
             {/* Training Mode (Conditional on Manage Columns) */}
             {visibleColumns.includes('Training Mode') && item.training_mode && (
               <View style={styles.detailRow}>
-                <Icon name="ribbon-outline" size={14} color={theme.textSecondary} />
+                <Icon
+                  name="ribbon-outline"
+                  size={14}
+                  color={theme.textSecondary}
+                />
                 <View
                   style={[
                     localStyles.modeBadge,
@@ -619,8 +658,14 @@ const LiveLeads = ({ isSubView, isActive }) => {
             {permissions.includes('Show Origin in Live Leads') &&
               (item.domain_origin || item.source_origin || item.lead_type) && (
                 <View style={styles.detailRow}>
-                  <Icon name="globe-outline" size={14} color={theme.textSecondary} />
-                  <Text style={[styles.detailText, { color: theme.textSecondary }]}>
+                  <Icon
+                    name="globe-outline"
+                    size={14}
+                    color={theme.textSecondary}
+                  />
+                  <Text
+                    style={[styles.detailText, { color: theme.textSecondary }]}
+                  >
                     {item.domain_origin || item.source_origin || item.lead_type}
                   </Text>
                 </View>
@@ -628,20 +673,41 @@ const LiveLeads = ({ isSubView, isActive }) => {
 
             {/* Expandable comments toggle */}
             {item.comments && (
-              <View style={{ marginTop: 6, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+              <View
+                style={{
+                  marginTop: 6,
+                  flexDirection: 'row',
+                  alignItems: 'flex-start',
+                  justifyContent: 'space-between',
+                }}
+              >
                 <Text
                   style={[
                     styles.detailText,
-                    { fontStyle: 'italic', flex: 1, color: theme.textSecondary, marginRight: 8 },
+                    {
+                      fontStyle: 'italic',
+                      flex: 1,
+                      color: theme.textSecondary,
+                      marginRight: 8,
+                    },
                   ]}
-                  numberOfLines={expandedComments.includes(item.id) ? undefined : 1}
+                  numberOfLines={
+                    expandedComments.includes(item.id) ? undefined : 1
+                  }
                 >
                   Comment: {item.comments}
                 </Text>
                 {item.comments.length > 25 && (
-                  <TouchableOpacity onPress={() => toggleComments(item.id)} style={{ padding: 2 }}>
+                  <TouchableOpacity
+                    onPress={() => toggleComments(item.id)}
+                    style={{ padding: 2 }}
+                  >
                     <Icon
-                      name={expandedComments.includes(item.id) ? 'chevron-up-circle-outline' : 'ellipsis-horizontal-circle-outline'}
+                      name={
+                        expandedComments.includes(item.id)
+                          ? 'chevron-up-circle-outline'
+                          : 'ellipsis-horizontal-circle-outline'
+                      }
                       size={18}
                       color={theme.primary}
                     />
@@ -652,7 +718,9 @@ const LiveLeads = ({ isSubView, isActive }) => {
           </View>
 
           {/* Action Row */}
-          <View style={[styles.cardFooter, { borderTopColor: theme.borderLight }]}>
+          <View
+            style={[styles.cardFooter, { borderTopColor: theme.borderLight }]}
+          >
             {/* Communication Icons */}
             <View style={styles.quickActions}>
               {item.phone ? (
@@ -714,10 +782,21 @@ const LiveLeads = ({ isSubView, isActive }) => {
                     style={{ marginRight: 6 }}
                   />
                 ) : (
-                  <Icon name="hand-left-outline" size={18} color={theme.primary} />
+                  <Icon
+                    name="hand-left-outline"
+                    size={18}
+                    color={theme.primary}
+                  />
                 )}
 
-                <Text style={[styles.actionText, { color: theme.primary, marginRight: 0 }]}>Pick Lead</Text>
+                <Text
+                  style={[
+                    styles.actionText,
+                    { color: theme.primary, marginRight: 0 },
+                  ]}
+                >
+                  Pick Lead
+                </Text>
               </TouchableOpacity>
 
               {/* Move to Junk */}
@@ -746,7 +825,12 @@ const LiveLeads = ({ isSubView, isActive }) => {
       ]}
     >
       {/* Sticky Header Section */}
-      <View style={[localStyles.stickyHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+      <View
+        style={[
+          localStyles.stickyHeader,
+          { backgroundColor: theme.surface, borderBottomColor: theme.border },
+        ]}
+      >
         {/* Today's Summary Row */}
         <ScrollView
           horizontal
@@ -754,45 +838,101 @@ const LiveLeads = ({ isSubView, isActive }) => {
           contentContainerStyle={localStyles.summaryScroll}
         >
           {/* Online count */}
-          <View style={[localStyles.summaryCard, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}>
+          <View
+            style={[
+              localStyles.summaryCard,
+              {
+                backgroundColor: theme.surfaceSecondary,
+                borderColor: theme.border,
+              },
+            ]}
+          >
             <View
               style={[localStyles.summaryDot, { backgroundColor: '#3c9111' }]}
             />
-            <Text style={[localStyles.summaryTitle, { color: theme.textSecondary }]}>Online</Text>
-            <Text style={[localStyles.summaryVal, { color: theme.textPrimary }]}>
+            <Text
+              style={[localStyles.summaryTitle, { color: theme.textSecondary }]}
+            >
+              Online
+            </Text>
+            <Text
+              style={[localStyles.summaryVal, { color: theme.textPrimary }]}
+            >
               {counts.online_count || 0}
             </Text>
           </View>
 
           {/* Classroom count */}
-          <View style={[localStyles.summaryCard, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}>
+          <View
+            style={[
+              localStyles.summaryCard,
+              {
+                backgroundColor: theme.surfaceSecondary,
+                borderColor: theme.border,
+              },
+            ]}
+          >
             <View
               style={[localStyles.summaryDot, { backgroundColor: '#1e90ff' }]}
             />
-            <Text style={[localStyles.summaryTitle, { color: theme.textSecondary }]}>Classroom</Text>
-            <Text style={[localStyles.summaryVal, { color: theme.textPrimary }]}>
+            <Text
+              style={[localStyles.summaryTitle, { color: theme.textSecondary }]}
+            >
+              Classroom
+            </Text>
+            <Text
+              style={[localStyles.summaryVal, { color: theme.textPrimary }]}
+            >
               {counts.classroom_count || 0}
             </Text>
           </View>
 
           {/* Corporate count */}
-          <View style={[localStyles.summaryCard, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}>
+          <View
+            style={[
+              localStyles.summaryCard,
+              {
+                backgroundColor: theme.surfaceSecondary,
+                borderColor: theme.border,
+              },
+            ]}
+          >
             <View
               style={[localStyles.summaryDot, { backgroundColor: '#607d8b' }]}
             />
-            <Text style={[localStyles.summaryTitle, { color: theme.textSecondary }]}>Corporate</Text>
-            <Text style={[localStyles.summaryVal, { color: theme.textPrimary }]}>
+            <Text
+              style={[localStyles.summaryTitle, { color: theme.textSecondary }]}
+            >
+              Corporate
+            </Text>
+            <Text
+              style={[localStyles.summaryVal, { color: theme.textPrimary }]}
+            >
               {counts.corporate_count || 0}
             </Text>
           </View>
 
           {/* Total Sum */}
-          <View style={[localStyles.summaryCard, { backgroundColor: theme.surfaceSecondary, borderColor: theme.border }]}>
+          <View
+            style={[
+              localStyles.summaryCard,
+              {
+                backgroundColor: theme.surfaceSecondary,
+                borderColor: theme.border,
+              },
+            ]}
+          >
             <View
               style={[localStyles.summaryDot, { backgroundColor: '#5b69ca' }]}
             />
-            <Text style={[localStyles.summaryTitle, { color: theme.textSecondary }]}>Total</Text>
-            <Text style={[localStyles.summaryVal, { color: theme.textPrimary }]}>
+            <Text
+              style={[localStyles.summaryTitle, { color: theme.textSecondary }]}
+            >
+              Total
+            </Text>
+            <Text
+              style={[localStyles.summaryVal, { color: theme.textPrimary }]}
+            >
               {Number(counts?.online_count || 0) +
                 Number(counts?.classroom_count || 0) +
                 Number(counts?.corporate_count || 0)}
@@ -802,7 +942,16 @@ const LiveLeads = ({ isSubView, isActive }) => {
 
         {/* Search & Action filters */}
         <View style={{ paddingHorizontal: 16 }}>
-          <View style={[styles.searchContainer, { backgroundColor: theme.surfaceSecondary }]}>
+          <View
+            style={[
+              styles.searchContainer,
+              {
+                backgroundColor: theme.surfaceSecondary,
+                borderColor: theme.border,
+                borderWidth: 0.5,
+              },
+            ]}
+          >
             <TextInput
               style={[styles.searchInput, { color: theme.textPrimary }]}
               placeholder={
@@ -839,7 +988,9 @@ const LiveLeads = ({ isSubView, isActive }) => {
 
       {/* Leads List container */}
       {loading && leads.length === 0 ? (
-        <View style={[localStyles.centered, { backgroundColor: theme.background }]}>
+        <View
+          style={[localStyles.centered, { backgroundColor: theme.background }]}
+        >
           <ActivityIndicator size="large" color={theme.primary} />
         </View>
       ) : (
@@ -870,8 +1021,14 @@ const LiveLeads = ({ isSubView, isActive }) => {
           }
           ListEmptyComponent={
             <View style={localStyles.emptyContainer}>
-              <Icon name="documents-outline" size={40} color={theme.textMuted} />
-              <Text style={[localStyles.emptyText, { color: theme.textMuted }]}>No live leads available</Text>
+              <Icon
+                name="documents-outline"
+                size={40}
+                color={theme.textMuted}
+              />
+              <Text style={[localStyles.emptyText, { color: theme.textMuted }]}>
+                No live leads available
+              </Text>
             </View>
           }
         />
@@ -879,8 +1036,15 @@ const LiveLeads = ({ isSubView, isActive }) => {
 
       {/* Batch footer actions overlay */}
       {selectedIds.length > 0 && (
-        <View style={[localStyles.batchFooter, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
-          <Text style={[localStyles.batchFooterText, { color: theme.textPrimary }]}>
+        <View
+          style={[
+            localStyles.batchFooter,
+            { backgroundColor: theme.surface, borderTopColor: theme.border },
+          ]}
+        >
+          <Text
+            style={[localStyles.batchFooterText, { color: theme.textPrimary }]}
+          >
             {selectedIds.length} Selected
           </Text>
           <View style={localStyles.batchFooterBtns}>
@@ -895,7 +1059,10 @@ const LiveLeads = ({ isSubView, isActive }) => {
             )} */}
             <TouchableOpacity
               onPress={() => openJunkModal(selectedIds)}
-              style={[localStyles.batchBtnSolid, { backgroundColor: theme.error }]}
+              style={[
+                localStyles.batchBtnSolid,
+                { backgroundColor: theme.error },
+              ]}
             >
               <Icon name="trash-outline" size={16} color="#FFFFFF" />
               <Text style={localStyles.batchBtnSolidText}>Junk</Text>
@@ -916,9 +1083,23 @@ const LiveLeads = ({ isSubView, isActive }) => {
           onPress={() => setFilterModalVisible(false)}
           style={[localStyles.modalOverlay, { backgroundColor: theme.overlay }]}
         >
-          <View style={[localStyles.bottomSheetContainer, { backgroundColor: theme.surface }]}>
-            <View style={[localStyles.modalDragHandle, { backgroundColor: theme.border }]} />
-            <Text style={[localStyles.modalTitle, { color: theme.textPrimary }]}>Search Filter Option</Text>
+          <View
+            style={[
+              localStyles.bottomSheetContainer,
+              { backgroundColor: theme.surface },
+            ]}
+          >
+            <View
+              style={[
+                localStyles.modalDragHandle,
+                { backgroundColor: theme.border },
+              ]}
+            />
+            <Text
+              style={[localStyles.modalTitle, { color: theme.textPrimary }]}
+            >
+              Search Filter Option
+            </Text>
 
             {[
               { id: 1, label: 'Search by Mobile' },
@@ -928,7 +1109,10 @@ const LiveLeads = ({ isSubView, isActive }) => {
             ].map(opt => (
               <TouchableOpacity
                 key={opt.id}
-                style={[localStyles.radioOption, { borderBottomColor: theme.borderLight }]}
+                style={[
+                  localStyles.radioOption,
+                  { borderBottomColor: theme.borderLight },
+                ]}
                 onPress={() => {
                   setFilterType(opt.id);
                   setSearch('');
@@ -945,7 +1129,11 @@ const LiveLeads = ({ isSubView, isActive }) => {
                   size={20}
                   color={theme.primary}
                 />
-                <Text style={[localStyles.radioLabel, { color: theme.textPrimary }]}>{opt.label}</Text>
+                <Text
+                  style={[localStyles.radioLabel, { color: theme.textPrimary }]}
+                >
+                  {opt.label}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -961,17 +1149,40 @@ const LiveLeads = ({ isSubView, isActive }) => {
           if (!junkLoading) setJunkModalVisible(false);
         }}
       >
-        <View style={[localStyles.modalOverlayBg, { backgroundColor: theme.overlay }]}>
-          <View style={[localStyles.dialogBox, { backgroundColor: theme.surface }]}>
-            <Text style={[localStyles.dialogTitle, { color: theme.textPrimary }]}>Move to Junk</Text>
-            <Text style={[localStyles.dialogSubTitle, { color: theme.textSecondary }]}>
+        <View
+          style={[
+            localStyles.modalOverlayBg,
+            { backgroundColor: theme.overlay },
+          ]}
+        >
+          <View
+            style={[localStyles.dialogBox, { backgroundColor: theme.surface }]}
+          >
+            <Text
+              style={[localStyles.dialogTitle, { color: theme.textPrimary }]}
+            >
+              Move to Junk
+            </Text>
+            <Text
+              style={[
+                localStyles.dialogSubTitle,
+                { color: theme.textSecondary },
+              ]}
+            >
               Please input the reason or comment for junking lead(s):
             </Text>
 
             <CommonTextArea
               label={'Comments'}
               placeholder="Input reason here..."
-              style={[localStyles.modalInput, { backgroundColor: theme.inputBg, color: theme.textPrimary, borderColor: theme.border }]}
+              style={[
+                localStyles.modalInput,
+                {
+                  backgroundColor: theme.inputBg,
+                  color: theme.textPrimary,
+                  borderColor: theme.border,
+                },
+              ]}
               value={junkReason}
               onChangeText={value => {
                 setJunkReason(value);
@@ -986,13 +1197,23 @@ const LiveLeads = ({ isSubView, isActive }) => {
                 onPress={() => setJunkModalVisible(false)}
                 style={localStyles.dialogCancelBtn}
               >
-                <Text style={[localStyles.dialogCancelBtnText, { color: theme.textSecondary }]}>Cancel</Text>
+                <Text
+                  style={[
+                    localStyles.dialogCancelBtnText,
+                    { color: theme.textSecondary },
+                  ]}
+                >
+                  Cancel
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 disabled={junkLoading}
                 onPress={handleJunkSubmit}
-                style={[localStyles.dialogSaveBtn, { backgroundColor: theme.primary }]}
+                style={[
+                  localStyles.dialogSaveBtn,
+                  { backgroundColor: theme.primary },
+                ]}
               >
                 {junkLoading ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
@@ -1020,15 +1241,39 @@ const LiveLeads = ({ isSubView, isActive }) => {
           onPress={() => setAssignModalVisible(false)}
           style={[localStyles.modalOverlay, { backgroundColor: theme.overlay }]}
         >
-          <View style={[localStyles.bottomSheetContainerLarge, { backgroundColor: theme.surface }]}>
-            <View style={[localStyles.modalDragHandle, { backgroundColor: theme.border }]} />
-            <Text style={[localStyles.modalTitle, { color: theme.textPrimary }]}>Assign Leads</Text>
-            <Text style={[localStyles.modalSubTitle, { color: theme.textSecondary }]}>
+          <View
+            style={[
+              localStyles.bottomSheetContainerLarge,
+              { backgroundColor: theme.surface },
+            ]}
+          >
+            <View
+              style={[
+                localStyles.modalDragHandle,
+                { backgroundColor: theme.border },
+              ]}
+            />
+            <Text
+              style={[localStyles.modalTitle, { color: theme.textPrimary }]}
+            >
+              Assign Leads
+            </Text>
+            <Text
+              style={[
+                localStyles.modalSubTitle,
+                { color: theme.textSecondary },
+              ]}
+            >
               Select a downline user to assign leads
             </Text>
 
             {assignLoading ? (
-              <View style={[localStyles.centeredSmall, { backgroundColor: theme.surface }]}>
+              <View
+                style={[
+                  localStyles.centeredSmall,
+                  { backgroundColor: theme.surface },
+                ]}
+              >
                 <ActivityIndicator size="large" color={theme.primary} />
               </View>
             ) : (
@@ -1037,14 +1282,22 @@ const LiveLeads = ({ isSubView, isActive }) => {
                 keyExtractor={item => item.user_id.toString()}
                 contentContainerStyle={{ paddingBottom: 20 }}
                 ListEmptyComponent={
-                  <Text style={[localStyles.emptyDownline, { color: theme.textMuted }]}>
+                  <Text
+                    style={[
+                      localStyles.emptyDownline,
+                      { color: theme.textMuted },
+                    ]}
+                  >
                     No downline users available
                   </Text>
                 }
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     onPress={() => handleAssignSubmit(item.user_id)}
-                    style={[localStyles.downlineItem, { borderBottomColor: theme.borderLight }]}
+                    style={[
+                      localStyles.downlineItem,
+                      { borderBottomColor: theme.borderLight },
+                    ]}
                   >
                     <Icon
                       name="person-circle-outline"
@@ -1052,10 +1305,20 @@ const LiveLeads = ({ isSubView, isActive }) => {
                       color={theme.primary}
                     />
                     <View style={{ marginLeft: 12 }}>
-                      <Text style={[localStyles.downlineName, { color: theme.textPrimary }]}>
+                      <Text
+                        style={[
+                          localStyles.downlineName,
+                          { color: theme.textPrimary },
+                        ]}
+                      >
                         {item.username || item.name}
                       </Text>
-                      <Text style={[localStyles.downlineSub, { color: theme.textSecondary }]}>
+                      <Text
+                        style={[
+                          localStyles.downlineSub,
+                          { color: theme.textSecondary },
+                        ]}
+                      >
                         {item.role_name || 'Downline User'}
                       </Text>
                     </View>

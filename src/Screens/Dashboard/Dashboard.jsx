@@ -325,6 +325,7 @@ const Dashboard = ({ navigation }) => {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.background }]}
+      edges={['left', 'right']}
     >
       <Header />
 
