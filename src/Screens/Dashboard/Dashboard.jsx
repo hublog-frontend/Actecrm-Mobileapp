@@ -367,6 +367,7 @@ const Dashboard = () => {
                 collection={scoreCardDetails?.total_collection}
                 target={scoreCardDetails?.target_value}
                 saleVolume={scoreCardDetails?.sale_volume}
+                pendingPayment={scoreCardDetails?.pending_payment}
                 theme={theme}
               />
             </DashboardCard>
