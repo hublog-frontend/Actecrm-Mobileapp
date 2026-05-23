@@ -15,6 +15,7 @@ const TabNavigator = () => {
 
   return (
     <Tab.Navigator
+      initialRouteName="Lead Manager"
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
@@ -49,10 +50,10 @@ const TabNavigator = () => {
       })}
     >
       <Tab.Screen name="Dashboard" component={Dashboard} />
-      <Tab.Screen name="Lead Manager" component={LeadManager} />
-      <Tab.Screen name="Pending Fees" component={PendingFees} />
-      <Tab.Screen name="Add Lead" component={AddLead} />
       <Tab.Screen name="Search" component={SearchScreen} />
+      <Tab.Screen name="Lead Manager" component={LeadManager} />
+      <Tab.Screen name="Add Lead" component={AddLead} />
+      <Tab.Screen name="Pending Fees" component={PendingFees} />
     </Tab.Navigator>
   );
 };
