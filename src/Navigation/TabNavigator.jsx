@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import LeadManager from '../Screens/Lead Manager/LeadManager';
 import SearchScreen from '../Screens/Search/SearchScreen';
 import AddLead from '../Screens/Lead Manager/AddLead';
+import PendingFees from '../Screens/Pending Fees/PendingFees';
 import { useTheme } from '../Context/ThemeContext';
 
 const Tab = createBottomTabNavigator();
@@ -23,6 +24,8 @@ const TabNavigator = () => {
             iconName = focused ? 'add-circle' : 'add-circle-outline';
           } else if (route.name === 'Search') {
             iconName = focused ? 'search' : 'search-outline';
+          } else if (route.name === 'Pending Fees') {
+            iconName = focused ? 'wallet' : 'wallet-outline';
           }
 
           return <Icon name={iconName} size={size} color={color} />;
@@ -43,6 +46,7 @@ const TabNavigator = () => {
       })}
     >
       <Tab.Screen name="Lead Manager" component={LeadManager} />
+      <Tab.Screen name="Pending Fees" component={PendingFees} />
       <Tab.Screen name="Add Lead" component={AddLead} />
       <Tab.Screen name="Search" component={SearchScreen} />
     </Tab.Navigator>

@@ -358,4 +358,52 @@ export const leadEmailAndMobileValidator = async payload => {
   }
 };
 
+// Pending Fees / Customers APIs
+export const getPendingFeesCustomers = async payload => {
+  try {
+    const response = await api.post('/api/pendingFeesListV1', payload);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getCustomerById = async customerId => {
+  try {
+    const response = await api.get(
+      `/api/getCustomerById?customer_id=${customerId}`,
+    );
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getCustomersPaymentHistory = async leadId => {
+  try {
+    const response = await api.get(`/api/getPaymentHistory/${leadId}`);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const customerDuePayment = async payload => {
+  try {
+    const response = await api.post('/api/partPayment', payload);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const inserCustomerTrack = async payload => {
+  try {
+    const response = await api.post('/api/inserCustomerTrack', payload);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export default api;

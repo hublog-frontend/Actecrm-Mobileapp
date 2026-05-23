@@ -1,0 +1,381 @@
+import { StyleSheet } from 'react-native';
+
+export default StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 10,
+  },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  searchContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    height: 40,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    paddingVertical: 0,
+  },
+  filterIcon: {
+    marginLeft: 8,
+    padding: 4,
+  },
+  filterMenu: {
+    position: 'absolute',
+    top: 88,
+    right: 16,
+    left: 16,
+    borderRadius: 8,
+    paddingVertical: 4,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    zIndex: 100,
+  },
+  filterMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  filterMenuText: {
+    fontSize: 13,
+    marginLeft: 8,
+  },
+  userFilterRow: {
+    marginTop: 10,
+  },
+  listContent: {
+    padding: 12,
+    paddingBottom: 24,
+  },
+  total_heading: {
+    marginTop: 12,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    fontWeight: 700,
+    fontSize: 16,
+  },
+  card: {
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  cardName: {
+    fontSize: 15,
+    fontWeight: '700',
+    flex: 1,
+    marginRight: 8,
+  },
+  statusPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 4,
+    maxWidth: 140,
+    alignSelf: 'flex-start',
+  },
+  statusPillText: {
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  metaText: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  amountRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+  },
+  amountBlock: {
+    flex: 1,
+  },
+  amountLabel: {
+    fontSize: 10,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  amountValue: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    gap: 8,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+    gap: 6,
+  },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    gap: 4,
+  },
+  actionBtnText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 60,
+  },
+  emptyText: {
+    fontSize: 14,
+    marginTop: 8,
+  },
+  footerLoader: {
+    paddingVertical: 16,
+  },
+  sheetContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+  },
+  sheetTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  sheetSubtitle: {
+    fontSize: 13,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  historyItem: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 8,
+  },
+  historyDate: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  historyMeta: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  submitBtn: {
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 24,
+  },
+  submitBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  detailsModalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  detailsModalSheet: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '92%',
+    overflow: 'hidden',
+  },
+  detailsModalHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+  },
+  detailsDragIndicator: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    alignSelf: 'center',
+    marginBottom: 12,
+  },
+  detailsHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  detailsModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  detailsCloseBtn: {
+    padding: 6,
+    borderRadius: 20,
+  },
+  detailsLoadingWrap: {
+    paddingVertical: 48,
+    alignItems: 'center',
+  },
+  detailsScrollContent: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  detailsProfileCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  detailsAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    marginRight: 14,
+  },
+  detailsAvatarPlaceholder: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    marginRight: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  detailsProfileInfo: {
+    flex: 1,
+  },
+  detailsProfileName: {
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  detailsProfileMeta: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  detailsSectionTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  detailsSectionCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 16,
+  },
+  detailsCourseCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 16,
+  },
+  detailsTwoCol: {
+    flexDirection: 'row',
+  },
+  detailsCol: {
+    flex: 1,
+    minWidth: 0,
+  },
+  detailsColDivider: {
+    width: 1,
+    marginHorizontal: 8,
+    backgroundColor: 'transparent',
+  },
+  detailsGridField: {
+    marginBottom: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+  },
+  detailsFieldRow: {
+    paddingVertical: 10,
+  },
+  detailsFieldLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  detailsFieldIcon: {
+    marginRight: 4,
+  },
+  detailsFieldLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  detailsFieldValue: {
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 17,
+  },
+  detailsFieldValueHighlight: {
+    fontWeight: '700',
+  },
+  detailsSignatureWrap: {
+    alignItems: 'flex-end',
+    marginBottom: 12,
+  },
+  detailsSignatureLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  detailsSignatureImage: {
+    width: 140,
+    height: 56,
+    borderWidth: 1,
+    borderRadius: 6,
+    backgroundColor: '#FFFFFF',
+  },
+  detailsCopyHint: {
+    fontSize: 11,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+});
