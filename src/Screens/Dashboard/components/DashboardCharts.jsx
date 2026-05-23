@@ -83,7 +83,9 @@ export const DonutChart = ({
         <Text style={[chartStyles.donutEfficiency, { color: theme.primary }]}>
           {Number(efficientValue || 0).toFixed(0)}%
         </Text>
-        <Text style={[chartStyles.donutEfficiencyLabel, { color: theme.textMuted }]}>
+        <Text
+          style={[chartStyles.donutEfficiencyLabel, { color: theme.textMuted }]}
+        >
           Efficiency
         </Text>
         <Text style={[chartStyles.donutTotal, { color: theme.textPrimary }]}>
@@ -94,12 +96,19 @@ export const DonutChart = ({
         {labels.map((label, i) => (
           <View key={label} style={chartStyles.legendRow}>
             <View
-              style={[chartStyles.legendDot, { backgroundColor: colors[i % colors.length] }]}
+              style={[
+                chartStyles.legendDot,
+                { backgroundColor: colors[i % colors.length] },
+              ]}
             />
-            <Text style={[chartStyles.legendLabel, { color: theme.textSecondary }]}>
+            <Text
+              style={[chartStyles.legendLabel, { color: theme.textSecondary }]}
+            >
               {label}
             </Text>
-            <Text style={[chartStyles.legendValue, { color: theme.textPrimary }]}>
+            <Text
+              style={[chartStyles.legendValue, { color: theme.textPrimary }]}
+            >
               {Number(series[i] || 0).toLocaleString('en-IN')}
             </Text>
           </View>
@@ -120,14 +129,23 @@ export const HorizontalBarChart = ({ labels, series, colors, theme }) => {
         return (
           <View key={label} style={chartStyles.barRow}>
             <View style={chartStyles.barLabelRow}>
-              <Text style={[chartStyles.barLabel, { color: theme.textSecondary }]}>
+              <Text
+                style={[chartStyles.barLabel, { color: theme.textSecondary }]}
+              >
                 {label}
               </Text>
-              <Text style={[chartStyles.barValue, { color: theme.textPrimary }]}>
+              <Text
+                style={[chartStyles.barValue, { color: theme.textPrimary }]}
+              >
                 {formatINR(value)}
               </Text>
             </View>
-            <View style={[chartStyles.barTrack, { backgroundColor: theme.borderLight }]}>
+            <View
+              style={[
+                chartStyles.barTrack,
+                { backgroundColor: theme.borderLight },
+              ]}
+            >
               <View
                 style={[
                   chartStyles.barFill,
@@ -171,13 +189,13 @@ export const CollectionSpeedometer = ({
   }, [value, sale, tgt]);
 
   const pct = Math.min((value / maxValue) * 100, 100);
-  const achievementPct =
-    sale > 0 ? Math.min((value / sale) * 100, 999) : pct;
+  const achievementPct = sale > 0 ? Math.min((value / sale) * 100, 999) : pct;
 
-  const svgHeight = size * 0.62;
+  const svgHeight = size * 0.68;
   const cx = size / 2;
-  const cy = svgHeight * 0.88;
-  const radius = size * 0.36;
+  const cy = svgHeight * 0.82;
+  const radius = size * 0.34;
+  const centerOverlayTop = cy - radius * 0.64;
   const startAngle = Math.PI;
   const endAngle = 2 * Math.PI;
   const needleAngle = startAngle + (pct / 100) * Math.PI;
@@ -194,15 +212,17 @@ export const CollectionSpeedometer = ({
     return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 1 ${end.x} ${end.y}`;
   };
 
-  const progressPath = describeArc(startAngle, startAngle + (pct / 100) * Math.PI);
+  const progressPath = describeArc(
+    startAngle,
+    startAngle + (pct / 100) * Math.PI,
+  );
   const needleEnd = polarToCartesian(needleAngle, radius - 12);
   const needleBaseL = polarToCartesian(needleAngle + Math.PI / 2, 5);
   const needleBaseR = polarToCartesian(needleAngle - Math.PI / 2, 5);
 
   const tickMarks = [0, 25, 50, 75, 100];
 
-  const needleColor =
-    pct < 33 ? '#E53E3E' : pct < 66 ? '#DD6B00' : '#258a25';
+  const needleColor = pct < 33 ? '#E53E3E' : pct < 66 ? '#DD6B00' : '#258a25';
 
   return (
     <View style={chartStyles.speedoWrap}>
@@ -222,12 +242,24 @@ export const CollectionSpeedometer = ({
         <View style={chartStyles.speedoGaugeArea}>
           <Svg width={size} height={svgHeight}>
             <Defs>
-              <LinearGradient id="speedoProgress" x1="0%" y1="0%" x2="100%" y2="0%">
+              <LinearGradient
+                id="speedoProgress"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="0%"
+              >
                 <Stop offset="0%" stopColor="#5D6AD1" />
                 <Stop offset="50%" stopColor="#2ECC71" />
                 <Stop offset="100%" stopColor="#258a25" />
               </LinearGradient>
-              <LinearGradient id="speedoTrack" x1="0%" y1="0%" x2="100%" y2="0%">
+              <LinearGradient
+                id="speedoTrack"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="0%"
+              >
                 <Stop offset="0%" stopColor={theme.borderLight} />
                 <Stop offset="100%" stopColor={theme.border} />
               </LinearGradient>
@@ -285,7 +317,7 @@ export const CollectionSpeedometer = ({
               const angle = startAngle + (tick / 100) * Math.PI;
               const inner = polarToCartesian(angle, radius - 22);
               const outer = polarToCartesian(angle, radius + 6);
-              const labelPos = polarToCartesian(angle, radius + 22);
+              const labelPos = polarToCartesian(angle, radius + 18);
               return (
                 <G key={tick}>
                   <Line
@@ -297,16 +329,18 @@ export const CollectionSpeedometer = ({
                     strokeWidth={tick % 50 === 0 ? 2 : 1.2}
                     opacity={0.8}
                   />
-                  <SvgText
-                    x={labelPos.x}
-                    y={labelPos.y + 4}
-                    fontSize="10"
-                    fontWeight="600"
-                    fill={theme.textMuted}
-                    textAnchor="middle"
-                  >
-                    {tick}
-                  </SvgText>
+                  {tick !== 50 ? (
+                    <SvgText
+                      x={labelPos.x}
+                      y={labelPos.y + 4}
+                      fontSize="10"
+                      fontWeight="600"
+                      fill={theme.textMuted}
+                      textAnchor="middle"
+                    >
+                      {tick}
+                    </SvgText>
+                  ) : null}
                 </G>
               );
             })}
@@ -328,8 +362,11 @@ export const CollectionSpeedometer = ({
             <Circle cx={cx} cy={cy} r={5} fill={needleColor} />
           </Svg>
 
-          <View style={chartStyles.speedoCenterOverlay} pointerEvents="none">
-            <View
+          <View
+            style={[chartStyles.speedoCenterOverlay, { top: centerOverlayTop }]}
+            pointerEvents="none"
+          >
+            {/* <View
               style={[
                 chartStyles.speedoBadge,
                 { backgroundColor: theme.surface },
@@ -339,20 +376,28 @@ export const CollectionSpeedometer = ({
               <Text style={[chartStyles.speedoBadgeText, { color: theme.textMuted }]}>
                 Collection
               </Text>
-            </View>
-            <Text style={[chartStyles.speedoValue, { color: theme.textPrimary }]}>
+            </View> */}
+            <Text
+              style={[chartStyles.speedoValue, { color: theme.textPrimary }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.65}
+            >
               {formatINR(value)}
             </Text>
-            <View
-              style={[
-                chartStyles.speedoPctPill,
-                { backgroundColor: `${needleColor}18` },
-              ]}
-            >
-              <Text style={[chartStyles.speedoPctText, { color: needleColor }]}>
-                {achievementPct.toFixed(0)}% achieved
-              </Text>
-            </View>
+          </View>
+        </View>
+
+        <View style={chartStyles.speedoAchievedRow}>
+          <View
+            style={[
+              chartStyles.speedoPctPill,
+              { backgroundColor: `${needleColor}18` },
+            ]}
+          >
+            <Text style={[chartStyles.speedoPctText, { color: needleColor }]}>
+              {achievementPct.toFixed(0)}% achieved
+            </Text>
           </View>
         </View>
 
@@ -366,7 +411,9 @@ export const CollectionSpeedometer = ({
               },
             ]}
           >
-            <Text style={[chartStyles.speedoStatLabel, { color: theme.textMuted }]}>
+            <Text
+              style={[chartStyles.speedoStatLabel, { color: theme.textMuted }]}
+            >
               Sale Volume
             </Text>
             <Text style={[chartStyles.speedoStatValue, { color: '#5b6aca' }]}>
@@ -382,7 +429,9 @@ export const CollectionSpeedometer = ({
               },
             ]}
           >
-            <Text style={[chartStyles.speedoStatLabel, { color: theme.textMuted }]}>
+            <Text
+              style={[chartStyles.speedoStatLabel, { color: theme.textMuted }]}
+            >
               Collection
             </Text>
             <Text style={[chartStyles.speedoStatValue, { color: '#258a25' }]}>
@@ -398,7 +447,9 @@ export const CollectionSpeedometer = ({
               },
             ]}
           >
-            <Text style={[chartStyles.speedoStatLabel, { color: theme.textMuted }]}>
+            <Text
+              style={[chartStyles.speedoStatLabel, { color: theme.textMuted }]}
+            >
               Pending
             </Text>
             <Text style={[chartStyles.speedoStatValue, { color: '#b22021' }]}>
@@ -501,16 +552,23 @@ const chartStyles = StyleSheet.create({
   },
   speedoGaugeArea: {
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 200,
+    justifyContent: 'flex-start',
+    width: '100%',
+    paddingBottom: 4,
   },
   speedoCenterOverlay: {
     position: 'absolute',
-    top: '38%',
     left: 0,
     right: 0,
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
+    maxWidth: '100%',
+  },
+  speedoAchievedRow: {
+    alignItems: 'center',
+    marginTop: 4,
+    marginBottom: 10,
+    paddingHorizontal: 12,
   },
   speedoBadge: {
     flexDirection: 'row',
@@ -534,11 +592,12 @@ const chartStyles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '800',
     letterSpacing: -0.5,
+    textAlign: 'center',
+    width: '100%',
   },
   speedoPctPill: {
-    marginTop: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
     borderRadius: 20,
   },
   speedoPctText: {
@@ -549,7 +608,7 @@ const chartStyles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     paddingHorizontal: 4,
-    paddingTop: 4,
+    paddingTop: 0,
   },
   speedoStatBox: {
     flex: 1,
