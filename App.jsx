@@ -35,6 +35,8 @@ import BootSplash from 'react-native-bootsplash';
 const Stack = createNativeStackNavigator();
 
 function RootNavigator() {
+  const { theme } = useTheme();
+
   const [isLoading, setIsLoading] = useState(true);
   const [initialRoute, setInitialRoute] = useState('Login');
   const dispatch = useDispatch();
@@ -105,10 +107,10 @@ function RootNavigator() {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: '#FFFFFF',
+          backgroundColor: theme.background,
         }}
       >
-        <ActivityIndicator size="large" color="#1E90FF" />
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
