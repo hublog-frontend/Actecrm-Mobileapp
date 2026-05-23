@@ -255,18 +255,45 @@ const Leads = ({ isSubView, isActive }) => {
         <View
           style={[styles.cardFooter, { borderTopColor: theme.borderLight }]}
         >
-          <View style={styles.communicationIcons}>
-            <TouchableOpacity onPress={() => handleCall(item.phone)}>
-              <Icon name="call" size={20} color="#2ECC71" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => handleWhatsApp(item.phone)}
-              style={styles.commIcon}
-            >
-              <Icon name="logo-whatsapp" size={20} color="#25D366" />
-            </TouchableOpacity>
+          <View style={styles.quickActions}>
+            {item.phone ? (
+              <TouchableOpacity
+                style={[
+                  styles.quickActionBtn,
+                  {
+                    backgroundColor: theme.inputBg,
+                    borderColor: theme.border,
+                  },
+                ]}
+                onPress={() => handleCall(item.phone)}
+              >
+                <Icon name="call-outline" size={16} color={theme.primary} />
+                <Text
+                  style={[styles.quickActionText, { color: theme.primary }]}
+                >
+                  Call
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+            {item.phone ? (
+              <TouchableOpacity
+                style={[
+                  styles.quickActionBtn,
+                  {
+                    backgroundColor: theme.inputBg,
+                    borderColor: theme.border,
+                  },
+                ]}
+                onPress={() => handleWhatsApp(item.phone)}
+              >
+                <Icon name="logo-whatsapp" size={16} color="#25D366" />
+                <Text style={[styles.quickActionText, { color: '#25D366' }]}>
+                  WhatsApp
+                </Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
-          <View style={{ flexDirection: 'row' }}>
+          <View style={styles.cardFooterActions}>
             <TouchableOpacity
               style={[
                 styles.actionButton,

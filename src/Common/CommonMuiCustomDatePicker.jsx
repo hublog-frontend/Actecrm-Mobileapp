@@ -3,9 +3,9 @@ import {
   View,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   Modal,
   StyleSheet,
-  ScrollView,
   Platform,
 } from 'react-native';
 import moment from 'moment';
@@ -216,69 +216,73 @@ const CommonMuiCustomDatePicker = ({ onDateChange, value, isDashboard }) => {
 
       <Modal
         animationType="fade"
-        transparent={true}
+        transparent
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
+        statusBarTranslucent
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setModalVisible(false)}
-        >
+        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
           <View
-            style={[
-              styles.modalContent,
-              {
-                backgroundColor: theme.cardBg,
-              },
-            ]}
+            style={[styles.modalOverlay, { backgroundColor: theme.overlay }]}
           >
-            <Text
-              style={[
-                styles.modalTitle,
-                {
-                  color: theme.textPrimary,
-                },
-              ]}
-            >
-              Select Date Range
-            </Text>
-
-            <ScrollView style={styles.optionsList}>
-              {options.map(opt => (
-                <TouchableOpacity
-                  key={opt.value}
-                  style={[
-                    styles.optionItem,
-                    option === opt.value && {
-                      backgroundColor: theme.inputBg,
-                    },
-                  ]}
-                  onPress={() => handleOptionSelect(opt.value)}
-                >
+            <TouchableWithoutFeedback>
+              <View
+                style={[
+                  styles.modalContent,
+                  { backgroundColor: theme.surface },
+                ]}
+              >
+                <View style={styles.modalHeader}>
                   <Text
-                    style={[
-                      styles.optionText,
-                      {
-                        color: theme.textSecondary,
-                      },
-                      option === opt.value && {
-                        color: theme.primary,
-                        fontWeight: '600',
-                      },
-                    ]}
+                    style={[styles.modalTitle, { color: theme.textPrimary }]}
                   >
-                    {opt.label}
+                    Select Date Range
                   </Text>
+                  <TouchableOpacity
+                    onPress={() => setModalVisible(false)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Icon name="close" size={22} color={theme.textSecondary} />
+                  </TouchableOpacity>
+                </View>
 
-                  {option === opt.value && (
-                    <Icon name="checkmark" size={20} color={theme.primary} />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+                <View style={styles.optionsList}>
+                  {options.map(opt => (
+                    <TouchableOpacity
+                      key={opt.value}
+                      style={[
+                        styles.optionItem,
+                        option === opt.value && {
+                          backgroundColor: theme.inputBg,
+                        },
+                      ]}
+                      onPress={() => handleOptionSelect(opt.value)}
+                    >
+                      <Text
+                        style={[
+                          styles.optionText,
+                          { color: theme.textSecondary },
+                          option === opt.value && {
+                            color: theme.primary,
+                            fontWeight: '600',
+                          },
+                        ]}
+                      >
+                        {opt.label}
+                      </Text>
 
-            {option === 'custom' && (
+                      {option === opt.value && (
+                        <Icon
+                          name="checkmark"
+                          size={20}
+                          color={theme.primary}
+                        />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                {option === 'custom' && (
               <View
                 style={[
                   styles.customContainer,
@@ -365,9 +369,11 @@ const CommonMuiCustomDatePicker = ({ onDateChange, value, isDashboard }) => {
                   <Text style={styles.applyButtonText}>Apply Range</Text>
                 </TouchableOpacity>
               </View>
-            )}
+                )}
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-        </TouchableOpacity>
+        </TouchableWithoutFeedback>
       </Modal>
 
       {showPicker && (
@@ -377,7 +383,7 @@ const CommonMuiCustomDatePicker = ({ onDateChange, value, isDashboard }) => {
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={handleDateChange}
           minimumDate={showPicker === 'end' ? startDate.toDate() : undefined}
-          themeVariant={theme.mode === 'dark' ? 'dark' : 'light'}
+          themeVariant={theme.dark ? 'dark' : 'light'}
         />
       )}
     </View>
@@ -405,23 +411,40 @@ const styles = StyleSheet.create({
 
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
 
   modalContent: {
     width: '85%',
     borderRadius: 16,
-    paddingVertical: 20,
-    maxHeight: '80%',
+    paddingVertical: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 8,
   },
 
   modalTitle: {
+    flex: 1,
     fontSize: 18,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 15,
   },
 
   optionsList: {
@@ -432,7 +455,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 15,
     borderRadius: 8,
   },

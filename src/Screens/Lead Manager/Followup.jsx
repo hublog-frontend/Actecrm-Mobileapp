@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../Context/ThemeContext';
+import { Linking } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import BottomSheet, {
   BottomSheetView,
@@ -70,6 +71,7 @@ const Followup = ({ isSubView }) => {
   const [searchValue, setSearchValue] = useState('');
   const [filterType, setFilterType] = useState(1);
   const [showFilterOptions, setShowFilterOptions] = useState(false);
+  const [expandedComments, setExpandedComments] = useState([]);
 
   const actionOptions = [
     { id: 1, name: 'Hot Follow Up' },
@@ -308,84 +310,187 @@ const Followup = ({ isSubView }) => {
     }
   };
 
+  const openFollowupSheet = leadItem => {
+    setSelectedLead(leadItem);
+    setActionId(leadItem.lead_action_id || 1);
+    setNextDate(new Date());
+    followupSheetRef.current?.expand();
+  };
+
   const renderFollowupCard = ({ item }) => {
     const isOverdue = moment(item.next_follow_up_date).isBefore(
       moment(),
       'day',
     );
+    const isCommentExpanded = expandedComments.includes(item.id);
+    const followUpLabel = moment(item.next_follow_up_date).format(
+      'DD MMM YYYY',
+    );
+
+    const toggleComments = id => {
+      setExpandedComments(prev =>
+        prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id],
+      );
+    };
 
     return (
       <TouchableOpacity
-        style={[styles.card, { backgroundColor: theme.surface }]}
-        onPress={() => {
-          console.log('selected lead item', item);
-          setSelectedLead(item);
-          setActionId(item.lead_action_id || 1);
-          setNextDate(new Date());
-          followupSheetRef.current?.expand();
-        }}
+        activeOpacity={0.9}
+        style={[
+          styles.card,
+          followupCardStyles.card,
+          {
+            backgroundColor: theme.surface,
+            borderColor: theme.borderLight,
+            shadowColor: theme.textPrimary,
+          },
+        ]}
+        onPress={() => openFollowupSheet(item)}
       >
-        <View style={styles.cardHeader}>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.name, { color: theme.textPrimary }]}>
+        <View style={followupCardStyles.headerRow}>
+          <View style={followupCardStyles.headerInfo}>
+            <Text
+              style={[followupCardStyles.name, { color: theme.textPrimary }]}
+              numberOfLines={1}
+            >
               {item.candidate_name}
             </Text>
-            <Text style={{ fontSize: 10, color: theme.textSecondary }}>
+            <Text
+              style={[followupCardStyles.subMeta, { color: theme.textMuted }]}
+              numberOfLines={1}
+            >
               #{item.row_num}
+              {item.primary_course ? ` · ${item.primary_course}` : ''}
             </Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: '#E3F2FD' }]}>
-            <Text style={[styles.statusText, { color: '#1976D2' }]}>
+          <View
+            style={[
+              followupCardStyles.statusPill,
+              { backgroundColor: theme.primaryLight },
+            ]}
+          >
+            <Text
+              style={[
+                followupCardStyles.statusPillText,
+                { color: theme.primary },
+              ]}
+              numberOfLines={1}
+            >
               {item.action_name}
             </Text>
           </View>
         </View>
 
-        <View style={styles.cardBody}>
-          <Text style={[styles.detailText, { color: theme.textSecondary }]}>
-            Course: {item.primary_course}
-          </Text>
-          <View style={[styles.detailRow, { marginTop: 8 }]}>
-            <Icon
-              name="time-outline"
-              size={14}
-              color={isOverdue ? '#D32F2F' : theme.textSecondary}
-            />
-            <Text
-              style={[
-                styles.detailText,
-                { color: theme.textSecondary },
-                isOverdue && styles.overdueText,
-              ]}
-            >
-              Next: {moment(item.next_follow_up_date).format('DD MMM YYYY')}
-            </Text>
-          </View>
-        </View>
-
-        <View
-          style={[styles.cardFooter, { borderTopColor: theme.borderLight }]}
-        >
+        <View style={followupCardStyles.metaRow}>
+          <Icon
+            name="calendar-outline"
+            size={13}
+            color={isOverdue ? theme.error : theme.textSecondary}
+          />
           <Text
             style={[
-              styles.detailText,
-              { color: theme.textSecondary, fontStyle: 'italic', flex: 1 },
+              followupCardStyles.metaText,
+              { color: theme.textSecondary },
+              isOverdue && { color: theme.error, fontWeight: '600' },
             ]}
-            numberOfLines={1}
           >
-            Latest: {item.comments || 'No comments'}
+            Next: {followUpLabel}
           </Text>
+          {isOverdue ? (
+            <Text style={[followupCardStyles.overdueTag, { color: theme.error }]}>
+              · Overdue
+            </Text>
+          ) : null}
+        </View>
+
+        {item.comments ? (
+          <View style={followupCardStyles.commentRow}>
+            <Icon
+              name="chatbubble-outline"
+              size={12}
+              color={theme.textMuted}
+              style={followupCardStyles.commentIcon}
+            />
+            <Text
+              style={[followupCardStyles.commentText, { color: theme.textSecondary }]}
+              numberOfLines={isCommentExpanded ? undefined : 1}
+            >
+              {item.comments}
+            </Text>
+            {item.comments.length > 40 ? (
+              <TouchableOpacity
+                onPress={() => toggleComments(item.id)}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              >
+                <Icon
+                  name={
+                    isCommentExpanded
+                      ? 'chevron-up'
+                      : 'chevron-down'
+                  }
+                  size={14}
+                  color={theme.primary}
+                />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        ) : null}
+
+        <View
+          style={[
+            followupCardStyles.footer,
+            { borderTopColor: theme.borderLight },
+          ]}
+        >
+          <View style={styles.quickActions}>
+            {item.phone ? (
+              <TouchableOpacity
+                style={[
+                  styles.quickActionBtn,
+                  {
+                    backgroundColor: theme.inputBg,
+                    borderColor: theme.border,
+                  },
+                ]}
+                onPress={() => Linking.openURL(`tel:${item.phone}`)}
+              >
+                <Icon name="call-outline" size={16} color={theme.primary} />
+                <Text
+                  style={[styles.quickActionText, { color: theme.primary }]}
+                >
+                  Call
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+            {item.whatsapp ? (
+              <TouchableOpacity
+                style={[
+                  styles.quickActionBtn,
+                  {
+                    backgroundColor: theme.inputBg,
+                    borderColor: theme.border,
+                  },
+                ]}
+                onPress={() =>
+                  Linking.openURL(`whatsapp://send?phone=${item.whatsapp}`)
+                }
+              >
+                <Icon name="logo-whatsapp" size={16} color="#25D366" />
+                <Text style={[styles.quickActionText, { color: '#25D366' }]}>
+                  WhatsApp
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
           <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => {
-              setSelectedLead(item);
-              setActionId(item.lead_action_id || 1);
-              setNextDate(new Date());
-              followupSheetRef.current?.expand();
-            }}
+            style={[
+              followupCardStyles.updateBtn,
+              { backgroundColor: theme.primary },
+            ]}
+            onPress={() => openFollowupSheet(item)}
           >
-            <Icon name="add-circle-outline" size={20} color={theme.primary} />
-            <Text style={styles.actionText}>Update</Text>
+            <Icon name="create-outline" size={14} color="#FFFFFF" />
+            <Text style={followupCardStyles.updateBtnText}>Update</Text>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
@@ -1115,6 +1220,91 @@ const getAvatarColor = initials => {
   const charCodeSum = initials.charCodeAt(0) + (initials.charCodeAt(1) || 0);
   return colors[charCodeSum % colors.length];
 };
+
+const followupCardStyles = StyleSheet.create({
+  card: {
+    borderWidth: 1,
+    padding: 10,
+    marginBottom: 8,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  headerInfo: {
+    flex: 1,
+    marginRight: 8,
+  },
+  name: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  subMeta: {
+    fontSize: 11,
+    marginTop: 2,
+  },
+  statusPill: {
+    maxWidth: 96,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+  statusPillText: {
+    fontSize: 10,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  metaText: {
+    fontSize: 12,
+    marginLeft: 6,
+  },
+  overdueTag: {
+    fontSize: 11,
+    fontWeight: '700',
+    marginLeft: 2,
+  },
+  commentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  commentIcon: {
+    marginRight: 4,
+  },
+  commentText: {
+    flex: 1,
+    fontSize: 11,
+    fontStyle: 'italic',
+    lineHeight: 15,
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    paddingTop: 8,
+    marginTop: 2,
+  },
+  updateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    gap: 4,
+  },
+  updateBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+});
 
 const historyStyles = StyleSheet.create({
   container: {

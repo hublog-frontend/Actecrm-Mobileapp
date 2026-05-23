@@ -547,7 +547,7 @@ const LiveLeads = ({ isSubView, isActive }) => {
             <View style={styles.detailRow}>
               <Icon name="book-outline" size={14} color={theme.textSecondary} />
               <Text style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>
-                {item.course || 'No course specified'}
+                {item.course || item.primary_course || 'No course specified'}
               </Text>
             </View>
 
@@ -584,10 +584,12 @@ const LiveLeads = ({ isSubView, isActive }) => {
             )}
 
             {/* Location (Conditional on Manage Columns) */}
-            {visibleColumns.includes('Location') && item.location && (
+            {visibleColumns.includes('Location') && (item.location || item.area_id || item.district) && (
               <View style={styles.detailRow}>
                 <Icon name="location-outline" size={14} color={theme.textSecondary} />
-                <Text style={[styles.detailText, { color: theme.textSecondary }]}>{item.location}</Text>
+                <Text style={[styles.detailText, { color: theme.textSecondary }]}>
+                  {item.location || item.area_id || item.district}
+                </Text>
               </View>
             )}
 
@@ -615,65 +617,120 @@ const LiveLeads = ({ isSubView, isActive }) => {
 
             {/* Domain Origin (Conditional on Column & Permission check) */}
             {permissions.includes('Show Origin in Live Leads') &&
-              item.domain_origin && (
+              (item.domain_origin || item.source_origin || item.lead_type) && (
                 <View style={styles.detailRow}>
                   <Icon name="globe-outline" size={14} color={theme.textSecondary} />
                   <Text style={[styles.detailText, { color: theme.textSecondary }]}>
-                    {item.domain_origin || item.source_origin}
+                    {item.domain_origin || item.source_origin || item.lead_type}
                   </Text>
                 </View>
               )}
 
             {/* Expandable comments toggle */}
             {item.comments && (
-              <Text
-                style={[
-                  styles.detailText,
-                  { fontStyle: 'italic', flex: 1, marginTop: 6, color: theme.textSecondary },
-                ]}
-                numberOfLines={1}
-              >
-                Comment: {item.comments || 'No comments'}
-              </Text>
+              <View style={{ marginTop: 6, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                <Text
+                  style={[
+                    styles.detailText,
+                    { fontStyle: 'italic', flex: 1, color: theme.textSecondary, marginRight: 8 },
+                  ]}
+                  numberOfLines={expandedComments.includes(item.id) ? undefined : 1}
+                >
+                  Comment: {item.comments}
+                </Text>
+                {item.comments.length > 25 && (
+                  <TouchableOpacity onPress={() => toggleComments(item.id)} style={{ padding: 2 }}>
+                    <Icon
+                      name={expandedComments.includes(item.id) ? 'chevron-up-circle-outline' : 'ellipsis-horizontal-circle-outline'}
+                      size={18}
+                      color={theme.primary}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
             )}
           </View>
 
           {/* Action Row */}
           <View style={[styles.cardFooter, { borderTopColor: theme.borderLight }]}>
-            {/* Pick Lead Action */}
-            <TouchableOpacity
-              disabled={pickingLeadId !== null}
-              onPress={() => handlePickLead(item)}
-              style={[
-                styles.actionButton,
-                pickingLeadId !== null && pickingLeadId !== item.id
-                  ? { opacity: 0.5 }
-                  : {},
-              ]}
-            >
-              {pickingLeadId === item.id ? (
-                <ActivityIndicator
-                  size="small"
-                  color={theme.primary}
-                  style={{ marginRight: 6 }}
-                />
-              ) : (
-                <Icon name="hand-left-outline" size={18} color={theme.primary} />
-              )}
+            {/* Communication Icons */}
+            <View style={styles.quickActions}>
+              {item.phone ? (
+                <TouchableOpacity
+                  style={[
+                    styles.quickActionBtn,
+                    {
+                      backgroundColor: theme.inputBg,
+                      borderColor: theme.border,
+                    },
+                  ]}
+                  onPress={() => Linking.openURL(`tel:${item.phone}`)}
+                >
+                  <Icon name="call-outline" size={16} color={theme.primary} />
+                  <Text
+                    style={[styles.quickActionText, { color: theme.primary }]}
+                  >
+                    Call
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+              {item.phone ? (
+                <TouchableOpacity
+                  style={[
+                    styles.quickActionBtn,
+                    {
+                      backgroundColor: theme.inputBg,
+                      borderColor: theme.border,
+                    },
+                  ]}
+                  onPress={() =>
+                    Linking.openURL(`whatsapp://send?phone=${item.phone}`)
+                  }
+                >
+                  <Icon name="logo-whatsapp" size={16} color="#25D366" />
+                  <Text style={[styles.quickActionText, { color: '#25D366' }]}>
+                    WhatsApp
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
 
-              <Text style={[styles.actionText, { color: theme.primary }]}>Pick Lead</Text>
-            </TouchableOpacity>
+            <View style={styles.cardFooterActions}>
+              {/* Pick Lead Action */}
+              <TouchableOpacity
+                disabled={pickingLeadId !== null}
+                onPress={() => handlePickLead(item)}
+                style={[
+                  styles.actionButton,
+                  pickingLeadId !== null && pickingLeadId !== item.id
+                    ? { opacity: 0.5 }
+                    : {},
+                ]}
+              >
+                {pickingLeadId === item.id ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={theme.primary}
+                    style={{ marginRight: 6 }}
+                  />
+                ) : (
+                  <Icon name="hand-left-outline" size={18} color={theme.primary} />
+                )}
 
-            {/* Move to Junk */}
-            <TouchableOpacity
-              onPress={() => openJunkModal([item.id])}
-              style={styles.actionButton}
-            >
-              <Icon name="trash-outline" size={18} color={theme.error} />
-              <Text style={[styles.actionText, { color: theme.error }]}>
-                Junk
-              </Text>
-            </TouchableOpacity>
+                <Text style={[styles.actionText, { color: theme.primary, marginRight: 0 }]}>Pick Lead</Text>
+              </TouchableOpacity>
+
+              {/* Move to Junk */}
+              <TouchableOpacity
+                onPress={() => openJunkModal([item.id])}
+                style={styles.actionButton}
+              >
+                <Icon name="trash-outline" size={18} color={theme.error} />
+                <Text style={[styles.actionText, { color: theme.error }]}>
+                  Junk
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </TouchableOpacity>

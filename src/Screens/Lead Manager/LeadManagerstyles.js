@@ -83,7 +83,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#F0F3F7',
     paddingTop: 12,
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
   },
   actionButton: {
     flexDirection: 'row',
@@ -101,6 +102,32 @@ const styles = StyleSheet.create({
   },
   commIcon: {
     marginLeft: 15,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+    gap: 6,
+  },
+  cardFooterActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 'auto',
+    flexShrink: 0,
+    gap: 4,
+  },
+  quickActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 6,
+    borderWidth: 1,
+    gap: 4,
+  },
+  quickActionText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   // Follow-up specific
   chipContainer: {
