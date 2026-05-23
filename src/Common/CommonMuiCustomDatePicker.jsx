@@ -187,10 +187,11 @@ const CommonMuiCustomDatePicker = ({ onDateChange, value, isDashboard }) => {
   ];
 
   return (
-    <View>
+    <View style={isDashboard ? styles.containerDashboard : undefined}>
       <TouchableOpacity
         style={[
           styles.triggerButton,
+          isDashboard && styles.triggerButtonDashboard,
           {
             backgroundColor: theme.inputBg,
             borderColor: theme.border,
@@ -400,6 +401,16 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     marginHorizontal: 16,
     marginBottom: 10,
+  },
+  containerDashboard: {
+    width: '100%',
+    alignSelf: 'stretch',
+  },
+  triggerButtonDashboard: {
+    marginHorizontal: 0,
+    marginBottom: 0,
+    width: '100%',
+    alignSelf: 'stretch',
   },
 
   triggerText: {

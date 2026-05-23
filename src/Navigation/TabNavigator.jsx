@@ -5,6 +5,7 @@ import LeadManager from '../Screens/Lead Manager/LeadManager';
 import SearchScreen from '../Screens/Search/SearchScreen';
 import AddLead from '../Screens/Lead Manager/AddLead';
 import PendingFees from '../Screens/Pending Fees/PendingFees';
+import Dashboard from '../Screens/Dashboard/Dashboard';
 import { useTheme } from '../Context/ThemeContext';
 
 const Tab = createBottomTabNavigator();
@@ -18,7 +19,9 @@ const TabNavigator = () => {
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
 
-          if (route.name === 'Lead Manager') {
+          if (route.name === 'Dashboard') {
+            iconName = focused ? 'grid' : 'grid-outline';
+          } else if (route.name === 'Lead Manager') {
             iconName = focused ? 'layers' : 'layers-outline';
           } else if (route.name === 'Add Lead') {
             iconName = focused ? 'add-circle' : 'add-circle-outline';
@@ -45,6 +48,7 @@ const TabNavigator = () => {
         },
       })}
     >
+      <Tab.Screen name="Dashboard" component={Dashboard} />
       <Tab.Screen name="Lead Manager" component={LeadManager} />
       <Tab.Screen name="Pending Fees" component={PendingFees} />
       <Tab.Screen name="Add Lead" component={AddLead} />

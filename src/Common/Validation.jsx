@@ -495,6 +495,15 @@ export const getDatesFromRangeLabel = label => {
   };
 };
 
+/** Billing month range (26th → 25th), same as CommonMuiCustomDatePicker "This Month". */
+export const getThisMonthDateRange = () => {
+  const range = getDatesFromRangeLabel('One Month');
+  if (!range?.card_settings) {
+    return getCurrentandPreviousweekDate();
+  }
+  return [range.card_settings.start_date, range.card_settings.end_date];
+};
+
 export const getLast3Months = () => {
   const end = dayjs(); // current month
   const start = end.subtract(2, 'month'); // last 3 months range
