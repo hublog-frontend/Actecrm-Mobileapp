@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  BackHandler,
+  ToastAndroid,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Followup from './Followup';
@@ -14,6 +16,7 @@ import LiveLeads from './LiveLeads';
 import Junk from './Junk';
 import Header from '../../Common/Header';
 import { useTheme } from '../../Context/ThemeContext';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -29,6 +32,36 @@ const LeadManager = ({ isSubView }) => {
     { id: 'LiveLeads', label: 'Live Leads' },
     { id: 'Junk', label: 'Junk' },
   ];
+
+  useFocusEffect(
+    React.useCallback(() => {
+      let backPressed = false;
+
+      const onBackPress = () => {
+        if (backPressed) {
+          BackHandler.exitApp();
+          return true;
+        }
+
+        backPressed = true;
+
+        ToastAndroid.show('Press back again to exit', ToastAndroid.SHORT);
+
+        setTimeout(() => {
+          backPressed = false;
+        }, 2000);
+
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+
+      return () => subscription.remove();
+    }, []),
+  );
 
   const renderContent = () => {
     return (

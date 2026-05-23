@@ -11,13 +11,15 @@ import {
   ScrollView,
   Keyboard,
   Pressable,
+  BackHandler,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { globalFilter } from '../../ApiService/action';
 import { useTheme } from '../../Context/ThemeContext';
+import { useFocusEffect } from '@react-navigation/native';
 
-const SearchScreen = () => {
+const SearchScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,6 +27,22 @@ const SearchScreen = () => {
   const [selectedLead, setSelectedLead] = useState(null);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [selectionKey, setSelectionKey] = useState(0);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        navigation.navigate('Lead Manager');
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+
+      return () => subscription.remove();
+    }, [navigation]),
+  );
 
   const handleLeadPress = lead => {
     Keyboard.dismiss();

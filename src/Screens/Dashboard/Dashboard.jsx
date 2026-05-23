@@ -3,8 +3,7 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
+  BackHandler,
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -27,6 +26,7 @@ import {
   CollectionSpeedometer,
 } from './components/DashboardCharts';
 import CommonMuiCustomDatePicker from '../../Common/CommonMuiCustomDatePicker';
+import { useFocusEffect } from '@react-navigation/native';
 
 const FOLLOWUP_ORDER = [
   'Hot Follow Up',
@@ -73,7 +73,7 @@ const DashboardCard = ({ title, dateRange, theme, loading, children }) => (
   </View>
 );
 
-const Dashboard = () => {
+const Dashboard = ({ navigation }) => {
   const { theme } = useTheme();
   const permissions = useSelector(state => state.userpermissions) || [];
   const downlineUsers = useSelector(state => state.downlineusers) || [];
@@ -104,6 +104,22 @@ const Dashboard = () => {
   const needsScoreboardApi =
     showCollectionGauge &&
     (showScoreBoard || showSalePerformance || showCollectionGauge);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        navigation.navigate('Lead Manager');
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+
+      return () => subscription.remove();
+    }, [navigation]),
+  );
 
   const fetchScoreBoard = useCallback(
     async (dates, downliners) => {

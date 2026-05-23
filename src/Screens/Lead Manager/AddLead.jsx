@@ -53,6 +53,7 @@ import {
 } from '../../ApiService/action';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../../Context/ThemeContext';
+import { useFocusEffect } from '@react-navigation/native';
 
 const followupStatusOptions = [
   { id: 1, name: 'Hot Follow Up' },
@@ -78,7 +79,7 @@ export default function AddLead({ navigation, route }) {
       if (isFromLiveLeads) {
         assignLeadAndGoBack();
       } else {
-        navigation.goBack();
+        navigation.navigate('Lead Manager');
       }
 
       return true;
@@ -866,18 +867,31 @@ export default function AddLead({ navigation, route }) {
     <>
       {screenLoading ? (
         <View
-          style={[styles.loadingContainer, { backgroundColor: theme.background }]}
+          style={[
+            styles.loadingContainer,
+            { backgroundColor: theme.background },
+          ]}
         >
           <ActivityIndicator size="large" color={theme.primary} />
         </View>
       ) : (
-        <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+        <SafeAreaView
+          style={[styles.safeArea, { backgroundColor: theme.background }]}
+        >
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={{ flex: 1 }}
           >
             {/* Header bar */}
-            <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+            <View
+              style={[
+                styles.header,
+                {
+                  backgroundColor: theme.surface,
+                  borderBottomColor: theme.border,
+                },
+              ]}
+            >
               {navigation.canGoBack() ? (
                 <TouchableOpacity
                   onPress={() => {
@@ -899,7 +913,11 @@ export default function AddLead({ navigation, route }) {
                   }}
                   style={styles.closeBtn}
                 >
-                  <Icon name="chevron-back" size={24} color={theme.textPrimary} />
+                  <Icon
+                    name="chevron-back"
+                    size={24}
+                    color={theme.textPrimary}
+                  />
                 </TouchableOpacity>
               )}
               <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>
@@ -913,9 +931,20 @@ export default function AddLead({ navigation, route }) {
               keyboardShouldPersistTaps="handled"
             >
               {/* Basic Information section */}
-              <Text style={[styles.sectionHeading, { color: theme.primary }]}>Basic Information</Text>
+              <Text style={[styles.sectionHeading, { color: theme.primary }]}>
+                Basic Information
+              </Text>
 
-              <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.borderLight, shadowColor: theme.textPrimary }]}>
+              <View
+                style={[
+                  styles.card,
+                  {
+                    backgroundColor: theme.surface,
+                    borderColor: theme.borderLight,
+                    shadowColor: theme.textPrimary,
+                  },
+                ]}
+              >
                 {/* Candidate Name Input */}
                 <CommonFormInput
                   label="Candidate Name *"
@@ -1103,7 +1132,11 @@ export default function AddLead({ navigation, route }) {
 
                 {/* Area Selector with "+" Quick Add Button */}
                 <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Area *</Text>
+                  <Text
+                    style={[styles.inputLabel, { color: theme.textSecondary }]}
+                  >
+                    Area *
+                  </Text>
                   <View style={styles.selectorRow}>
                     <CommonSelectField
                       containerStyle={{ flex: 1, marginBottom: 0 }}
@@ -1131,7 +1164,13 @@ export default function AddLead({ navigation, route }) {
                       error={errors.area ? 'Area' + errors.area : ''}
                     />
                     <TouchableOpacity
-                      style={[styles.quickAddButton, { backgroundColor: theme.primary, shadowColor: theme.primary }]}
+                      style={[
+                        styles.quickAddButton,
+                        {
+                          backgroundColor: theme.primary,
+                          shadowColor: theme.primary,
+                        },
+                      ]}
                       onPress={() =>
                         showAddModal(
                           'Add Area',
@@ -1148,12 +1187,27 @@ export default function AddLead({ navigation, route }) {
               </View>
 
               {/* Course Details section */}
-              <Text style={[styles.sectionHeading, { color: theme.primary }]}>Course Details</Text>
+              <Text style={[styles.sectionHeading, { color: theme.primary }]}>
+                Course Details
+              </Text>
 
-              <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.borderLight, shadowColor: theme.textPrimary }]}>
+              <View
+                style={[
+                  styles.card,
+                  {
+                    backgroundColor: theme.surface,
+                    borderColor: theme.borderLight,
+                    shadowColor: theme.textPrimary,
+                  },
+                ]}
+              >
                 {/* Primary Course with "+" Quick Add Button */}
                 <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Primary Course *</Text>
+                  <Text
+                    style={[styles.inputLabel, { color: theme.textSecondary }]}
+                  >
+                    Primary Course *
+                  </Text>
                   <View style={styles.selectorRow}>
                     <CommonSelectField
                       containerStyle={{ flex: 1, marginBottom: 0 }}
@@ -1185,7 +1239,13 @@ export default function AddLead({ navigation, route }) {
                       }
                     />
                     <TouchableOpacity
-                      style={[styles.quickAddButton, { backgroundColor: theme.primary, shadowColor: theme.primary }]}
+                      style={[
+                        styles.quickAddButton,
+                        {
+                          backgroundColor: theme.primary,
+                          shadowColor: theme.primary,
+                        },
+                      ]}
                       onPress={() =>
                         showAddModal(
                           'Add Course',
@@ -1333,8 +1393,19 @@ export default function AddLead({ navigation, route }) {
               </View>
 
               {/* Response Status Section */}
-              <Text style={[styles.sectionHeading, { color: theme.primary }]}>Response Status</Text>
-              <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.borderLight, shadowColor: theme.textPrimary }]}>
+              <Text style={[styles.sectionHeading, { color: theme.primary }]}>
+                Response Status
+              </Text>
+              <View
+                style={[
+                  styles.card,
+                  {
+                    backgroundColor: theme.surface,
+                    borderColor: theme.borderLight,
+                    shadowColor: theme.textPrimary,
+                  },
+                ]}
+              >
                 {/* Lead Status Selector */}
                 <CommonSelectField
                   label="Lead Status *"
@@ -1448,7 +1519,13 @@ export default function AddLead({ navigation, route }) {
 
               {/* Form Submit Save Button */}
               <TouchableOpacity
-                style={[styles.submitBtn, { backgroundColor: theme.primary, shadowColor: theme.primary }]}
+                style={[
+                  styles.submitBtn,
+                  {
+                    backgroundColor: theme.primary,
+                    shadowColor: theme.primary,
+                  },
+                ]}
                 onPress={handleFormSubmit}
                 disabled={submitLoading}
               >
@@ -1473,22 +1550,46 @@ export default function AddLead({ navigation, route }) {
             <TouchableWithoutFeedback
               onPress={() => setPickerModalVisible(false)}
             >
-              <View style={[styles.modalOverlay, { backgroundColor: theme.overlay }]}>
+              <View
+                style={[
+                  styles.modalOverlay,
+                  { backgroundColor: theme.overlay },
+                ]}
+              >
                 <TouchableWithoutFeedback>
-                  <View style={[styles.pickerModalContainer, { backgroundColor: theme.surface }]}>
+                  <View
+                    style={[
+                      styles.pickerModalContainer,
+                      { backgroundColor: theme.surface },
+                    ]}
+                  >
                     <View style={styles.modalHeader}>
-                      <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>
+                      <Text
+                        style={[
+                          styles.modalTitle,
+                          { color: theme.textPrimary },
+                        ]}
+                      >
                         {pickerConfig.title}
                       </Text>
                       <TouchableOpacity
                         onPress={() => setPickerModalVisible(false)}
                       >
-                        <Icon name="close-outline" size={24} color={theme.textPrimary} />
+                        <Icon
+                          name="close-outline"
+                          size={24}
+                          color={theme.textPrimary}
+                        />
                       </TouchableOpacity>
                     </View>
 
                     {/* Search query input */}
-                    <View style={[styles.modalSearchContainer, { backgroundColor: theme.surfaceSecondary }]}>
+                    <View
+                      style={[
+                        styles.modalSearchContainer,
+                        { backgroundColor: theme.surfaceSecondary },
+                      ]}
+                    >
                       <Icon
                         name="search-outline"
                         size={18}
@@ -1496,7 +1597,10 @@ export default function AddLead({ navigation, route }) {
                         style={{ marginRight: 8 }}
                       />
                       <TextInput
-                        style={[styles.modalSearchInput, { color: theme.textPrimary }]}
+                        style={[
+                          styles.modalSearchInput,
+                          { color: theme.textPrimary },
+                        ]}
                         placeholder={pickerConfig.searchPlaceholder}
                         placeholderTextColor={theme.textMuted}
                         value={searchQuery}
@@ -1504,7 +1608,11 @@ export default function AddLead({ navigation, route }) {
                       />
                       {searchQuery.length > 0 && (
                         <TouchableOpacity onPress={() => setSearchQuery('')}>
-                          <Icon name="close-circle" size={18} color={theme.textMuted} />
+                          <Icon
+                            name="close-circle"
+                            size={18}
+                            color={theme.textMuted}
+                          />
                         </TouchableOpacity>
                       )}
                     </View>
@@ -1523,7 +1631,10 @@ export default function AddLead({ navigation, route }) {
                             item.label === pickerConfig.selectedValue && {
                               backgroundColor: theme.primaryLight,
                             },
-                            item.disabled && { backgroundColor: theme.surfaceSecondary, opacity: 0.5 },
+                            item.disabled && {
+                              backgroundColor: theme.surfaceSecondary,
+                              opacity: 0.5,
+                            },
                           ]}
                           onPress={() => {
                             if (!item.disabled) {
@@ -1563,7 +1674,12 @@ export default function AddLead({ navigation, route }) {
                         </TouchableOpacity>
                       )}
                       ListEmptyComponent={
-                        <Text style={[styles.emptyListText, { color: theme.textMuted }]}>
+                        <Text
+                          style={[
+                            styles.emptyListText,
+                            { color: theme.textMuted },
+                          ]}
+                        >
                           No items matched your search.
                         </Text>
                       }
@@ -1582,22 +1698,46 @@ export default function AddLead({ navigation, route }) {
             onRequestClose={() => setAddModalVisible(false)}
           >
             <TouchableWithoutFeedback onPress={() => setAddModalVisible(false)}>
-              <View style={[styles.modalOverlay, { backgroundColor: theme.overlay }]}>
+              <View
+                style={[
+                  styles.modalOverlay,
+                  { backgroundColor: theme.overlay },
+                ]}
+              >
                 <TouchableWithoutFeedback>
-                  <View style={[styles.addModalContainer, { backgroundColor: theme.surface }]}>
+                  <View
+                    style={[
+                      styles.addModalContainer,
+                      { backgroundColor: theme.surface },
+                    ]}
+                  >
                     <View style={styles.modalHeader}>
-                      <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>
+                      <Text
+                        style={[
+                          styles.modalTitle,
+                          { color: theme.textPrimary },
+                        ]}
+                      >
                         {addModalConfig.title}
                       </Text>
                       <TouchableOpacity
                         onPress={() => setAddModalVisible(false)}
                       >
-                        <Icon name="close-outline" size={24} color={theme.textPrimary} />
+                        <Icon
+                          name="close-outline"
+                          size={24}
+                          color={theme.textPrimary}
+                        />
                       </TouchableOpacity>
                     </View>
 
                     <View style={[styles.inputGroup, { marginTop: 10 }]}>
-                      <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                      <Text
+                        style={[
+                          styles.inputLabel,
+                          { color: theme.textSecondary },
+                        ]}
+                      >
                         {addModalConfig.label}
                       </Text>
                       <TextInput
@@ -1619,14 +1759,29 @@ export default function AddLead({ navigation, route }) {
 
                     <View style={styles.addModalFooter}>
                       <TouchableOpacity
-                        style={[styles.addModalButton, styles.cancelBtn, { backgroundColor: theme.borderLight }]}
+                        style={[
+                          styles.addModalButton,
+                          styles.cancelBtn,
+                          { backgroundColor: theme.borderLight },
+                        ]}
                         onPress={() => setAddModalVisible(false)}
                       >
-                        <Text style={[styles.cancelBtnText, { color: theme.textSecondary }]}>Cancel</Text>
+                        <Text
+                          style={[
+                            styles.cancelBtnText,
+                            { color: theme.textSecondary },
+                          ]}
+                        >
+                          Cancel
+                        </Text>
                       </TouchableOpacity>
 
                       <TouchableOpacity
-                        style={[styles.addModalButton, styles.saveBtn, { backgroundColor: theme.primary }]}
+                        style={[
+                          styles.addModalButton,
+                          styles.saveBtn,
+                          { backgroundColor: theme.primary },
+                        ]}
                         onPress={() => addModalConfig.onSave(newItemName)}
                         disabled={newItemLoading || !newItemName.trim()}
                       >
