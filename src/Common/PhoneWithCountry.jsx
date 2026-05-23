@@ -187,7 +187,12 @@ export default function PhoneWithCountry({
       ) : null}
 
       {/* Country Selection Modal */}
-      <Modal visible={modalVisible} transparent animationType="slide">
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
         <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
           <View
             style={[styles.modalOverlay, { backgroundColor: theme.overlay }]}

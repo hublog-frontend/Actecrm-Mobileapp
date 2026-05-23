@@ -1464,7 +1464,12 @@ export default function AddLead({ navigation, route }) {
           </KeyboardAvoidingView>
 
           {/* Global Searchable Selection Dropdown Modal */}
-          <Modal visible={pickerModalVisible} transparent animationType="slide">
+          <Modal
+            visible={pickerModalVisible}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setPickerModalVisible(false)}
+          >
             <TouchableWithoutFeedback
               onPress={() => setPickerModalVisible(false)}
             >
@@ -1570,7 +1575,12 @@ export default function AddLead({ navigation, route }) {
           </Modal>
 
           {/* Quick Add Modal Dialog */}
-          <Modal visible={addModalVisible} transparent animationType="fade">
+          <Modal
+            visible={addModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setAddModalVisible(false)}
+          >
             <TouchableWithoutFeedback onPress={() => setAddModalVisible(false)}>
               <View style={[styles.modalOverlay, { backgroundColor: theme.overlay }]}>
                 <TouchableWithoutFeedback>
