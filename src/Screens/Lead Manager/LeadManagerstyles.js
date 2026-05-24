@@ -198,6 +198,42 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   // Detailed Sheet Styles
+  detailsModalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  detailsModalSheet: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '92%',
+    overflow: 'hidden',
+  },
+  detailsModalHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+  },
+  detailsDragIndicator: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    alignSelf: 'center',
+    marginBottom: 12,
+  },
+  detailsHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  detailsModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  detailsCloseBtn: {
+    padding: 6,
+    borderRadius: 20,
+  },
   detailsHeading: {
     fontSize: 16,
     fontWeight: '700',
@@ -264,6 +300,7 @@ const styles = StyleSheet.create({
     paddingTop: 15,
     borderTopWidth: 1,
     borderTopColor: '#E1E8EE',
+    marginBottom: 30,
   },
   navButtons: {
     flexDirection: 'row',

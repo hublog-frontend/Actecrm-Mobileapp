@@ -185,7 +185,6 @@ export default StyleSheet.create({
   },
   sheetSubtitle: {
     fontSize: 13,
-    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 14,

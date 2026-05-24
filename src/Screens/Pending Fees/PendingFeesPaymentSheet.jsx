@@ -241,7 +241,7 @@ const PendingFeesPaymentSheet = ({ customer, onSuccess }) => {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.detailsLoadingWrap}>
         <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
@@ -250,13 +250,13 @@ const PendingFeesPaymentSheet = ({ customer, onSuccess }) => {
   return (
     <>
       <View style={styles.sheetContent}>
-        <Text style={[styles.sheetTitle, { color: theme.textPrimary }]}>
+        {/* <Text style={[styles.sheetTitle, { color: theme.textPrimary }]}>
           Pay Due Amount
         </Text>
         <Text style={[styles.sheetSubtitle, { color: theme.textSecondary }]}>
           {customerDetails?.name || customer?.name} ·{' '}
           {customerDetails?.course_name || customer?.course_name}
-        </Text>
+        </Text> */}
 
         <CommonFormInput
           label="Pending Amount *"

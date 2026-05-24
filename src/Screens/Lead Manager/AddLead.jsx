@@ -899,7 +899,7 @@ export default function AddLead({ navigation, route }) {
                     if (isFromLiveLeads) {
                       assignLeadAndGoBack();
                     } else {
-                      navigation.goBack();
+                      navigation.navigate('Lead Manager');
                     }
                   }}
                   style={styles.closeBtn}

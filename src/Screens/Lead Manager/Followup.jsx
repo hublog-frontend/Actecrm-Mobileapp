@@ -12,6 +12,7 @@ import {
   Dimensions,
   Keyboard,
   TouchableWithoutFeedback,
+  Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../Context/ThemeContext';
@@ -63,6 +64,7 @@ const Followup = ({ isSubView }) => {
   });
 
   const followupSheetRef = useRef(null);
+  const [followupDetailsModal, setFollowupDetailsModal] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
   const [comment, setComment] = useState('');
   const [nextDate, setNextDate] = useState(new Date());
@@ -314,7 +316,7 @@ const Followup = ({ isSubView }) => {
     setSelectedLead(leadItem);
     setActionId(leadItem.lead_action_id || 1);
     setNextDate(new Date());
-    followupSheetRef.current?.expand();
+    setFollowupDetailsModal(true);
   };
 
   const renderFollowupCard = ({ item }) => {
@@ -396,13 +398,13 @@ const Followup = ({ isSubView }) => {
           >
             Next: {followUpLabel}
           </Text>
-          {isOverdue ? (
+          {/* {isOverdue ? (
             <Text
               style={[followupCardStyles.overdueTag, { color: theme.error }]}
             >
               · Overdue
             </Text>
-          ) : null}
+          ) : null} */}
         </View>
 
         {item.comments ? (
@@ -564,7 +566,7 @@ const Followup = ({ isSubView }) => {
       // return;
       await updateFollowUp(payload);
       CommonMessage('success', 'Follow-up updated');
-      followupSheetRef.current?.close();
+      setFollowupDetailsModal(false);
       setRefreshing(true);
       getLeadFollowUpsData(
         filterValuesFromRedux.searchValue,
@@ -822,7 +824,7 @@ const Followup = ({ isSubView }) => {
         />
       )}
 
-      <BottomSheet
+      {/* <BottomSheet
         ref={followupSheetRef}
         index={-1}
         snapPoints={['90%']}
@@ -832,378 +834,470 @@ const Followup = ({ isSubView }) => {
         backgroundStyle={{ backgroundColor: theme.surface }}
         handleIndicatorStyle={{ backgroundColor: theme.border }}
         topInset={60}
+      > */}
+      <Modal
+        visible={followupDetailsModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setFollowupDetailsModal(false)}
       >
-        <BottomSheetScrollView
-          nestedScrollEnabled
-          simultaneousHandlers={followupSheetRef}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[
-            styles.bottomSheetContent,
-            { paddingBottom: 40 },
+        <View
+          style={[
+            styles.detailsModalOverlay,
+            { backgroundColor: theme.overlay },
           ]}
         >
-          <Text style={[styles.bsTitle, { color: theme.textPrimary }]}>
-            Lead Follow-Up
-          </Text>
-
-          <Text style={[styles.detailsHeading, { color: theme.textPrimary }]}>
-            Lead Details
-          </Text>
-          <View style={styles.detailGrid}>
-            <View style={styles.detailItem}>
-              <Text
-                style={[styles.detailLabel, { color: theme.textSecondary }]}
-              >
-                Name
-              </Text>
-              <Text
-                style={[styles.detailValue, { color: theme.textPrimary }]}
-                selectable={true}
-              >
-                {selectedLead?.candidate_name || '-'}
-              </Text>
-            </View>
-            <View style={styles.detailItem}>
-              <Text
-                style={[styles.detailLabel, { color: theme.textSecondary }]}
-              >
-                Email
-              </Text>
-              <Text
-                style={[styles.detailValue, { color: theme.textPrimary }]}
-                numberOfLines={1}
-                selectable={true}
-              >
-                {selectedLead?.email || '-'}
-              </Text>
-            </View>
-            <View style={styles.detailItem}>
-              <Text
-                style={[styles.detailLabel, { color: theme.textSecondary }]}
-              >
-                Mobile
-              </Text>
-              <Text
-                style={[styles.detailValue, { color: theme.textPrimary }]}
-                selectable={true}
-              >
-                {selectedLead?.phone || '-'}
-              </Text>
-            </View>
-            <View style={styles.detailItem}>
-              <Text
-                style={[styles.detailLabel, { color: theme.textSecondary }]}
-              >
-                Course
-              </Text>
-              <Text
-                style={[styles.detailValue, { color: theme.textPrimary }]}
-                selectable={true}
-              >
-                {selectedLead?.primary_course || '-'}
-              </Text>
-            </View>
-            <View style={styles.detailItem}>
-              <Text
-                style={[styles.detailLabel, { color: theme.textSecondary }]}
-              >
-                Fees
-              </Text>
-              <Text
-                style={[styles.detailValue, { color: theme.textPrimary }]}
-                selectable={true}
-              >
-                ₹{selectedLead?.primary_fees || '-'}
-              </Text>
-            </View>
-            <View style={styles.detailItem}>
-              <Text
-                style={[styles.detailLabel, { color: theme.textSecondary }]}
-              >
-                Next Followup
-              </Text>
-              <Text style={[styles.detailValue, { color: theme.textPrimary }]}>
-                {selectedLead?.next_follow_up_date
-                  ? moment(selectedLead.next_follow_up_date).format(
-                      'DD/MM/YYYY',
-                    )
-                  : '-'}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <Text style={[styles.detailsHeading, { color: theme.textPrimary }]}>
-            Follow-Up History
-          </Text>
-          {selectedLead?.histories && selectedLead.histories.length > 0 ? (
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => {
+              setPaymentModalVisible(false);
+            }}
+          />
+          <View
+            style={[
+              styles.detailsModalSheet,
+              { backgroundColor: theme.background || theme.surface },
+            ]}
+          >
             <View
               style={[
-                historyStyles.container,
+                styles.detailsModalHeader,
                 {
-                  backgroundColor: theme.surfaceSecondary,
-                  borderColor: theme.border,
+                  backgroundColor: theme.surface,
+                  borderBottomColor: theme.borderLight,
                 },
               ]}
             >
-              {[...(selectedLead?.histories || [])]
-                .sort((a, b) =>
-                  moment(b.updated_date).diff(moment(a.updated_date)),
-                )
-                .map((h, i, arr) => {
-                  const initials = getInitials(h.user_name);
-                  const avatarColor = getAvatarColor(initials);
-                  const userIdStr = h.user_id || h.updated_by || '';
-                  let displayName = h.user_name || 'System';
-                  if (userIdStr && !displayName.includes(userIdStr)) {
-                    displayName = `${userIdStr} - ${displayName}`;
-                  }
-
-                  return (
-                    <React.Fragment key={i}>
-                      <View style={historyStyles.card}>
-                        <View
-                          style={[
-                            historyStyles.avatar,
-                            { backgroundColor: avatarColor.bg },
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              historyStyles.avatarText,
-                              { color: avatarColor.text },
-                            ]}
-                          >
-                            {initials}
-                          </Text>
-                        </View>
-                        <View style={historyStyles.info}>
-                          <View style={historyStyles.header}>
-                            <Text
-                              style={[
-                                historyStyles.user,
-                                { color: theme.textPrimary },
-                              ]}
-                            >
-                              {displayName}
-                            </Text>
-                            <Text
-                              style={[
-                                historyStyles.date,
-                                { color: theme.textMuted },
-                              ]}
-                            >
-                              {moment(h.updated_date).format(
-                                'YYYY-MM-DD hh:mm:ss A',
-                              )}
-                            </Text>
-                          </View>
-                          <Text
-                            style={[
-                              historyStyles.comment,
-                              { color: theme.textSecondary },
-                            ]}
-                          >
-                            {h.comments}
-                          </Text>
-                        </View>
-                      </View>
-                      {i < arr.length - 1 && (
-                        <View
-                          style={[
-                            historyStyles.divider,
-                            { backgroundColor: theme.border },
-                          ]}
-                        />
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-            </View>
-          ) : (
-            <Text
-              style={{
-                textAlign: 'center',
-                color: theme.textMuted,
-                fontSize: 12,
-              }}
-            >
-              No history found
-            </Text>
-          )}
-
-          <View style={styles.divider} />
-
-          <Text style={[styles.detailsHeading, { color: theme.textPrimary }]}>
-            Update Follow-Up
-          </Text>
-
-          <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-            Action
-          </Text>
-          <View style={[styles.detailGrid, { marginBottom: 15 }]}>
-            {actionOptions.map(opt => (
-              <TouchableOpacity
-                key={opt.id}
-                style={[
-                  styles.chip,
-                  actionId == opt.id && styles.activeChip,
-                  {
-                    marginHorizontal: 4,
-                    marginVertical: 4,
-                    paddingHorizontal: 10,
-                  },
-                ]}
-                onPress={() => {
-                  setActionId(opt.id);
-                  if (opt.id == 6) {
-                    setNextDate(null);
-                  } else {
-                    setNextDate(new Date());
-                  }
-                }}
-              >
-                <Text
-                  style={[
-                    styles.chipText,
-                    actionId === opt.id && styles.activeChipText,
-                    { fontSize: 11 },
-                  ]}
-                >
-                  {opt.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-            Comments
-          </Text>
-          <TextInput
-            style={[
-              styles.searchInput,
-              {
-                height: 80,
-                textAlignVertical: 'top',
-                padding: 10,
-                backgroundColor: theme.surfaceSecondary,
-                color: theme.textPrimary,
-              },
-            ]}
-            placeholder="Enter follow-up details..."
-            placeholderTextColor={theme.textMuted}
-            multiline
-            value={comment}
-            onChangeText={setComment}
-          />
-
-          {actionId != 6 && (
-            <>
-              <Text style={styles.inputLabel}>Next Follow-Up Date</Text>
-              <View style={[styles.detailGrid, { marginBottom: 10 }]}>
-                {recommendedDates.map((date, idx) => {
-                  const isSelected = moment(nextDate).isSame(date, 'day');
-                  return (
-                    <TouchableOpacity
-                      key={idx}
-                      style={[
-                        styles.chip,
-                        isSelected && styles.activeChip,
-                        {
-                          marginHorizontal: 4,
-                          marginVertical: 4,
-                          paddingHorizontal: 10,
-                        },
-                      ]}
-                      onPress={() => setNextDate(date.toDate())}
-                    >
-                      <Text
-                        style={[
-                          styles.chipText,
-                          isSelected && styles.activeChipText,
-                          { fontSize: 11 },
-                        ]}
-                      >
-                        {idx === 0 ? 'Today' : date.format('DD MMM')}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-
               <View
                 style={[
-                  styles.searchContainer,
-                  {
-                    justifyContent: 'space-between',
-                    backgroundColor: theme.surfaceSecondary,
-                  },
+                  styles.detailsDragIndicator,
+                  { backgroundColor: theme.border },
                 ]}
+              />
+              <View style={styles.detailsHeaderRow}>
+                <View>
+                  <Text
+                    style={[
+                      styles.detailsModalTitle,
+                      { color: theme.textPrimary },
+                    ]}
+                  >
+                    Lead Follow-Up
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    setFollowupDetailsModal(false);
+                  }}
+                  style={[
+                    styles.detailsCloseBtn,
+                    { backgroundColor: theme.primaryLight },
+                  ]}
+                >
+                  <Icon name="close" size={22} color={theme.primary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              style={{ paddingHorizontal: 16 }}
+            >
+              <Text
+                style={[styles.detailsHeading, { color: theme.textPrimary }]}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Icon
-                    name="calendar-outline"
-                    size={16}
-                    color={theme.primary}
-                    style={{ marginRight: 8 }}
-                  />
-                  <Text style={{ fontSize: 13, color: theme.textPrimary }}>
-                    {moment(nextDate).format('DD MMM YYYY')}
+                Lead Details
+              </Text>
+              <View style={styles.detailGrid}>
+                <View style={styles.detailItem}>
+                  <Text
+                    style={[styles.detailLabel, { color: theme.textSecondary }]}
+                  >
+                    Name
+                  </Text>
+                  <Text
+                    style={[styles.detailValue, { color: theme.textPrimary }]}
+                    selectable={true}
+                  >
+                    {selectedLead?.candidate_name || '-'}
+                  </Text>
+                </View>
+                <View style={styles.detailItem}>
+                  <Text
+                    style={[styles.detailLabel, { color: theme.textSecondary }]}
+                  >
+                    Email
+                  </Text>
+                  <Text
+                    style={[styles.detailValue, { color: theme.textPrimary }]}
+                    numberOfLines={1}
+                    selectable={true}
+                  >
+                    {selectedLead?.email || '-'}
+                  </Text>
+                </View>
+                <View style={styles.detailItem}>
+                  <Text
+                    style={[styles.detailLabel, { color: theme.textSecondary }]}
+                  >
+                    Mobile
+                  </Text>
+                  <Text
+                    style={[styles.detailValue, { color: theme.textPrimary }]}
+                    selectable={true}
+                  >
+                    {selectedLead?.phone || '-'}
+                  </Text>
+                </View>
+                <View style={styles.detailItem}>
+                  <Text
+                    style={[styles.detailLabel, { color: theme.textSecondary }]}
+                  >
+                    Course
+                  </Text>
+                  <Text
+                    style={[styles.detailValue, { color: theme.textPrimary }]}
+                    selectable={true}
+                  >
+                    {selectedLead?.primary_course || '-'}
+                  </Text>
+                </View>
+                <View style={styles.detailItem}>
+                  <Text
+                    style={[styles.detailLabel, { color: theme.textSecondary }]}
+                  >
+                    Fees
+                  </Text>
+                  <Text
+                    style={[styles.detailValue, { color: theme.textPrimary }]}
+                    selectable={true}
+                  >
+                    ₹{selectedLead?.primary_fees || '-'}
+                  </Text>
+                </View>
+                <View style={styles.detailItem}>
+                  <Text
+                    style={[styles.detailLabel, { color: theme.textSecondary }]}
+                  >
+                    Next Followup
+                  </Text>
+                  <Text
+                    style={[styles.detailValue, { color: theme.textPrimary }]}
+                  >
+                    {selectedLead?.next_follow_up_date
+                      ? moment(selectedLead.next_follow_up_date).format(
+                          'DD/MM/YYYY',
+                        )
+                      : '-'}
                   </Text>
                 </View>
               </View>
-            </>
-          )}
 
-          <TouchableOpacity style={styles.submitButton} onPress={handleUpdate}>
-            <Text style={styles.submitButtonText}>Submit</Text>
-          </TouchableOpacity>
+              <View style={styles.divider} />
 
-          <View style={[styles.sheetFooter, { borderTopColor: theme.border }]}>
-            <View style={styles.navButtons}>
-              <TouchableOpacity
+              <Text
+                style={[styles.detailsHeading, { color: theme.textPrimary }]}
+              >
+                Follow-Up History
+              </Text>
+              {selectedLead?.histories && selectedLead.histories.length > 0 ? (
+                <View
+                  style={[
+                    historyStyles.container,
+                    {
+                      backgroundColor: theme.surfaceSecondary,
+                      borderColor: theme.border,
+                    },
+                  ]}
+                >
+                  {[...(selectedLead?.histories || [])]
+                    .sort((a, b) =>
+                      moment(b.updated_date).diff(moment(a.updated_date)),
+                    )
+                    .map((h, i, arr) => {
+                      const initials = getInitials(h.user_name);
+                      const avatarColor = getAvatarColor(initials);
+                      const userIdStr = h.user_id || h.updated_by || '';
+                      let displayName = h.user_name || 'System';
+                      if (userIdStr && !displayName.includes(userIdStr)) {
+                        displayName = `${userIdStr} - ${displayName}`;
+                      }
+
+                      return (
+                        <React.Fragment key={i}>
+                          <View style={historyStyles.card}>
+                            <View
+                              style={[
+                                historyStyles.avatar,
+                                { backgroundColor: avatarColor.bg },
+                              ]}
+                            >
+                              <Text
+                                style={[
+                                  historyStyles.avatarText,
+                                  { color: avatarColor.text },
+                                ]}
+                              >
+                                {initials}
+                              </Text>
+                            </View>
+                            <View style={historyStyles.info}>
+                              <View style={historyStyles.header}>
+                                <Text
+                                  style={[
+                                    historyStyles.user,
+                                    { color: theme.textPrimary },
+                                  ]}
+                                >
+                                  {displayName}
+                                </Text>
+                                <Text
+                                  style={[
+                                    historyStyles.date,
+                                    { color: theme.textMuted },
+                                  ]}
+                                >
+                                  {moment(h.updated_date).format(
+                                    'YYYY-MM-DD hh:mm:ss A',
+                                  )}
+                                </Text>
+                              </View>
+                              <Text
+                                style={[
+                                  historyStyles.comment,
+                                  { color: theme.textSecondary },
+                                ]}
+                              >
+                                {h.comments}
+                              </Text>
+                            </View>
+                          </View>
+                          {i < arr.length - 1 && (
+                            <View
+                              style={[
+                                historyStyles.divider,
+                                { backgroundColor: theme.border },
+                              ]}
+                            />
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+                </View>
+              ) : (
+                <Text
+                  style={{
+                    textAlign: 'center',
+                    color: theme.textMuted,
+                    fontSize: 12,
+                  }}
+                >
+                  No history found
+                </Text>
+              )}
+
+              <View style={styles.divider} />
+
+              <Text
+                style={[styles.detailsHeading, { color: theme.textPrimary }]}
+              >
+                Update Follow-Up
+              </Text>
+
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                Action
+              </Text>
+              <View style={[styles.detailGrid, { marginBottom: 15 }]}>
+                {actionOptions.map(opt => (
+                  <TouchableOpacity
+                    key={opt.id}
+                    style={[
+                      styles.chip,
+                      actionId == opt.id && styles.activeChip,
+                      {
+                        marginHorizontal: 4,
+                        marginVertical: 4,
+                        paddingHorizontal: 10,
+                      },
+                    ]}
+                    onPress={() => {
+                      setActionId(opt.id);
+                      if (opt.id == 6) {
+                        setNextDate(null);
+                      } else {
+                        setNextDate(new Date());
+                      }
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.chipText,
+                        actionId === opt.id && styles.activeChipText,
+                        { fontSize: 11 },
+                      ]}
+                    >
+                      {opt.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                Comments
+              </Text>
+              <TextInput
                 style={[
-                  styles.navButton,
-                  { backgroundColor: theme.surfaceSecondary },
-                  followUpData.indexOf(selectedLead) === 0 && {
-                    opacity: 0.5,
+                  styles.searchInput,
+                  {
+                    height: 80,
+                    textAlignVertical: 'top',
+                    padding: 10,
+                    backgroundColor: theme.surfaceSecondary,
+                    color: theme.textPrimary,
+                    borderColor: theme.border,
+                    borderWidth: 0.5,
                   },
                 ]}
-                onPress={() => handleNextPrev('prev')}
-                disabled={followUpData.indexOf(selectedLead) === 0}
-              >
-                <Text
-                  style={[styles.navButtonText, { color: theme.textPrimary }]}
-                >
-                  Previous
-                </Text>
-              </TouchableOpacity>
+                placeholder="Enter follow-up details..."
+                placeholderTextColor={theme.textMuted}
+                multiline
+                value={comment}
+                onChangeText={setComment}
+              />
+
+              {actionId != 6 && (
+                <>
+                  <Text style={styles.inputLabel}>Next Follow-Up Date</Text>
+                  <View style={[styles.detailGrid, { marginBottom: 10 }]}>
+                    {recommendedDates.map((date, idx) => {
+                      const isSelected = moment(nextDate).isSame(date, 'day');
+                      console.log(isSelected, 'isSelected', nextDate);
+
+                      return (
+                        <TouchableOpacity
+                          key={idx}
+                          style={[
+                            styles.chip,
+                            isSelected && styles.activeChip,
+                            {
+                              marginHorizontal: 4,
+                              marginVertical: 4,
+                              paddingHorizontal: 10,
+                            },
+                          ]}
+                          onPress={() => setNextDate(date.toDate())}
+                        >
+                          <Text
+                            style={[
+                              styles.chipText,
+                              isSelected && styles.activeChipText,
+                              { fontSize: 11 },
+                            ]}
+                          >
+                            {idx === 0 ? 'Today' : date.format('DD MMM')}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+
+                  <View
+                    style={[
+                      styles.searchContainer,
+                      {
+                        justifyContent: 'space-between',
+                        backgroundColor: theme.surfaceSecondary,
+                        borderColor: theme.border,
+                        borderWidth: 0.5,
+                      },
+                    ]}
+                  >
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Icon
+                        name="calendar-outline"
+                        size={16}
+                        color={theme.primary}
+                        style={{ marginRight: 8 }}
+                      />
+                      <Text style={{ fontSize: 13, color: theme.textPrimary }}>
+                        {moment(nextDate).format('DD MMM YYYY')}
+                      </Text>
+                    </View>
+                  </View>
+                </>
+              )}
+
               <TouchableOpacity
-                style={[
-                  styles.navButton,
-                  { backgroundColor: theme.surfaceSecondary },
-                  followUpData.indexOf(selectedLead) ===
-                    followUpData.length - 1 && { opacity: 0.5 },
-                ]}
-                onPress={() => handleNextPrev('next')}
-                disabled={
-                  followUpData.indexOf(selectedLead) === followUpData.length - 1
-                }
+                style={styles.submitButton}
+                onPress={handleUpdate}
               >
-                <Text
-                  style={[styles.navButtonText, { color: theme.textPrimary }]}
-                >
-                  Next
-                </Text>
+                <Text style={styles.submitButtonText}>Submit</Text>
               </TouchableOpacity>
-            </View>
-            <Text style={{ fontSize: 12, color: theme.textSecondary }}>
-              {followUpData.indexOf(selectedLead) + 1} of {followUpData.length}
-            </Text>
+
+              <View
+                style={[styles.sheetFooter, { borderTopColor: theme.border }]}
+              >
+                <View style={styles.navButtons}>
+                  <TouchableOpacity
+                    style={[
+                      styles.navButton,
+                      { backgroundColor: theme.surfaceSecondary },
+                      followUpData.indexOf(selectedLead) === 0 && {
+                        opacity: 0.5,
+                      },
+                    ]}
+                    onPress={() => handleNextPrev('prev')}
+                    disabled={followUpData.indexOf(selectedLead) === 0}
+                  >
+                    <Text
+                      style={[
+                        styles.navButtonText,
+                        { color: theme.textPrimary },
+                      ]}
+                    >
+                      Previous
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.navButton,
+                      { backgroundColor: theme.surfaceSecondary },
+                      followUpData.indexOf(selectedLead) ===
+                        followUpData.length - 1 && { opacity: 0.5 },
+                    ]}
+                    onPress={() => handleNextPrev('next')}
+                    disabled={
+                      followUpData.indexOf(selectedLead) ===
+                      followUpData.length - 1
+                    }
+                  >
+                    <Text
+                      style={[
+                        styles.navButtonText,
+                        { color: theme.textPrimary },
+                      ]}
+                    >
+                      Next
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={{ fontSize: 12, color: theme.textSecondary }}>
+                  {followUpData.indexOf(selectedLead) + 1} of{' '}
+                  {followUpData.length}
+                </Text>
+              </View>
+            </ScrollView>
           </View>
-        </BottomSheetScrollView>
-      </BottomSheet>
+        </View>
+      </Modal>
     </View>
   );
 };

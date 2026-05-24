@@ -11,6 +11,8 @@ import {
   StyleSheet,
   Keyboard,
   BackHandler,
+  Modal,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -66,7 +68,7 @@ const PendingFees = ({ navigation }) => {
   const [customerDetails, setCustomerDetails] = useState(null);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
 
-  const paymentSheetRef = useRef(null);
+  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const mounted = useRef(false);
   const isFetchingRef = useRef(false);
 
@@ -216,7 +218,7 @@ const PendingFees = ({ navigation }) => {
 
   const openPayment = item => {
     setSelectedCustomer(item);
-    paymentSheetRef.current?.expand();
+    setPaymentModalVisible(true);
   };
 
   const renderCard = ({ item }) => {
@@ -558,30 +560,98 @@ const PendingFees = ({ navigation }) => {
         onClose={() => setDetailsVisible(false)}
       />
 
-      <BottomSheet
-        ref={paymentSheetRef}
-        index={-1}
-        snapPoints={['90%']}
-        enablePanDownToClose
-        backgroundStyle={{ backgroundColor: theme.surface }}
-        handleIndicatorStyle={{ backgroundColor: theme.border }}
-        topInset={90}
+      <Modal
+        visible={paymentModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setPaymentModalVisible(false)}
       >
-        <BottomSheetScrollView
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+        <View
+          style={[
+            styles.detailsModalOverlay,
+            { backgroundColor: theme.overlay },
+          ]}
         >
-          {selectedCustomer ? (
-            <PendingFeesPaymentSheet
-              customer={selectedCustomer}
-              onSuccess={() => {
-                paymentSheetRef.current?.close();
-                onRefresh();
-              }}
-            />
-          ) : null}
-        </BottomSheetScrollView>
-      </BottomSheet>
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => {
+              setPaymentModalVisible(false);
+            }}
+          />
+          <View
+            style={[
+              styles.detailsModalSheet,
+              { backgroundColor: theme.background || theme.surface },
+            ]}
+          >
+            <View
+              style={[
+                styles.detailsModalHeader,
+                {
+                  backgroundColor: theme.surface,
+                  borderBottomColor: theme.borderLight,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.detailsDragIndicator,
+                  { backgroundColor: theme.border },
+                ]}
+              />
+              <View style={styles.detailsHeaderRow}>
+                <View>
+                  <Text
+                    style={[
+                      styles.detailsModalTitle,
+                      { color: theme.textPrimary },
+                    ]}
+                  >
+                    Pay Due Amount
+                  </Text>
+                  <Text
+                    style={[
+                      styles.sheetSubtitle,
+                      { color: theme.textSecondary },
+                    ]}
+                  >
+                    {selectedCustomer?.name || customer?.name} ·{' '}
+                    {selectedCustomer?.course_name || customer?.course_name}
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    setPaymentModalVisible(false);
+                  }}
+                  style={[
+                    styles.detailsCloseBtn,
+                    { backgroundColor: theme.primaryLight },
+                  ]}
+                >
+                  <Icon name="close" size={22} color={theme.primary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              {selectedCustomer ? (
+                <PendingFeesPaymentSheet
+                  customer={selectedCustomer}
+                  onSuccess={() => {
+                    setPaymentModalVisible(false);
+                    onRefresh();
+                  }}
+                />
+              ) : null}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
