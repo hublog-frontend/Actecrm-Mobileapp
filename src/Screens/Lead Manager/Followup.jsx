@@ -72,7 +72,7 @@ const Followup = ({ isSubView }) => {
   const [buttonLoading, setButtonLoading] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [filterType, setFilterType] = useState(1);
-  const [showFilterOptions, setShowFilterOptions] = useState(false);
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [expandedComments, setExpandedComments] = useState([]);
 
   const actionOptions = [
@@ -118,6 +118,8 @@ const Followup = ({ isSubView }) => {
         const downliners = response?.data?.data || [];
         const downliners_ids = downliners.map(u => u.user_id);
         setAllDownliners(downliners_ids);
+        setSearchValue('');
+        setFilterType(1);
         const followUpFilterValues = {
           searchValue: null,
           filterType: 1,
@@ -646,74 +648,11 @@ const Followup = ({ isSubView }) => {
           )}
           <TouchableOpacity
             style={styles.filterIcon}
-            onPress={() => setShowFilterOptions(!showFilterOptions)}
+            onPress={() => setFilterModalVisible(true)}
           >
             <Icon name="filter" size={20} color={theme.primary} />
           </TouchableOpacity>
         </View>
-
-        {showFilterOptions && (
-          <>
-            <TouchableOpacity
-              style={StyleSheet.absoluteFill}
-              activeOpacity={1}
-              onPress={() => setShowFilterOptions(false)}
-            />
-            <View
-              style={[styles.filterMenu, { backgroundColor: theme.surface }]}
-            >
-              {[
-                { id: 1, label: 'Search by Mobile' },
-                { id: 2, label: 'Search by Name' },
-                { id: 3, label: 'Search by Email' },
-                { id: 4, label: 'Search by Course' },
-              ].map(opt => (
-                <TouchableOpacity
-                  key={opt.id}
-                  style={styles.filterMenuItem}
-                  onPress={() => {
-                    setFilterType(opt.id);
-                    setShowFilterOptions(false);
-                    setSearchValue('');
-                    dispatch(
-                      storeFollowUpFilterValues({
-                        searchValue: null,
-                      }),
-                    );
-                    getLeadFollowUpsData(
-                      null,
-                      filterValuesFromRedux.start_date,
-                      filterValuesFromRedux.end_date,
-                      allDownliners,
-                      1,
-                      filterValuesFromRedux.pageLimit || 10,
-                      filterValuesFromRedux.status_id,
-                      false,
-                    );
-                  }}
-                >
-                  <Icon
-                    name={
-                      filterType === opt.id
-                        ? 'radio-button-on'
-                        : 'radio-button-off'
-                    }
-                    size={18}
-                    color={theme.primary}
-                  />
-                  <Text
-                    style={[
-                      styles.filterMenuText,
-                      { color: theme.textPrimary },
-                    ]}
-                  >
-                    {opt.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </>
-        )}
       </View>
       <View style={{ backgroundColor: theme.surface, paddingTop: 10 }}>
         <CommonMuiCustomDatePicker
@@ -817,7 +756,13 @@ const Followup = ({ isSubView }) => {
             ) : null
           }
           ListEmptyComponent={
-            <Text style={{ textAlign: 'center', marginTop: 20 }}>
+            <Text
+              style={{
+                textAlign: 'center',
+                marginTop: 20,
+                color: theme.textSecondary,
+              }}
+            >
               No folowups scheduled
             </Text>
           }
@@ -1297,6 +1242,88 @@ const Followup = ({ isSubView }) => {
           </View>
         </View>
       </Modal>
+
+      {/* FILTER MODAL */}
+      <Modal
+        visible={filterModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setFilterModalVisible(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setFilterModalVisible(false)}
+          style={[localStyles.modalOverlay, { backgroundColor: theme.overlay }]}
+        >
+          <View
+            style={[
+              localStyles.bottomSheetContainer,
+              { backgroundColor: theme.surface },
+            ]}
+          >
+            <View
+              style={[
+                localStyles.modalDragHandle,
+                { backgroundColor: theme.border },
+              ]}
+            />
+            <Text
+              style={[localStyles.modalTitle, { color: theme.textPrimary }]}
+            >
+              Search Filter Option
+            </Text>
+            {[
+              { id: 1, label: 'Search by Mobile' },
+              { id: 2, label: 'Search by Name' },
+              { id: 3, label: 'Search by Email' },
+              { id: 4, label: 'Search by Course' },
+            ].map(opt => (
+              <TouchableOpacity
+                key={opt.id}
+                style={[
+                  localStyles.radioOption,
+                  { borderBottomColor: theme.borderLight },
+                ]}
+                onPress={() => {
+                  setFilterType(opt.id);
+                  setSearchValue('');
+                  setFilterModalVisible(false);
+                  dispatch(
+                    storeFollowUpFilterValues({
+                      searchValue: null,
+                    }),
+                  );
+                  getLeadFollowUpsData(
+                    null,
+                    filterValuesFromRedux.start_date,
+                    filterValuesFromRedux.end_date,
+                    allDownliners,
+                    1,
+                    filterValuesFromRedux.pageLimit || 10,
+                    filterValuesFromRedux.status_id,
+                    false,
+                  );
+                }}
+              >
+                <Icon
+                  name={
+                    filterType === opt.id
+                      ? 'radio-button-on'
+                      : 'radio-button-off'
+                  }
+                  size={20}
+                  color={theme.primary}
+                />
+                <Text
+                  style={[localStyles.radioLabel, { color: theme.textPrimary }]}
+                >
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
@@ -1465,6 +1492,48 @@ const historyStyles = StyleSheet.create({
     color: '#4A5568',
     lineHeight: 18,
     marginTop: 4,
+  },
+});
+
+const localStyles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'flex-end',
+  },
+  bottomSheetContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 30,
+  },
+  modalDragHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 16,
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  radioLabel: {
+    fontSize: 14,
+    color: '#334155',
+    marginLeft: 12,
   },
 });
 

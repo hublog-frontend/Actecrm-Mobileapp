@@ -9,6 +9,7 @@ import {
   RefreshControl,
   Linking,
   Alert,
+  Modal,
   StyleSheet,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -33,7 +34,7 @@ const Leads = ({ isSubView, isActive }) => {
   const { theme } = useTheme();
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const filterValues = useSelector(state => state.leadfiltervalues);
+  const filterValuesFromRedux = useSelector(state => state.leadfiltervalues);
   const downlineUsers = useSelector(state => state.downlineusers);
 
   const [leads, setLeads] = useState([]);
@@ -44,8 +45,8 @@ const Leads = ({ isSubView, isActive }) => {
   const [search, setSearch] = useState('');
 
   const [isFocused, setIsFocused] = useState(false);
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [filterType, setFilterType] = useState(1); // Default to Search by Mobile
-  const [showFilterOptions, setShowFilterOptions] = useState(false);
   const [allDownliners, setAllDownliners] = useState([]);
   const [editLeadId, setEditLeadId] = useState(null);
 
@@ -70,88 +71,6 @@ const Leads = ({ isSubView, isActive }) => {
     }
   }, [isActive]);
 
-  const fetchLeads = useCallback(
-    async (
-      pageNum = 1,
-      isRefresh = false,
-      searchText = search,
-      customDownliners = null,
-    ) => {
-      if (isFetchingRef.current && !isRefresh) return;
-
-      isFetchingRef.current = true;
-      setLoading(true);
-      try {
-        const userIds = filterValues.user_id
-          ? [filterValues.user_id]
-          : customDownliners || allDownliners;
-
-        const payload = {
-          start_date: filterValues.start_date,
-          end_date: filterValues.end_date,
-          user_ids: userIds,
-          page: pageNum,
-          limit: 10,
-          ...(searchText && filterType == 1 ? { phone: searchText } : {}),
-          ...(searchText && filterType == 2 ? { name: searchText } : {}),
-          ...(searchText && filterType == 3 ? { email: searchText } : {}),
-          ...(searchText && filterType == 4 ? { course: searchText } : {}),
-          search: searchText,
-        };
-
-        const response = await getLeads(payload);
-        const newLeads = response.data?.data?.data || [];
-
-        if (isRefresh) {
-          setLeads(newLeads);
-        } else {
-          setLeads(prev => [...prev, ...newLeads]);
-        }
-
-        setHasMore(newLeads.length === 10);
-        setPage(pageNum);
-      } catch (error) {
-        console.error('Fetch Leads Error:', error);
-        CommonMessage('error', 'Failed to fetch leads');
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
-        isFetchingRef.current = false;
-      }
-    },
-    [
-      filterValues.start_date,
-      filterValues.end_date,
-      filterValues.user_id,
-      search,
-      filterType,
-      allDownliners,
-    ],
-  );
-
-  const getAllDownlineUsersData = useCallback(
-    async (user_id, pageNum = 1, isRefresh = false) => {
-      try {
-        const response = await getAllDownlineUsers(user_id);
-        const downliners = response?.data?.data || [];
-        const downliners_ids = downliners.map(u => u.user_id);
-        setAllDownliners(downliners_ids);
-
-        fetchLeads(pageNum, isRefresh, search, downliners_ids);
-      } catch (error) {
-        console.log('all downlines error in Leads:', error);
-      }
-    },
-    [
-      filterValues.start_date,
-      filterValues.end_date,
-      filterValues.user_id,
-      search,
-      filterType,
-      fetchLeads,
-    ],
-  );
-
   useEffect(() => {
     const fetchUserData = async () => {
       const getLoginUserDetails = await AsyncStorage.getItem(
@@ -161,7 +80,93 @@ const Leads = ({ isSubView, isActive }) => {
       getAllDownlineUsersData(convertAsJson?.user_id, 1, true);
     };
     fetchUserData();
-  }, [filterValues.start_date, filterValues.end_date, filterValues.user_id]);
+  }, []);
+
+  const getAllDownlineUsersData = async user_id => {
+    try {
+      const response = await getAllDownlineUsers(user_id);
+      const downliners = response?.data?.data || [];
+      const downliners_ids = downliners.map(u => u.user_id);
+      setAllDownliners(downliners_ids);
+      setFilterType(1);
+      setSearch('');
+      const leadFilterValues = {
+        searchValue: null,
+        filterType: 1,
+        start_date: moment().subtract(6, 'days').format('YYYY-MM-DD'),
+        end_date: moment().format('YYYY-MM-DD'),
+        user_id: null,
+        lead_source: null,
+        call_getraapi: true,
+        pageNumber: 1,
+        pageLimit: 10,
+      };
+
+      dispatch(storeLeadFilterValues(leadFilterValues));
+      fetchLeads(
+        leadFilterValues.searchValue,
+        leadFilterValues.start_date,
+        leadFilterValues.end_date,
+        downliners_ids,
+        1,
+      );
+    } catch (error) {
+      console.log('all downlines error in Leads:', error);
+    }
+  };
+
+  const fetchLeads = async (
+    searchvalue,
+    startDate,
+    endDate,
+    downliners,
+    pageNumber,
+    isAppend = false,
+  ) => {
+    if (isFetchingRef.current && !isRefresh) return;
+
+    isFetchingRef.current = true;
+    setLoading(true);
+    try {
+      const payload = {
+        start_date: startDate,
+        end_date: endDate,
+        user_ids: downliners,
+        page: pageNumber,
+        limit: 10,
+        ...(searchvalue && filterType == 1 ? { phone: searchvalue } : {}),
+        ...(searchvalue && filterType == 2 ? { name: searchvalue } : {}),
+        ...(searchvalue && filterType == 3 ? { email: searchvalue } : {}),
+        ...(searchvalue && filterType == 4 ? { course: searchvalue } : {}),
+      };
+
+      const response = await getLeads(payload);
+      const newLeads = response.data?.data?.data || [];
+      const paginationData = response?.data?.data?.pagination || {};
+
+      if (isAppend) {
+        setLeads(prev => [...prev, ...newLeads]);
+      } else {
+        setLeads(newLeads);
+      }
+
+      setHasMore(newLeads.length === 10);
+      setPage(pageNumber);
+      dispatch(
+        storeLeadFilterValues({
+          pageNumber: paginationData.page,
+          pageLimit: paginationData.limit,
+        }),
+      );
+    } catch (error) {
+      console.error('Fetch Leads Error:', error);
+      CommonMessage('error', 'Failed to fetch leads');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+      isFetchingRef.current = false;
+    }
+  };
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -177,15 +182,40 @@ const Leads = ({ isSubView, isActive }) => {
 
   const loadMore = () => {
     if (hasMore && !loading && leads.length > 0) {
-      fetchLeads(page + 1);
+      fetchLeads(
+        search,
+        filterValuesFromRedux.start_date,
+        filterValuesFromRedux.end_date,
+        allDownliners,
+        page + 1,
+        true,
+      );
     }
   };
 
-  const handleSearchChange = text => {
+  const handleSearch = text => {
     setSearch(text);
     if (text.length === 0) {
-      fetchLeads(1, true, '');
+      fetchLeads(
+        '',
+        filterValuesFromRedux.start_date,
+        filterValuesFromRedux.end_date,
+        allDownliners,
+        1,
+        false,
+      );
     }
+  };
+
+  const executeSearch = () => {
+    fetchLeads(
+      search,
+      filterValuesFromRedux.start_date,
+      filterValuesFromRedux.end_date,
+      allDownliners,
+      1,
+      false,
+    );
   };
 
   const handleCall = phone => {
@@ -374,77 +404,31 @@ const Leads = ({ isSubView, isActive }) => {
               }
               placeholderTextColor={theme.textMuted}
               value={search}
-              onChangeText={handleSearchChange}
-              onSubmitEditing={() => fetchLeads(1, true)}
+              onChangeText={handleSearch}
+              onSubmitEditing={executeSearch}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
             />
             {search.length > 0 && (
-              <TouchableOpacity onPress={() => handleSearchChange('')}>
+              <TouchableOpacity onPress={() => handleSearch('')}>
                 <Icon name="close-circle" size={18} color={theme.textMuted} />
               </TouchableOpacity>
             )}
             <TouchableOpacity
               style={styles.filterIcon}
-              onPress={() => setShowFilterOptions(!showFilterOptions)}
+              onPress={() => setFilterModalVisible(true)}
             >
               <Icon name="filter" size={20} color={theme.primary} />
             </TouchableOpacity>
           </View>
-
-          {showFilterOptions && (
-            <>
-              <TouchableOpacity
-                style={StyleSheet.absoluteFill}
-                activeOpacity={1}
-                onPress={() => setShowFilterOptions(false)}
-              />
-              <View
-                style={[styles.filterMenu, { backgroundColor: theme.surface }]}
-              >
-                {[
-                  { id: 1, label: 'Search by Mobile' },
-                  { id: 2, label: 'Search by Name' },
-                  { id: 3, label: 'Search by Email' },
-                  { id: 4, label: 'Search by Course' },
-                ].map(opt => (
-                  <TouchableOpacity
-                    key={opt.id}
-                    style={styles.filterMenuItem}
-                    onPress={() => {
-                      setFilterType(opt.id);
-                      setShowFilterOptions(false);
-                      setSearch('');
-                      fetchLeads(1, true, '');
-                    }}
-                  >
-                    <Icon
-                      name={
-                        filterType === opt.id
-                          ? 'radio-button-on'
-                          : 'radio-button-off'
-                      }
-                      size={18}
-                      color={theme.primary}
-                    />
-                    <Text
-                      style={[
-                        styles.filterMenuText,
-                        { color: theme.textPrimary },
-                      ]}
-                    >
-                      {opt.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </>
-          )}
         </View>
 
         <View style={{ backgroundColor: theme.surface, paddingTop: 10 }}>
           <CommonMuiCustomDatePicker
-            value={[filterValues.start_date, filterValues.end_date]}
+            value={[
+              filterValuesFromRedux.start_date,
+              filterValuesFromRedux.end_date,
+            ]}
             onDateChange={range => {
               dispatch(
                 storeLeadFilterValues({
@@ -452,6 +436,7 @@ const Leads = ({ isSubView, isActive }) => {
                   end_date: range[1],
                 }),
               );
+              fetchLeads(search, range[0], range[1], allDownliners, 1);
             }}
           />
         </View>
@@ -468,9 +453,11 @@ const Leads = ({ isSubView, isActive }) => {
           data={leads}
           renderItem={renderLeadCard}
           keyExtractor={item => item.id.toString()}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, { flexGrow: 1 }]}
           onEndReached={loadMore}
-          onEndReachedThreshold={0.5}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          onEndReachedThreshold={0.2}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
@@ -490,15 +477,23 @@ const Leads = ({ isSubView, isActive }) => {
             ) : null
           }
           ListEmptyComponent={
-            <Text
+            <View
               style={{
-                textAlign: 'center',
-                marginTop: 20,
-                color: theme.textSecondary,
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                paddingTop: 20,
               }}
             >
-              No leads found
-            </Text>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  color: theme.textSecondary,
+                }}
+              >
+                No leads found
+              </Text>
+            </View>
           }
         />
       )}
@@ -523,8 +518,124 @@ const Leads = ({ isSubView, isActive }) => {
           </TouchableOpacity>
         </BottomSheetView>
       </BottomSheet>
+
+      {/* FILTER MODAL */}
+      <Modal
+        visible={filterModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setFilterModalVisible(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setFilterModalVisible(false)}
+          style={[localStyles.modalOverlay, { backgroundColor: theme.overlay }]}
+        >
+          <View
+            style={[
+              localStyles.bottomSheetContainer,
+              { backgroundColor: theme.surface },
+            ]}
+          >
+            <View
+              style={[
+                localStyles.modalDragHandle,
+                { backgroundColor: theme.border },
+              ]}
+            />
+            <Text
+              style={[localStyles.modalTitle, { color: theme.textPrimary }]}
+            >
+              Search Filter Option
+            </Text>
+            {[
+              { id: 1, label: 'Search by Mobile' },
+              { id: 2, label: 'Search by Name' },
+              { id: 3, label: 'Search by Email' },
+              { id: 4, label: 'Search by Course' },
+            ].map(opt => (
+              <TouchableOpacity
+                key={opt.id}
+                style={[
+                  localStyles.radioOption,
+                  { borderBottomColor: theme.borderLight },
+                ]}
+                onPress={() => {
+                  setFilterType(opt.id);
+                  setSearch('');
+                  setFilterModalVisible(false);
+                  fetchLeads(
+                    '',
+                    filterValuesFromRedux.start_date,
+                    filterValuesFromRedux.end_date,
+                    allDownliners,
+                    1,
+                  );
+                }}
+              >
+                <Icon
+                  name={
+                    filterType === opt.id
+                      ? 'radio-button-on'
+                      : 'radio-button-off'
+                  }
+                  size={20}
+                  color={theme.primary}
+                />
+                <Text
+                  style={[localStyles.radioLabel, { color: theme.textPrimary }]}
+                >
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
+
+const localStyles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'flex-end',
+  },
+  bottomSheetContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 30,
+  },
+  modalDragHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 16,
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  radioLabel: {
+    fontSize: 14,
+    color: '#334155',
+    marginLeft: 12,
+  },
+});
 
 export default Leads;

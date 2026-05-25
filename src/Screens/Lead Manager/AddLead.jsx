@@ -1588,7 +1588,11 @@ export default function AddLead({ navigation, route }) {
                     <View
                       style={[
                         styles.modalSearchContainer,
-                        { backgroundColor: theme.surfaceSecondary },
+                        {
+                          backgroundColor: theme.surfaceSecondary,
+                          borderColor: theme.border,
+                          borderWidth: 0.5,
+                        },
                       ]}
                     >
                       <Icon
