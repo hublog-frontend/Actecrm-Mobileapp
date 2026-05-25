@@ -1174,7 +1174,6 @@ const Followup = ({ isSubView }) => {
                   <View style={[styles.detailGrid, { marginBottom: 10 }]}>
                     {recommendedDates.map((date, idx) => {
                       const isSelected = moment(nextDate).isSame(date, 'day');
-                      console.log(isSelected, 'isSelected', nextDate);
 
                       return (
                         <TouchableOpacity

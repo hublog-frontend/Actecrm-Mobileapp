@@ -17,21 +17,42 @@ import Junk from './Junk';
 import Header from '../../Common/Header';
 import { useTheme } from '../../Context/ThemeContext';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 const { width } = Dimensions.get('window');
 
 const LeadManager = ({ isSubView }) => {
+  const permissions = useSelector(state => state.userpermissions) || [];
+
   const { theme } = useTheme();
+
   const [activeTab, setActiveTab] = useState('Followup');
-  const [globalSearch, setGlobalSearch] = useState('');
-  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
+
+  // Track visited tabs
+  const [loadedTabs, setLoadedTabs] = useState({
+    Followup: true,
+  });
 
   const tabs = [
     { id: 'Followup', label: 'Followup' },
     { id: 'Leads', label: 'Leads' },
-    { id: 'LiveLeads', label: 'Live Leads' },
-    { id: 'Junk', label: 'Junk' },
+
+    ...(permissions?.includes('Show Live Leads and Junk in the Mobile App')
+      ? [
+          { id: 'LiveLeads', label: 'Live Leads' },
+          { id: 'Junk', label: 'Junk' },
+        ]
+      : []),
   ];
+
+  const handleTabPress = tabId => {
+    setActiveTab(tabId);
+
+    setLoadedTabs(prev => ({
+      ...prev,
+      [tabId]: true,
+    }));
+  };
 
   useFocusEffect(
     React.useCallback(() => {
@@ -66,32 +87,53 @@ const LeadManager = ({ isSubView }) => {
   const renderContent = () => {
     return (
       <View style={{ flex: 1 }}>
-        <View
-          style={{
-            flex: 1,
-            display: activeTab === 'Followup' ? 'flex' : 'none',
-          }}
-        >
-          <Followup isSubView={true} isActive={activeTab === 'Followup'} />
-        </View>
-        <View
-          style={{ flex: 1, display: activeTab === 'Leads' ? 'flex' : 'none' }}
-        >
-          <Leads isSubView={true} isActive={activeTab === 'Leads'} />
-        </View>
-        <View
-          style={{
-            flex: 1,
-            display: activeTab === 'LiveLeads' ? 'flex' : 'none',
-          }}
-        >
-          <LiveLeads isSubView={true} isActive={activeTab === 'LiveLeads'} />
-        </View>
-        <View
-          style={{ flex: 1, display: activeTab === 'Junk' ? 'flex' : 'none' }}
-        >
-          <Junk isSubView={true} isActive={activeTab === 'Junk'} />
-        </View>
+        {/* Followup */}
+        {loadedTabs.Followup && (
+          <View
+            style={{
+              flex: 1,
+              display: activeTab === 'Followup' ? 'flex' : 'none',
+            }}
+          >
+            <Followup isSubView={true} isActive={activeTab === 'Followup'} />
+          </View>
+        )}
+
+        {/* Leads */}
+        {loadedTabs.Leads && (
+          <View
+            style={{
+              flex: 1,
+              display: activeTab === 'Leads' ? 'flex' : 'none',
+            }}
+          >
+            <Leads isSubView={true} isActive={activeTab === 'Leads'} />
+          </View>
+        )}
+
+        {/* Live Leads */}
+        {loadedTabs.LiveLeads && (
+          <View
+            style={{
+              flex: 1,
+              display: activeTab === 'LiveLeads' ? 'flex' : 'none',
+            }}
+          >
+            <LiveLeads isSubView={true} isActive={activeTab === 'LiveLeads'} />
+          </View>
+        )}
+
+        {/* Junk */}
+        {loadedTabs.Junk && (
+          <View
+            style={{
+              flex: 1,
+              display: activeTab === 'Junk' ? 'flex' : 'none',
+            }}
+          >
+            <Junk isSubView={true} isActive={activeTab === 'Junk'} />
+          </View>
+        )}
       </View>
     );
   };
@@ -105,6 +147,7 @@ const LeadManager = ({ isSubView }) => {
       edges={['left', 'right']}
     >
       {!isSubView && <Header />}
+
       <View
         style={[
           styles.tabBarContainer,
@@ -126,7 +169,7 @@ const LeadManager = ({ isSubView }) => {
                 styles.tabItem,
                 activeTab === tab.id && styles.activeTabItem,
               ]}
-              onPress={() => setActiveTab(tab.id)}
+              onPress={() => handleTabPress(tab.id)}
             >
               <Text
                 style={[
@@ -140,6 +183,7 @@ const LeadManager = ({ isSubView }) => {
               >
                 {tab.label}
               </Text>
+
               {activeTab === tab.id && (
                 <View
                   style={[
@@ -163,16 +207,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
+
   tabBarContainer: {
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#F0F3F7',
   },
+
   tabBar: {
     paddingHorizontal: 10,
     height: 50,
     alignItems: 'center',
   },
+
   tabItem: {
     paddingHorizontal: 20,
     height: '100%',
@@ -180,27 +227,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
   },
-  activeTabItem: {
-    // Optional background for active tab
-  },
+
+  activeTabItem: {},
+
   tabLabel: {
     fontSize: 14,
     fontWeight: '500',
     color: '#718096',
   },
-  activeTabLabel: {
-    color: '#5D6AD1',
-    fontWeight: '700',
-  },
+
   activeIndicator: {
     position: 'absolute',
     bottom: 0,
     width: '100%',
     height: 3,
-    backgroundColor: '#5D6AD1',
     borderTopLeftRadius: 3,
     borderTopRightRadius: 3,
   },
+
   contentContainer: {
     flex: 1,
   },
