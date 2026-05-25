@@ -151,7 +151,9 @@ const UrgentPendingFeesCustomers = ({ navigation }) => {
       const downliners = response?.data?.data || [];
       const downliners_ids = downliners.map(u => u.user_id);
       setAllDownliners(downliners_ids);
-      fetchCustomers(1, 10, searchValue, downliners_ids);
+      setFilterType(1);
+      setSearchValue('');
+      fetchCustomers(1, 10, null, downliners_ids);
     } catch (error) {
       setLoading(false);
       console.log('downline error', error);
