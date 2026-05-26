@@ -60,7 +60,26 @@ const Leads = ({ isSubView, isActive }) => {
   useFocusEffect(
     React.useCallback(() => {
       setEditLeadId(null);
-    }, []),
+      console.log(
+        'filterValuesFromRedux?.call_get_leads_api',
+        filterValuesFromRedux?.call_get_leads_api,
+      );
+
+      if (filterValuesFromRedux?.call_get_leads_api) {
+        dispatch(
+          storeLeadFilterValues({
+            call_get_leads_api: false,
+          }),
+        );
+        fetchLeads(
+          search,
+          filterValuesFromRedux.start_date,
+          filterValuesFromRedux.end_date,
+          allDownliners,
+          1,
+        );
+      }
+    }, [filterValuesFromRedux]),
   );
 
   useEffect(() => {
@@ -97,7 +116,7 @@ const Leads = ({ isSubView, isActive }) => {
         end_date: moment().format('YYYY-MM-DD'),
         user_id: null,
         lead_source: null,
-        call_getraapi: true,
+        call_get_leads_api: false,
         pageNumber: 1,
         pageLimit: 10,
       };

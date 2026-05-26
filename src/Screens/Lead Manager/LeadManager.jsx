@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   BackHandler,
   ToastAndroid,
 } from 'react-native';
@@ -19,18 +18,21 @@ import { useTheme } from '../../Context/ThemeContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
-const { width } = Dimensions.get('window');
-
 const LeadManager = ({ isSubView }) => {
+  const filterValuesFromRedux = useSelector(state => state.leadfiltervalues);
+
   const permissions = useSelector(state => state.userpermissions) || [];
 
   const { theme } = useTheme();
 
-  const [activeTab, setActiveTab] = useState('Followup');
+  const defaultTab = filterValuesFromRedux?.call_get_leads_api
+    ? 'Leads'
+    : 'Followup';
 
-  // Track visited tabs
+  const [activeTab, setActiveTab] = useState(defaultTab);
+
   const [loadedTabs, setLoadedTabs] = useState({
-    Followup: true,
+    [defaultTab]: true,
   });
 
   const tabs = [
@@ -82,6 +84,24 @@ const LeadManager = ({ isSubView }) => {
 
       return () => subscription.remove();
     }, []),
+  );
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (filterValuesFromRedux?.call_get_leads_api) {
+        console.log(
+          'Hiiiiiiiiiiiiiiii',
+          filterValuesFromRedux?.call_get_leads_api,
+        );
+
+        setActiveTab('Leads');
+
+        setLoadedTabs(prev => ({
+          ...prev,
+          Leads: true,
+        }));
+      }
+    }, [filterValuesFromRedux?.call_get_leads_api]),
   );
 
   const renderContent = () => {
@@ -188,7 +208,9 @@ const LeadManager = ({ isSubView }) => {
                 <View
                   style={[
                     styles.activeIndicator,
-                    { backgroundColor: theme.primary },
+                    {
+                      backgroundColor: theme.primary,
+                    },
                   ]}
                 />
               )}

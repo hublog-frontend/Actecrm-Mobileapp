@@ -39,7 +39,7 @@ const leadFilterValues = {
   end_date: moment().format('YYYY-MM-DD'),
   user_id: null,
   lead_source: null,
-  call_getraapi: true,
+  call_get_leads_api: false,
   pageNumber: 1,
   pageLimit: 10,
 };

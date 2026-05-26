@@ -73,6 +73,16 @@ const CommonMuiCustomDatePicker = ({ onDateChange, value, isDashboard }) => {
           endDay.isSame(today, 'day')
         ) {
           setOption('last30days');
+        } else if (
+          startDay.isSame(moment().subtract(59, 'day'), 'day') &&
+          endDay.isSame(today, 'day')
+        ) {
+          setOption('last60days');
+        } else if (
+          startDay.isSame(moment().subtract(89, 'day'), 'day') &&
+          endDay.isSame(today, 'day')
+        ) {
+          setOption('last90days');
         } else {
           setOption('custom');
         }
@@ -124,6 +134,16 @@ const CommonMuiCustomDatePicker = ({ onDateChange, value, isDashboard }) => {
 
       case 'last30days':
         newStart = moment().subtract(29, 'day');
+        newEnd = today;
+        break;
+
+      case 'last60days':
+        newStart = moment().subtract(59, 'day');
+        newEnd = today;
+        break;
+
+      case 'last90days':
+        newStart = moment().subtract(89, 'day');
         newEnd = today;
         break;
 
@@ -183,6 +203,8 @@ const CommonMuiCustomDatePicker = ({ onDateChange, value, isDashboard }) => {
     { label: 'Last 7 Days', value: 'last7days' },
     { label: 'Last 15 Days', value: 'last15days' },
     { label: 'Last 30 Days', value: 'last30days' },
+    { label: 'Last 60 Days', value: 'last60days' },
+    { label: 'Last 90 Days', value: 'last90days' },
     { label: 'Custom Range', value: 'custom' },
   ];
 
@@ -284,92 +306,92 @@ const CommonMuiCustomDatePicker = ({ onDateChange, value, isDashboard }) => {
                 </View>
 
                 {option === 'custom' && (
-              <View
-                style={[
-                  styles.customContainer,
-                  {
-                    borderTopColor: theme.border,
-                  },
-                ]}
-              >
-                <View style={styles.customPickerRow}>
-                  <TouchableOpacity
+                  <View
                     style={[
-                      styles.dateDisplay,
+                      styles.customContainer,
                       {
-                        backgroundColor: theme.inputBg,
+                        borderTopColor: theme.border,
                       },
                     ]}
-                    onPress={() => setShowPicker('start')}
                   >
-                    <Text
+                    <View style={styles.customPickerRow}>
+                      <TouchableOpacity
+                        style={[
+                          styles.dateDisplay,
+                          {
+                            backgroundColor: theme.inputBg,
+                          },
+                        ]}
+                        onPress={() => setShowPicker('start')}
+                      >
+                        <Text
+                          style={[
+                            styles.dateLabel,
+                            {
+                              color: theme.textSecondary,
+                            },
+                          ]}
+                        >
+                          From
+                        </Text>
+
+                        <Text
+                          style={[
+                            styles.dateValue,
+                            {
+                              color: theme.textPrimary,
+                            },
+                          ]}
+                        >
+                          {startDate.format('DD/MM/YYYY')}
+                        </Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[
+                          styles.dateDisplay,
+                          {
+                            backgroundColor: theme.inputBg,
+                          },
+                        ]}
+                        onPress={() => setShowPicker('end')}
+                      >
+                        <Text
+                          style={[
+                            styles.dateLabel,
+                            {
+                              color: theme.textSecondary,
+                            },
+                          ]}
+                        >
+                          To
+                        </Text>
+
+                        <Text
+                          style={[
+                            styles.dateValue,
+                            {
+                              color: theme.textPrimary,
+                            },
+                          ]}
+                        >
+                          {endDate.format('DD/MM/YYYY')}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <TouchableOpacity
                       style={[
-                        styles.dateLabel,
+                        styles.applyButton,
                         {
-                          color: theme.textSecondary,
+                          backgroundColor: theme.primary,
                         },
                       ]}
+                      onPress={() => setModalVisible(false)}
                     >
-                      From
-                    </Text>
-
-                    <Text
-                      style={[
-                        styles.dateValue,
-                        {
-                          color: theme.textPrimary,
-                        },
-                      ]}
-                    >
-                      {startDate.format('DD/MM/YYYY')}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.dateDisplay,
-                      {
-                        backgroundColor: theme.inputBg,
-                      },
-                    ]}
-                    onPress={() => setShowPicker('end')}
-                  >
-                    <Text
-                      style={[
-                        styles.dateLabel,
-                        {
-                          color: theme.textSecondary,
-                        },
-                      ]}
-                    >
-                      To
-                    </Text>
-
-                    <Text
-                      style={[
-                        styles.dateValue,
-                        {
-                          color: theme.textPrimary,
-                        },
-                      ]}
-                    >
-                      {endDate.format('DD/MM/YYYY')}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                <TouchableOpacity
-                  style={[
-                    styles.applyButton,
-                    {
-                      backgroundColor: theme.primary,
-                    },
-                  ]}
-                  onPress={() => setModalVisible(false)}
-                >
-                  <Text style={styles.applyButtonText}>Apply Range</Text>
-                </TouchableOpacity>
-              </View>
+                      <Text style={styles.applyButtonText}>Apply Range</Text>
+                    </TouchableOpacity>
+                  </View>
                 )}
               </View>
             </TouchableWithoutFeedback>

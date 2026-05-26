@@ -30,7 +30,11 @@ import {
 } from '../../Common/Validation';
 import { STATE_DATA } from '../../Common/States';
 import { CommonMessage } from '../../Common/CommonMessage';
-import { storeCourseList, storeAreaList } from '../../Redux/Slice';
+import {
+  storeCourseList,
+  storeAreaList,
+  storeLeadFilterValues,
+} from '../../Redux/Slice';
 import PhoneWithCountry from '../../Common/PhoneWithCountry';
 import { COUNTRIES } from '../../Common/Countries';
 import CommonFormInput from '../../Common/CommonFormInput';
@@ -79,7 +83,7 @@ export default function AddLead({ navigation, route }) {
       if (isFromLiveLeads) {
         assignLeadAndGoBack();
       } else {
-        navigation.navigate('Lead Manager');
+        navigation.goBack();
       }
 
       return true;
@@ -556,7 +560,7 @@ export default function AddLead({ navigation, route }) {
         label: typeof item === 'string' ? item : item[labelField] || '',
         disabled:
           title === 'Select Lead Status' &&
-          (item.id === 6 || (editLeadData && (item.id === 4 || item.id === 5))),
+          (item.id === 6 || item.id === 4 || (editLeadData && item.id === 5)),
       })),
       onSelect,
       searchPlaceholder,
@@ -813,9 +817,17 @@ export default function AddLead({ navigation, route }) {
         isSubmitted.current = true;
       }
       formReset();
-      if (navigation.canGoBack()) {
-        navigation.goBack();
-      }
+      dispatch(
+        storeLeadFilterValues({
+          call_get_leads_api: true,
+        }),
+      );
+      navigation.navigate('MainTabs', {
+        screen: 'Lead Manager',
+      });
+      // if (navigation.canGoBack()) {
+      //   navigation.goBack();
+      // }
     } catch (error) {
       console.log('Form Submit error', error.response);
       CommonMessage(
@@ -899,7 +911,7 @@ export default function AddLead({ navigation, route }) {
                     if (isFromLiveLeads) {
                       assignLeadAndGoBack();
                     } else {
-                      navigation.navigate('Lead Manager');
+                      navigation.goBack();
                     }
                   }}
                   style={styles.closeBtn}
@@ -910,7 +922,7 @@ export default function AddLead({ navigation, route }) {
                 <TouchableOpacity
                   onPress={() => {
                     console.log('lead managerrrrrrrrrr');
-                    navigation.navigate('Lead Manager');
+                    navigation.goBack();
                   }}
                   style={styles.closeBtn}
                 >
