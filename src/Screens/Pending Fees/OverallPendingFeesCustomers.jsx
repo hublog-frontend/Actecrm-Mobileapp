@@ -31,7 +31,6 @@ import leadStyles from '../Lead Manager/LeadManagerstyles';
 import PendingFeesPaymentSheet from './PendingFeesPaymentSheet';
 import PendingFeesCustomerDetails from './PendingFeesCustomerDetails';
 import { getCustomerStatusPresentation } from './customerStatus';
-import { useFocusEffect } from '@react-navigation/native';
 
 const mergeUniqueCustomers = (prev, next, pageNumber) => {
   if (pageNumber === 1) return next;
@@ -78,22 +77,6 @@ const OverallPendingFeesCustomers = ({ navigation }) => {
     if (filterType === 4) return { course: searchvalue };
     return {};
   };
-
-  useFocusEffect(
-    React.useCallback(() => {
-      const onBackPress = () => {
-        navigation.navigate('Lead Manager');
-        return true;
-      };
-
-      const subscription = BackHandler.addEventListener(
-        'hardwareBackPress',
-        onBackPress,
-      );
-
-      return () => subscription.remove();
-    }, [navigation]),
-  );
 
   const fetchCustomers = useCallback(
     async (
