@@ -12,7 +12,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E1E8EE',
-    zIndex: 100,
   },
   searchContainer: {
     flexDirection: 'row',
