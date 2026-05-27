@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
 import {
   View,
   Text,
@@ -32,6 +38,10 @@ import PendingFeesPaymentSheet from './PendingFeesPaymentSheet';
 import PendingFeesCustomerDetails from './PendingFeesCustomerDetails';
 import { getCustomerStatusPresentation } from './customerStatus';
 import { formatToBackendIST } from '../../Common/Validation';
+import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetScrollView,
+} from '@gorhom/bottom-sheet';
 
 const mergeUniqueCustomers = (prev, next, pageNumber) => {
   if (pageNumber === 1) return next;
@@ -47,6 +57,11 @@ const TodayPendingFeesCustomers = ({ navigation }) => {
   const permissions = useSelector(state => state.userpermissions);
   const downlineUsers = useSelector(state => state.downlineusers);
 
+  const detailsSheetRef = useRef(null);
+  const paymentSheetRef = useRef(null);
+  const [isPaymentBottomSheetOpen, setIsPaymentBottomSheetOpen] =
+    useState(false);
+  const snapPoints = useMemo(() => ['70%', '92%'], []);
   const [searchValue, setSearchValue] = useState('');
   const [filterType, setFilterType] = useState(1);
   const [showFilterOptions, setShowFilterOptions] = useState(false);
@@ -78,6 +93,24 @@ const TodayPendingFeesCustomers = ({ navigation }) => {
     if (filterType === 4) return { course: searchvalue };
     return {};
   };
+
+  useEffect(() => {
+    const backAction = () => {
+      if (isPaymentBottomSheetOpen) {
+        paymentSheetRef.current?.close();
+        return true;
+      }
+
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, [isPaymentBottomSheetOpen]);
 
   const fetchCustomers = useCallback(
     async (
@@ -164,6 +197,18 @@ const TodayPendingFeesCustomers = ({ navigation }) => {
     init();
   }, [downlineUsers]);
 
+  const renderBackdrop = useCallback(
+    props => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        pressBehavior="close"
+      />
+    ),
+    [],
+  );
+
   const onRefresh = async () => {
     setRefreshing(true);
     const stored = await AsyncStorage.getItem('loginUserDetails');
@@ -194,7 +239,8 @@ const TodayPendingFeesCustomers = ({ navigation }) => {
 
   const openDetails = async item => {
     setSelectedCustomer(item);
-    setDetailsVisible(true);
+    // setDetailsVisible(true);
+    detailsSheetRef.current.expand();
     setDetailsLoading(true);
     try {
       const response = await getCustomerById(item.id);
@@ -208,7 +254,7 @@ const TodayPendingFeesCustomers = ({ navigation }) => {
 
   const openPayment = item => {
     setSelectedCustomer(item);
-    setPaymentModalVisible(true);
+    paymentSheetRef.current.expand();
   };
 
   const renderCard = ({ item }) => {
@@ -541,105 +587,75 @@ const TodayPendingFeesCustomers = ({ navigation }) => {
       )}
 
       <PendingFeesCustomerDetails
-        visible={detailsVisible}
+        visible={detailsSheetRef}
         loading={detailsLoading}
         customer={customerDetails}
         theme={theme}
-        onClose={() => setDetailsVisible(false)}
+        onClose={() => detailsSheetRef.current.close()}
       />
 
-      <Modal
+      {/* <Modal
         visible={paymentModalVisible}
         animationType="slide"
         transparent
         onRequestClose={() => setPaymentModalVisible(false)}
+      > */}
+      <BottomSheet
+        ref={paymentSheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        onChange={index => {
+          setIsPaymentBottomSheetOpen(index >= 0);
+        }}
+        enablePanDownToClose
+        backdropComponent={renderBackdrop}
+        keyboardBehavior="interactive"
+        android_keyboardInputMode="adjustResize"
+        backgroundStyle={{
+          backgroundColor: theme.background || theme.surface,
+        }}
+        handleIndicatorStyle={{
+          backgroundColor: theme.border,
+        }}
       >
-        <View
-          style={[
-            styles.detailsModalOverlay,
-            { backgroundColor: theme.overlay },
-          ]}
+        <BottomSheetScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingBottom: 0,
+          }}
         >
           <TouchableOpacity
             style={StyleSheet.absoluteFill}
             activeOpacity={1}
             onPress={() => {
-              setPaymentModalVisible(false);
+              paymentSheetRef.current.close();
             }}
           />
-          <View
-            style={[
-              styles.detailsModalSheet,
-              { backgroundColor: theme.background || theme.surface },
-            ]}
+          <Text
+            style={[styles.detailsModalTitle, { color: theme.textPrimary }]}
           >
-            <View
-              style={[
-                styles.detailsModalHeader,
-                {
-                  backgroundColor: theme.surface,
-                  borderBottomColor: theme.borderLight,
-                },
-              ]}
-            >
-              <View
-                style={[
-                  styles.detailsDragIndicator,
-                  { backgroundColor: theme.border },
-                ]}
+            Pay Due Amount
+          </Text>
+
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {selectedCustomer ? (
+              <PendingFeesPaymentSheet
+                customer={selectedCustomer}
+                onSuccess={() => {
+                  setPaymentModalVisible(false);
+                  onRefresh();
+                }}
               />
-              <View style={styles.detailsHeaderRow}>
-                <View>
-                  <Text
-                    style={[
-                      styles.detailsModalTitle,
-                      { color: theme.textPrimary },
-                    ]}
-                  >
-                    Pay Due Amount
-                  </Text>
-                  <Text
-                    style={[
-                      styles.sheetSubtitle,
-                      { color: theme.textSecondary },
-                    ]}
-                  >
-                    {selectedCustomer?.name || '-'} ·{' '}
-                    {selectedCustomer?.course_name || '-'}
-                  </Text>
-                </View>
-
-                <TouchableOpacity
-                  onPress={() => {
-                    setPaymentModalVisible(false);
-                  }}
-                  style={[
-                    styles.detailsCloseBtn,
-                    { backgroundColor: theme.primaryLight },
-                  ]}
-                >
-                  <Icon name="close" size={22} color={theme.primary} />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-            >
-              {selectedCustomer ? (
-                <PendingFeesPaymentSheet
-                  customer={selectedCustomer}
-                  onSuccess={() => {
-                    setPaymentModalVisible(false);
-                    onRefresh();
-                  }}
-                />
-              ) : null}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+            ) : null}
+          </ScrollView>
+        </BottomSheetScrollView>
+      </BottomSheet>
+      {/* </Modal> */}
     </SafeAreaView>
   );
 };

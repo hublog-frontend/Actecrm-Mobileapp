@@ -175,7 +175,6 @@ export default StyleSheet.create({
   },
   sheetContent: {
     flex: 1,
-    paddingHorizontal: 20,
     paddingTop: 8,
   },
   sheetTitle: {
@@ -259,7 +258,7 @@ export default StyleSheet.create({
     alignItems: 'center',
   },
   detailsScrollContent: {
-    padding: 16,
+    padding: 0,
     paddingBottom: 32,
   },
   detailsProfileCard: {

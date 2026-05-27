@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Pressable,
   Image,
   StyleSheet,
+  BackHandler,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -17,6 +18,10 @@ import { BASE_URL } from '../../ApiService/action';
 import { CommonMessage } from '../../Common/CommonMessage';
 import { calculateAmount } from '../../Common/Validation';
 import { getCustomerStatusPresentation } from './customerStatus';
+import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetScrollView,
+} from '@gorhom/bottom-sheet';
 import styles from './pendingFeesStyles';
 
 const formatDate = value => {
@@ -137,8 +142,40 @@ const PendingFeesCustomerDetails = ({
   onClose,
   theme,
 }) => {
+  const snapPoints = useMemo(() => ['70%', '92%'], []);
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [selectionKey, setSelectionKey] = useState(0);
   const [activeField, setActiveField] = useState(null);
+
+  useEffect(() => {
+    const backAction = () => {
+      if (isBottomSheetOpen) {
+        visible.current?.close();
+        return true;
+      }
+
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, [isBottomSheetOpen]);
+
+  const renderBackdrop = useCallback(
+    props => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        pressBehavior="close"
+      />
+    ),
+    [],
+  );
 
   useEffect(() => {
     if (!visible) {
@@ -321,14 +358,31 @@ const PendingFeesCustomerDetails = ({
     ));
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
+    <BottomSheet
+      ref={visible}
+      index={-1}
+      snapPoints={snapPoints}
+      onChange={index => {
+        setIsBottomSheetOpen(index >= 0);
+      }}
+      enablePanDownToClose
+      backdropComponent={renderBackdrop}
+      keyboardBehavior="interactive"
+      android_keyboardInputMode="adjustResize"
+      backgroundStyle={{
+        backgroundColor: theme.background || theme.surface,
+      }}
+      handleIndicatorStyle={{
+        backgroundColor: theme.border,
+      }}
     >
-      <View
-        style={[styles.detailsModalOverlay, { backgroundColor: theme.overlay }]}
+      <BottomSheetScrollView
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingBottom: 0,
+        }}
       >
         <TouchableOpacity
           style={StyleSheet.absoluteFill}
@@ -341,199 +395,162 @@ const PendingFeesCustomerDetails = ({
             }
           }}
         />
-        <View
-          style={[
-            styles.detailsModalSheet,
-            { backgroundColor: theme.background || theme.surface },
-          ]}
-        >
-          <View
-            style={[
-              styles.detailsModalHeader,
-              {
-                backgroundColor: theme.surface,
-                borderBottomColor: theme.borderLight,
-              },
-            ]}
+        <Text style={[styles.detailsModalTitle, { color: theme.textPrimary }]}>
+          Customer Details
+        </Text>
+        {loading ? (
+          <View style={styles.detailsLoadingWrap}>
+            <ActivityIndicator size="large" color={theme.primary} />
+          </View>
+        ) : (
+          <ScrollView
+            contentContainerStyle={styles.detailsScrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
-            <View
-              style={[
-                styles.detailsDragIndicator,
-                { backgroundColor: theme.border },
-              ]}
-            />
-            <View style={styles.detailsHeaderRow}>
-              <Text
-                style={[styles.detailsModalTitle, { color: theme.textPrimary }]}
-              >
-                Customer Details
-              </Text>
-              <TouchableOpacity
-                onPress={onClose}
+            <Pressable onPress={clearSelection}>
+              <View
                 style={[
-                  styles.detailsCloseBtn,
-                  { backgroundColor: theme.primaryLight },
+                  styles.detailsProfileCard,
+                  {
+                    backgroundColor: theme.surface,
+                    borderColor: theme.borderLight,
+                  },
                 ]}
               >
-                <Icon name="close" size={22} color={theme.primary} />
-              </TouchableOpacity>
-            </View>
-          </View>
+                {profileUri ? (
+                  <Image
+                    source={{ uri: profileUri }}
+                    style={styles.detailsAvatar}
+                  />
+                ) : (
+                  <View
+                    style={[
+                      styles.detailsAvatarPlaceholder,
+                      { backgroundColor: theme.primaryLight },
+                    ]}
+                  >
+                    <Icon name="person" size={28} color={theme.primary} />
+                  </View>
+                )}
+                <View style={styles.detailsProfileInfo}>
+                  <Text
+                    style={[
+                      styles.detailsProfileName,
+                      { color: theme.textPrimary },
+                    ]}
+                    numberOfLines={2}
+                  >
+                    {customer?.name || '—'}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.detailsProfileMeta,
+                      { color: theme.textSecondary },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {customer?.course_name || '—'}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.detailsProfileMeta,
+                      { color: theme.textMuted },
+                    ]}
+                  >
+                    Created At:{' '}
+                    {formatDate(
+                      customer?.created_at || customer?.created_date,
+                    ) || '—'}
+                  </Text>
+                </View>
+              </View>
 
-          {loading ? (
-            <View style={styles.detailsLoadingWrap}>
-              <ActivityIndicator size="large" color={theme.primary} />
-            </View>
-          ) : (
-            <ScrollView
-              contentContainerStyle={styles.detailsScrollContent}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
-              <Pressable onPress={clearSelection}>
-                <View
-                  style={[
-                    styles.detailsProfileCard,
-                    {
-                      backgroundColor: theme.surface,
-                      borderColor: theme.borderLight,
-                    },
-                  ]}
-                >
-                  {profileUri ? (
-                    <Image
-                      source={{ uri: profileUri }}
-                      style={styles.detailsAvatar}
-                    />
-                  ) : (
-                    <View
-                      style={[
-                        styles.detailsAvatarPlaceholder,
-                        { backgroundColor: theme.primaryLight },
-                      ]}
-                    >
-                      <Icon name="person" size={28} color={theme.primary} />
-                    </View>
-                  )}
-                  <View style={styles.detailsProfileInfo}>
-                    <Text
-                      style={[
-                        styles.detailsProfileName,
-                        { color: theme.textPrimary },
-                      ]}
-                      numberOfLines={2}
-                    >
-                      {customer?.name || '—'}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.detailsProfileMeta,
-                        { color: theme.textSecondary },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {customer?.course_name || '—'}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.detailsProfileMeta,
-                        { color: theme.textMuted },
-                      ]}
-                    >
-                      Created At:{' '}
-                      {formatDate(
-                        customer?.created_at || customer?.created_date,
-                      ) || '—'}
-                    </Text>
+              <Text
+                style={[styles.detailsSectionTitle, { color: theme.primary }]}
+              >
+                Personal Information
+              </Text>
+              <View
+                style={[
+                  styles.detailsSectionCard,
+                  {
+                    backgroundColor: theme.surface,
+                    borderColor: theme.borderLight,
+                  },
+                ]}
+              >
+                <View style={styles.detailsTwoCol}>
+                  <View style={styles.detailsCol}>
+                    {renderGridColumn(personalLeft)}
+                  </View>
+                  <View
+                    style={[
+                      styles.detailsColDivider,
+                      { backgroundColor: theme.borderLight },
+                    ]}
+                  />
+                  <View style={styles.detailsCol}>
+                    {renderGridColumn(personalRight)}
                   </View>
                 </View>
+              </View>
 
-                <Text
-                  style={[styles.detailsSectionTitle, { color: theme.primary }]}
-                >
-                  Personal Information
-                </Text>
-                <View
-                  style={[
-                    styles.detailsSectionCard,
-                    {
-                      backgroundColor: theme.surface,
-                      borderColor: theme.borderLight,
-                    },
-                  ]}
-                >
-                  <View style={styles.detailsTwoCol}>
-                    <View style={styles.detailsCol}>
-                      {renderGridColumn(personalLeft)}
-                    </View>
-                    <View
-                      style={[
-                        styles.detailsColDivider,
-                        { backgroundColor: theme.borderLight },
-                      ]}
-                    />
-                    <View style={styles.detailsCol}>
-                      {renderGridColumn(personalRight)}
-                    </View>
+              <Text
+                style={[styles.detailsSectionTitle, { color: theme.primary }]}
+              >
+                Course Details
+              </Text>
+              <View
+                style={[
+                  styles.detailsCourseCard,
+                  {
+                    backgroundColor: theme.surface,
+                    borderColor: theme.border,
+                  },
+                ]}
+              >
+                <View style={styles.detailsTwoCol}>
+                  <View style={styles.detailsCol}>
+                    {renderGridColumn(courseLeft)}
+                  </View>
+                  <View
+                    style={[
+                      styles.detailsColDivider,
+                      { backgroundColor: theme.borderLight },
+                    ]}
+                  />
+                  <View style={styles.detailsCol}>
+                    {renderGridColumn(courseRight)}
                   </View>
                 </View>
+              </View>
 
-                <Text
-                  style={[styles.detailsSectionTitle, { color: theme.primary }]}
-                >
-                  Course Details
-                </Text>
-                <View
-                  style={[
-                    styles.detailsCourseCard,
-                    {
-                      backgroundColor: theme.surface,
-                      borderColor: theme.border,
-                    },
-                  ]}
-                >
-                  <View style={styles.detailsTwoCol}>
-                    <View style={styles.detailsCol}>
-                      {renderGridColumn(courseLeft)}
-                    </View>
-                    <View
-                      style={[
-                        styles.detailsColDivider,
-                        { backgroundColor: theme.borderLight },
-                      ]}
-                    />
-                    <View style={styles.detailsCol}>
-                      {renderGridColumn(courseRight)}
-                    </View>
-                  </View>
+              {signatureUri ? (
+                <View style={styles.detailsSignatureWrap}>
+                  <Text
+                    style={[
+                      styles.detailsSignatureLabel,
+                      { color: theme.textSecondary },
+                    ]}
+                  >
+                    Signature
+                  </Text>
+                  <Image
+                    source={{ uri: signatureUri }}
+                    style={[
+                      styles.detailsSignatureImage,
+                      { borderColor: theme.borderLight },
+                    ]}
+                    resizeMode="contain"
+                  />
                 </View>
-
-                {signatureUri ? (
-                  <View style={styles.detailsSignatureWrap}>
-                    <Text
-                      style={[
-                        styles.detailsSignatureLabel,
-                        { color: theme.textSecondary },
-                      ]}
-                    >
-                      Signature
-                    </Text>
-                    <Image
-                      source={{ uri: signatureUri }}
-                      style={[
-                        styles.detailsSignatureImage,
-                        { borderColor: theme.borderLight },
-                      ]}
-                      resizeMode="contain"
-                    />
-                  </View>
-                ) : null}
-              </Pressable>
-            </ScrollView>
-          )}
-        </View>
-      </View>
-    </Modal>
+              ) : null}
+            </Pressable>
+          </ScrollView>
+        )}
+      </BottomSheetScrollView>
+    </BottomSheet>
   );
 };
 
