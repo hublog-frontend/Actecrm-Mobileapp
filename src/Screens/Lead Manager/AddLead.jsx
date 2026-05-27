@@ -639,8 +639,11 @@ export default function AddLead({ navigation, route }) {
     let isValid = true;
 
     newErrors.candidateName = nameValidator(candidateName);
-    newErrors.mobileNumber = mobileValidator(mobileNumber);
-    newErrors.whatsappNumber = mobileValidator(whatsappNumber);
+    newErrors.mobileNumber = mobileValidator(mobileNumber, mobileCountryCode);
+    newErrors.whatsappNumber = mobileValidator(
+      whatsappNumber,
+      whatsappCountryCode,
+    );
     newErrors.email = emailValidator(email);
     newErrors.leadSource = selectValidator(leadSource);
     newErrors.area = selectValidator(area);
@@ -979,11 +982,15 @@ export default function AddLead({ navigation, route }) {
                 <PhoneWithCountry
                   label="Mobile Number *"
                   value={mobileNumber}
-                  onChange={async value => {
+                  onChange={async (value, countryIso2) => {
                     const mob = value;
                     setMobileNumber(mob);
                     if (validationTrigger || isFromLiveLeads) {
-                      const mobileValitaion = mobileValidator(mob);
+                      const activeCountry = countryIso2 || mobileCountryCode;
+                      const mobileValitaion = mobileValidator(
+                        value,
+                        activeCountry,
+                      );
                       setErrors(prev => ({
                         ...prev,
                         mobileNumber: mobileValitaion,
@@ -1013,12 +1020,13 @@ export default function AddLead({ navigation, route }) {
                 <PhoneWithCountry
                   label="WhatsApp Number *"
                   value={whatsappNumber}
-                  onChange={value => {
+                  onChange={(value, countryIso2) => {
                     setWhatsappNumber(value);
                     if (validationTrigger) {
+                      const activeCountry = countryIso2 || whatsappCountryCode;
                       setErrors(prev => ({
                         ...prev,
-                        whatsappNumber: mobileValidator(value),
+                        whatsappNumber: mobileValidator(value, activeCountry),
                       }));
                     }
                   }}

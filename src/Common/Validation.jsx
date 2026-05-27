@@ -1,7 +1,9 @@
+import { defaultCountries, parseCountry } from 'react-international-phone';
+
 const nameRegex = /^[a-zA-Z]+(?: [a-zA-Z]+)*$/;
 const descriptionRegex = /^(?!\s*$).+/;
 const emailRegex =
-  /^[a-zA-Z0-9]+([._-]?[a-zA-Z0-9]+)*@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
+  /^(?=[a-zA-Z0-9._-]{6,30}@)(?=[a-zA-Z0-9._-]*[a-zA-Z])[a-zA-Z0-9]+([._-]?[a-zA-Z0-9]+)*@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
 const mobileRegex = /^[0-9]+$/;
 const domainRegex =
   /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+(?:[a-zA-Z]{2,})$/;
@@ -102,12 +104,227 @@ export const selectValidator = name => {
   return error;
 };
 
-export const mobileValidator = mobile => {
+const countryLengthFallback = {
+  // GCC / Middle East
+  kw: 8, // Kuwait
+  sa: 9, // Saudi Arabia
+  ae: 9, // UAE
+  qa: 8, // Qatar
+  bh: 8, // Bahrain
+  om: 8, // Oman
+  eg: 10, // Egypt
+  ye: 9, // Yemen
+  jo: 9, // Jordan
+  lb: [7, 8], // Lebanon
+  iq: 10, // Iraq
+  sy: 9, // Syria
+  ps: 9, // Palestine
+
+  // South / Southeast Asia
+  bd: 10, // Bangladesh
+  np: 10, // Nepal
+  lk: 9, // Sri Lanka
+  mv: 7, // Maldives
+  pk: 10, // Pakistan
+  my: [9, 10], // Malaysia
+  sg: 8, // Singapore
+  id: [9, 10, 11, 12], // Indonesia
+  th: 9, // Thailand
+  vn: 9, // Vietnam
+  kh: [8, 9], // Cambodia
+  mm: 9, // Myanmar
+  la: [8, 9], // Laos
+  bn: 7, // Brunei
+  ph: 10, // Philippines
+
+  // Europe (commonly missing)
+  at: [10, 11], // Austria
+  bg: [8, 9], // Bulgaria
+  hr: 9, // Croatia
+  hu: 9, // Hungary
+  lt: 8, // Lithuania
+  lu: 9, // Luxembourg
+  mc: [8, 9], // Monaco
+  me: 8, // Montenegro
+  pt: 9, // Portugal
+  ro: 9, // Romania
+  sm: [8, 9, 10], // San Marino
+  rs: 9, // Serbia
+  sk: 9, // Slovakia
+  si: 8, // Slovenia
+
+  // Americas (commonly missing)
+  cl: 9, // Chile
+  ec: 9, // Ecuador
+  ve: 10, // Venezuela
+  py: 9, // Paraguay
+  pe: 9, // Peru
+  uy: 8, // Uruguay
+  ni: 8, // Nicaragua
+  pa: 8, // Panama
+  hn: 8, // Honduras
+  jm: 7, // Jamaica
+  bs: 7, // Bahamas
+  bb: 7, // Barbados
+  bz: 7, // Belize
+  dm: 7, // Dominica
+  gd: 7, // Grenada
+  kn: 7, // Saint Kitts
+  lc: 7, // Saint Lucia
+  vc: 7, // Saint Vincent
+  tt: 7, // Trinidad
+  ag: 7, // Antigua
+  aw: 7, // Aruba
+  cw: 7, // Curacao
+  bq: 7, // Caribbean Netherlands
+
+  // Africa (commonly missing)
+  dz: 9, // Algeria
+  ao: 9, // Angola
+  bj: 8, // Benin
+  bw: [7, 8], // Botswana
+  bf: 8, // Burkina Faso
+  bi: 8, // Burundi
+  cm: 9, // Cameroon
+  cv: 7, // Cape Verde
+  cf: 8, // Central African Rep
+  td: 8, // Chad
+  km: 7, // Comoros
+  cd: 9, // Dem. Rep. Congo
+  cg: 9, // Rep. Congo
+  gq: 9, // Equatorial Guinea
+  er: 7, // Eritrea
+  ga: 8, // Gabon
+  gm: 7, // Gambia
+  gh: 9, // Ghana
+  gn: 9, // Guinea
+  gw: 7, // Guinea-Bissau
+  ke: 9, // Kenya
+  ls: 8, // Lesotho
+  lr: [7, 8], // Liberia
+  ly: 9, // Libya
+  mg: 9, // Madagascar
+  mw: 9, // Malawi
+  ml: 8, // Mali
+  mr: 8, // Mauritania
+  mu: [7, 8], // Mauritius
+  mz: 9, // Mozambique
+  na: 9, // Namibia
+  ne: 8, // Niger
+  ng: 10, // Nigeria
+  rw: 9, // Rwanda
+  sn: 9, // Senegal
+  sc: 7, // Seychelles
+  sl: 8, // Sierra Leone
+  so: [8, 9], // Somalia
+  za: 9, // South Africa
+  ss: 9, // South Sudan
+  sd: 9, // Sudan
+  sz: 8, // Swaziland
+  tg: 8, // Togo
+  tn: 8, // Tunisia
+  ug: 9, // Uganda
+  zm: 9, // Zambia
+  zw: 9, // Zimbabwe
+
+  // Oceania (commonly missing)
+  fj: 7, // Fiji
+  ki: 8, // Kiribati
+  mh: 7, // Marshall Islands
+  fm: 7, // Micronesia
+  nr: 7, // Nauru
+  nc: 6, // New Caledonia
+  pw: 7, // Palau
+  pg: 8, // Papua New Guinea
+  ws: 7, // Samoa
+  sb: 7, // Solomon Islands
+  to: 7, // Tonga
+  tv: [5, 6], // Tuvalu
+  vu: 7, // Vanuatu
+
+  // Others
+  af: 9, // Afghanistan
+  al: 9, // Albania
+  ad: 6, // Andorra
+  bt: 8, // Bhutan
+  bo: 8, // Bolivia
+  ba: 8, // Bosnia
+  bn: 7, // Brunei
+  cu: 8, // Cuba
+  ge: 9, // Georgia
+  xk: 8, // Kosovo
+  mo: 8, // Macau
+  mk: 8, // Macedonia
+  mn: 8, // Mongolia
+  tj: 9, // Tajikistan
+  tm: 8, // Turkmenistan
+};
+
+export const getExpectedPhoneLength = (countryCode, mobileNumber = '') => {
+  if (!countryCode) return null;
+  const iso = countryCode.toLowerCase();
+  const countryObj = defaultCountries.find(c => parseCountry(c).iso2 === iso);
+  if (!countryObj) return null;
+
+  const parsed = parseCountry(countryObj);
+  if (parsed.format) {
+    let formatStr = '';
+    if (typeof parsed.format === 'string') {
+      formatStr = parsed.format;
+    } else if (typeof parsed.format === 'object') {
+      const keys = Object.keys(parsed.format).filter(k => k !== 'default');
+      let matchedKey = null;
+      for (const key of keys) {
+        try {
+          const pattern = key.replace(/^\/|\/$/g, '');
+          const regex = new RegExp(pattern);
+          if (regex.test(mobileNumber)) {
+            matchedKey = key;
+            break;
+          }
+        } catch (e) {
+          // ignore invalid regex
+        }
+      }
+      formatStr = matchedKey
+        ? parsed.format[matchedKey]
+        : parsed.format.default;
+    }
+
+    if (typeof formatStr === 'string') {
+      return (formatStr.match(/\./g) || []).length;
+    }
+  }
+
+  // Fallback to our compiled map if format is undefined
+  if (countryLengthFallback[iso]) {
+    return countryLengthFallback[iso];
+  }
+
+  return null;
+};
+
+export const mobileValidator = (mobile, countryCode) => {
   let error = '';
 
   if (!mobile || mobile.length <= 0) error = ' is required';
-  else if (!mobileRegex.test(mobile) || mobile.length < 8)
+  else if (!mobileRegex.test(mobile)) error = ' is not valid';
+  else if (countryCode) {
+    const expectedLength = getExpectedPhoneLength(countryCode, mobile);
+    if (expectedLength !== null) {
+      if (Array.isArray(expectedLength)) {
+        if (!expectedLength.includes(mobile.length)) {
+          error = ` must be ${expectedLength.join(' or ')} digits`;
+        }
+      } else if (mobile.length !== expectedLength) {
+        error = ` must be ${expectedLength} digits`;
+      }
+    } else if (mobile.length < 8) {
+      error = ' is not valid';
+    }
+  } else if (mobile.length < 8) {
     error = ' is not valid';
+  }
   return error;
 };
 
