@@ -399,7 +399,7 @@ export const customerDuePayment = async payload => {
 
 export const inserCustomerTrack = async payload => {
   try {
-    const response = await api.post('/api/inserCustomerTrack', payload);
+    const response = await api.post('/api/insertCusTrack', payload);
     return response;
   } catch (error) {
     throw error;
