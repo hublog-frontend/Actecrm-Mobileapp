@@ -267,8 +267,8 @@ const Dashboard = ({ navigation }) => {
       { key: 'efficiency', label: 'Eff.%', flex: 1 },
     ];
 
-    const renderCol = (flex, children, textStyle) => (
-      <View style={[styles.tableCol, { flex }]}>
+    const renderCol = (flex, children, textStyle, key) => (
+      <View key={key} style={[styles.tableCol, { flex }]}>
         <Text style={textStyle} numberOfLines={2}>
           {children}
         </Text>
@@ -284,7 +284,7 @@ const Dashboard = ({ navigation }) => {
             renderCol(col.flex, col.label, [
               styles.tableHeaderText,
               { color: theme.textSecondary },
-            ]),
+            ], col.key),
           )}
         </View>
         {followupData.map((item, index) => (

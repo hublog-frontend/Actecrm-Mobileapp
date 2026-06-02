@@ -191,6 +191,41 @@ export const CollectionSpeedometer = ({
   const pct = Math.min((value / maxValue) * 100, 100);
   const achievementPct = sale > 0 ? Math.min((value / sale) * 100, 999) : pct;
 
+  const [animatedPct, setAnimatedPct] = React.useState(0);
+  const currentPctRef = React.useRef(0);
+  const animRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (animRef.current) cancelAnimationFrame(animRef.current);
+
+    const startPct = currentPctRef.current;
+    const targetPct = pct;
+    const startTime = Date.now();
+    const duration = 1500; // 1.5 seconds
+
+    const animate = () => {
+      const now = Date.now();
+      const elapsed = Math.min(now - startTime, duration);
+      // Easing out cubic for realistic speedometer deceleration
+      const t = elapsed / duration;
+      const easeOut = 1 - Math.pow(1 - t, 3);
+      
+      const nextPct = startPct + (targetPct - startPct) * easeOut;
+      currentPctRef.current = nextPct;
+      setAnimatedPct(nextPct);
+
+      if (elapsed < duration) {
+        animRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    animRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animRef.current) cancelAnimationFrame(animRef.current);
+    };
+  }, [pct]);
+
   const svgHeight = size * 0.68;
   const cx = size / 2;
   const cy = svgHeight * 0.82;
@@ -198,7 +233,7 @@ export const CollectionSpeedometer = ({
   const centerOverlayTop = cy - radius * 0.64;
   const startAngle = Math.PI;
   const endAngle = 2 * Math.PI;
-  const needleAngle = startAngle + (pct / 100) * Math.PI;
+  const needleAngle = startAngle + (animatedPct / 100) * Math.PI;
 
   const polarToCartesian = (angle, r) => ({
     x: cx + r * Math.cos(angle),
@@ -214,7 +249,7 @@ export const CollectionSpeedometer = ({
 
   const progressPath = describeArc(
     startAngle,
-    startAngle + (pct / 100) * Math.PI,
+    startAngle + (animatedPct / 100) * Math.PI,
   );
   const needleEnd = polarToCartesian(needleAngle, radius - 12);
   const needleBaseL = polarToCartesian(needleAngle + Math.PI / 2, 5);
@@ -222,7 +257,7 @@ export const CollectionSpeedometer = ({
 
   const tickMarks = [0, 25, 50, 75, 100];
 
-  const needleColor = pct < 33 ? '#E53E3E' : pct < 66 ? '#DD6B00' : '#258a25';
+  const needleColor = animatedPct < 33 ? '#E53E3E' : animatedPct < 66 ? '#DD6B00' : '#258a25';
 
   return (
     <View style={chartStyles.speedoWrap}>
@@ -302,7 +337,7 @@ export const CollectionSpeedometer = ({
             />
 
             {/* Progress arc */}
-            {pct > 0 ? (
+            {animatedPct > 0 ? (
               <Path
                 d={progressPath}
                 stroke="url(#speedoProgress)"

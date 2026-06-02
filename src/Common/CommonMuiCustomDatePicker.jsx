@@ -439,7 +439,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     marginHorizontal: 10,
-    textAlign: 'center',
   },
 
   modalOverlay: {
