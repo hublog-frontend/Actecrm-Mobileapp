@@ -58,14 +58,14 @@ const styles = StyleSheet.create({
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: 6,
   },
   statusText: {
     fontSize: 10,
     fontWeight: 'bold',
   },
   cardBody: {
-    marginBottom: 12,
+    marginBottom: 0,
   },
   detailRow: {
     flexDirection: 'row',

@@ -407,6 +407,25 @@ export const inserCustomerTrack = async payload => {
 };
 
 // Dashboard APIs
+export const updateDashboardDates = async payload => {
+  try {
+    const response = await api.post(`/api/updateDashboardSettings`, payload);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getDashboardDates = async userId => {
+  try {
+    const response = await api.get(
+      `/api/getDashboardCompounds?user_id=${userId}`,
+    );
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
 export const getScoreBoard = async payload => {
   try {
     const response = await api.post('/api/getScoreBoard', payload);
@@ -416,27 +435,9 @@ export const getScoreBoard = async payload => {
   }
 };
 
-export const getDashboardDates = async userId => {
-  try {
-    const response = await api.get(`/api/getDashboardDates?user_id=${userId}`);
-    return response;
-  } catch (error) {
-    throw error;
-  }
-};
-
 export const getFollowUpActionDashboard = async payload => {
   try {
     const response = await api.post('/api/getFollowUpAction', payload);
-    return response;
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const updateDashboardDates = async payload => {
-  try {
-    const response = await api.post('/api/updateDashboardDates', payload);
     return response;
   } catch (error) {
     throw error;

@@ -13,6 +13,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useDispatch, useSelector } from 'react-redux';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import moment from 'moment';
@@ -269,10 +270,27 @@ const Leads = ({ isSubView, isActive }) => {
           <View
             style={[
               styles.statusBadge,
-              { backgroundColor: getStatusColor(item.lead_status) },
+              {
+                backgroundColor: getStatusColor(item.lead_status),
+              },
             ]}
           >
-            <Text style={styles.statusText}>{item.lead_status}</Text>
+            <Text
+              style={[
+                styles.statusText,
+                {
+                  color:
+                    item?.lead_status === 'High'
+                      ? '#389e0d'
+                      : item?.lead_status === 'Medium'
+                      ? '#d46b08'
+                      : '#595959',
+                },
+              ]}
+            >
+              {' '}
+              {item.lead_status}
+            </Text>
           </View>
         </View>
         <View style={styles.cardBody}>
@@ -286,18 +304,25 @@ const Leads = ({ isSubView, isActive }) => {
             </Text>
           </View>
           <View style={styles.detailRow}>
-            <Icon name="call-outline" size={14} color={theme.textSecondary} />
+            <Text style={{ color: theme.textSecondary, marginRight: 5 }}>
+              #
+            </Text>
             <Text
               style={[styles.detailText, { color: theme.textSecondary }]}
               selectable={true}
             >
-              {item.phone}
+              {item.primary_course}
             </Text>
           </View>
           <View style={styles.detailRow}>
-            <Icon name="globe-outline" size={14} color={theme.textSecondary} />
+            <FontAwesome
+              name="rupee"
+              size={14}
+              color={theme.textSecondary}
+              style={{ marginRight: 6 }}
+            />
             <Text style={[styles.detailText, { color: theme.textSecondary }]}>
-              {item.lead_type || 'Source unknown'}
+              {Number(item?.primary_fees)?.toLocaleString('en-IN') || 0}{' '}
             </Text>
           </View>
         </View>
@@ -375,13 +400,13 @@ const Leads = ({ isSubView, isActive }) => {
   const getStatusColor = status => {
     switch (status) {
       case 'High':
-        return '#E8F5E9';
+        return '#f6ffed';
       case 'Medium':
-        return '#FFF3E0';
+        return '#fff7e6';
       case 'Low':
-        return '#FFEBEE';
+        return '#f5f5f5';
       default:
-        return '#F0F3F7';
+        return '#f5f5f5';
     }
   };
 
