@@ -1,4 +1,10 @@
-import React, { useState } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from 'react';
 import {
   View,
   TextInput,
@@ -7,7 +13,6 @@ import {
   FlatList,
   Text,
   ActivityIndicator,
-  Modal,
   ScrollView,
   Keyboard,
   Pressable,
@@ -18,15 +23,39 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { globalFilter } from '../../ApiService/action';
 import { useTheme } from '../../Context/ThemeContext';
 import { useFocusEffect } from '@react-navigation/native';
+import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetScrollView,
+} from '@gorhom/bottom-sheet';
 
 const SearchScreen = ({ navigation }) => {
+  const detailsSheetRef = useRef(null);
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const snapPoints = useMemo(() => ['70%', '92%'], []);
   const { theme } = useTheme();
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [selectedLead, setSelectedLead] = useState(null);
-  const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [selectionKey, setSelectionKey] = useState(0);
+
+  useEffect(() => {
+    const backAction = () => {
+      if (isBottomSheetOpen) {
+        detailsSheetRef.current?.close();
+        return true;
+      }
+
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, [isBottomSheetOpen]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -47,7 +76,7 @@ const SearchScreen = ({ navigation }) => {
   const handleLeadPress = lead => {
     Keyboard.dismiss();
     setSelectedLead(lead);
-    setDetailsModalVisible(true);
+    detailsSheetRef?.current?.expand();
   };
 
   const handleSearch = text => {
@@ -74,6 +103,18 @@ const SearchScreen = ({ navigation }) => {
       }, 300);
     }
   };
+
+  const renderBackdrop = useCallback(
+    props => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        pressBehavior="close"
+      />
+    ),
+    [],
+  );
 
   return (
     <SafeAreaView
@@ -191,232 +232,216 @@ const SearchScreen = ({ navigation }) => {
       </View>
 
       {/* Lead Details Modal */}
-      <Modal
+      {/* <Modal
         visible={detailsModalVisible}
         transparent
         animationType="slide"
         onRequestClose={() => setDetailsModalVisible(false)}
+      > */}
+      <BottomSheet
+        ref={detailsSheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        onChange={index => {
+          setIsBottomSheetOpen(index >= 0);
+        }}
+        enablePanDownToClose
+        backdropComponent={renderBackdrop}
+        keyboardBehavior="interactive"
+        android_keyboardInputMode="adjustResize"
+        backgroundStyle={{
+          backgroundColor: theme.background || theme.surface,
+        }}
+        handleIndicatorStyle={{
+          backgroundColor: theme.border,
+        }}
       >
-        <View style={[styles.modalOverlay, { backgroundColor: theme.overlay }]}>
-          <TouchableOpacity
-            style={StyleSheet.absoluteFill}
-            activeOpacity={1}
-            onPress={() => setDetailsModalVisible(false)}
-          />
-          <View
-            style={[
-              styles.detailsModalContainer,
-              { backgroundColor: theme.background },
-            ]}
+        <BottomSheetScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingBottom: 50,
+          }}
+        >
+          <Text style={[styles.detailsHeading, { color: theme.textPrimary }]}>
+            Lead Details
+          </Text>
+
+          {/* Content */}
+          <ScrollView
+            contentContainerStyle={styles.detailsContent}
+            showsVerticalScrollIndicator={false}
           >
-            {/* Header */}
-            <View
-              style={[
-                styles.detailsHeader,
-                {
-                  backgroundColor: theme.surface,
-                  borderBottomColor: theme.borderLight,
-                },
-              ]}
-            >
-              <View
-                style={[
-                  styles.dragIndicator,
-                  { backgroundColor: theme.border },
-                ]}
-              />
-              <View style={styles.headerRow}>
-                <Text
-                  style={[styles.detailsTitle, { color: theme.textPrimary }]}
-                >
-                  Lead Details
+            {selectedLead && (
+              <Pressable onPress={() => setSelectionKey(prev => prev + 1)}>
+                <Text style={[styles.sectionHeading, { color: theme.primary }]}>
+                  Basic Information
                 </Text>
-                <TouchableOpacity
-                  onPress={() => setDetailsModalVisible(false)}
+                <View
                   style={[
-                    styles.closeButton,
-                    { backgroundColor: theme.primaryLight },
+                    styles.card,
+                    {
+                      backgroundColor: theme.surface,
+                      borderColor: theme.border,
+                    },
                   ]}
                 >
-                  <Icon name="close" size={24} color={theme.primary} />
-                </TouchableOpacity>
-              </View>
-            </View>
+                  <DetailRow
+                    icon="person-outline"
+                    label="Name"
+                    value={selectedLead.name}
+                    selectionKey={selectionKey}
+                    theme={theme}
+                  />
+                  <DetailRow
+                    icon="mail-outline"
+                    label="Email"
+                    value={selectedLead.email}
+                    selectionKey={selectionKey}
+                    theme={theme}
+                  />
+                  <DetailRow
+                    icon="call-outline"
+                    label="Mobile"
+                    value={selectedLead.phone}
+                    selectionKey={selectionKey}
+                    theme={theme}
+                  />
+                  <DetailRow
+                    icon="logo-whatsapp"
+                    label="Whatsapp"
+                    value={selectedLead.whatsapp}
+                    selectionKey={selectionKey}
+                    theme={theme}
+                  />
+                  <DetailRow
+                    icon="location-outline"
+                    label="Area"
+                    value={selectedLead.area_id}
+                    selectionKey={selectionKey}
+                    theme={theme}
+                  />
+                  <DetailRow
+                    icon="person-circle-outline"
+                    label="Lead Executive"
+                    selectionKey={selectionKey}
+                    theme={theme}
+                    value={
+                      selectedLead.lead_assigned_to_name
+                        ? `${selectedLead.lead_assigned_to_id} (${selectedLead.lead_assigned_to_name})`
+                        : selectedLead.lead_assigned_to_id
+                    }
+                  />
+                  <DetailRow
+                    icon="calendar-outline"
+                    label="Created At"
+                    value={selectedLead.created_date}
+                    selectionKey={selectionKey}
+                    theme={theme}
+                  />
+                  <DetailRow
+                    icon="calendar-outline"
+                    label="Next Followup"
+                    value={selectedLead.next_follow_up_date}
+                    selectionKey={selectionKey}
+                    theme={theme}
+                  />
+                  <DetailRow
+                    icon="chatbox-ellipses-outline"
+                    label="Comments"
+                    value={selectedLead.comments}
+                    hideBorder
+                    selectionKey={selectionKey}
+                    theme={theme}
+                  />
+                </View>
 
-            {/* Content */}
-            <ScrollView
-              contentContainerStyle={styles.detailsContent}
-              showsVerticalScrollIndicator={false}
-            >
-              {selectedLead && (
-                <Pressable onPress={() => setSelectionKey(prev => prev + 1)}>
-                  <Text
-                    style={[styles.sectionHeading, { color: theme.primary }]}
-                  >
-                    Basic Information
-                  </Text>
-                  <View
-                    style={[
-                      styles.card,
-                      {
-                        backgroundColor: theme.surface,
-                        borderColor: theme.border,
-                      },
-                    ]}
-                  >
-                    <DetailRow
-                      icon="person-outline"
-                      label="Name"
-                      value={selectedLead.name}
-                      selectionKey={selectionKey}
-                      theme={theme}
-                    />
-                    <DetailRow
-                      icon="mail-outline"
-                      label="Email"
-                      value={selectedLead.email}
-                      selectionKey={selectionKey}
-                      theme={theme}
-                    />
-                    <DetailRow
-                      icon="call-outline"
-                      label="Mobile"
-                      value={selectedLead.phone}
-                      selectionKey={selectionKey}
-                      theme={theme}
-                    />
-                    <DetailRow
-                      icon="logo-whatsapp"
-                      label="Whatsapp"
-                      value={selectedLead.whatsapp}
-                      selectionKey={selectionKey}
-                      theme={theme}
-                    />
-                    <DetailRow
-                      icon="location-outline"
-                      label="Area"
-                      value={selectedLead.area_id}
-                      selectionKey={selectionKey}
-                      theme={theme}
-                    />
-                    <DetailRow
-                      icon="person-circle-outline"
-                      label="Lead Executive"
-                      selectionKey={selectionKey}
-                      theme={theme}
-                      value={
-                        selectedLead.lead_assigned_to_name
-                          ? `${selectedLead.lead_assigned_to_id} (${selectedLead.lead_assigned_to_name})`
-                          : selectedLead.lead_assigned_to_id
-                      }
-                    />
-                    <DetailRow
-                      icon="calendar-outline"
-                      label="Created At"
-                      value={selectedLead.created_date}
-                      selectionKey={selectionKey}
-                      theme={theme}
-                    />
-                    <DetailRow
-                      icon="calendar-outline"
-                      label="Next Followup"
-                      value={selectedLead.next_follow_up_date}
-                      selectionKey={selectionKey}
-                      theme={theme}
-                    />
-                    <DetailRow
-                      icon="chatbox-ellipses-outline"
-                      label="Comments"
-                      value={selectedLead.comments}
-                      hideBorder
-                      selectionKey={selectionKey}
-                      theme={theme}
-                    />
-                  </View>
-
-                  <Text
-                    style={[styles.sectionHeading, { color: theme.primary }]}
-                  >
-                    Course Details
-                  </Text>
-                  <View
-                    style={[
-                      styles.card,
-                      {
-                        backgroundColor: theme.surface,
-                        borderColor: theme.border,
-                      },
-                    ]}
-                  >
-                    <DetailRow
-                      icon="book-outline"
-                      label="Course"
-                      value={selectedLead.primary_course}
-                      selectionKey={selectionKey}
-                      theme={theme}
-                    />
-                    <DetailRow
-                      icon="cash-outline"
-                      label="Course Fees"
-                      selectionKey={selectionKey}
-                      theme={theme}
-                      value={
-                        selectedLead.primary_fees
-                          ? `₹${selectedLead.primary_fees}`
-                          : null
-                      }
-                    />
-                    <DetailRow
-                      icon="map-outline"
-                      label="Region"
-                      value={selectedLead.region_name}
-                      selectionKey={selectionKey}
-                      theme={theme}
-                    />
-                    <DetailRow
-                      icon="business-outline"
-                      label="Branch"
-                      value={selectedLead.branch_name}
-                      selectionKey={selectionKey}
-                      theme={theme}
-                    />
-                    <DetailRow
-                      icon="time-outline"
-                      label="Batch Track"
-                      value={selectedLead.batch_track}
-                      selectionKey={selectionKey}
-                      theme={theme}
-                    />
-                    <DetailRow
-                      icon="funnel-outline"
-                      label="Lead Source"
-                      value={selectedLead.lead_type}
-                      selectionKey={selectionKey}
-                      theme={theme}
-                    />
-                    <DetailRow
-                      icon="star-outline"
-                      label="Lead Status"
-                      value={selectedLead.lead_status}
-                      selectionKey={selectionKey}
-                      theme={theme}
-                    />
-                    <DetailRow
-                      icon="person-add-outline"
-                      label="Is Customer"
-                      selectionKey={selectionKey}
-                      theme={theme}
-                      value={selectedLead.is_customer_reg === 1 ? 'Yes' : 'No'}
-                      isHighlight={selectedLead.is_customer_reg !== 1}
-                      hideBorder
-                    />
-                  </View>
-                </Pressable>
-              )}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+                <Text
+                  style={[
+                    styles.sectionHeading,
+                    { color: theme.primary, marginTop: 30 },
+                  ]}
+                >
+                  Course Details
+                </Text>
+                <View
+                  style={[
+                    styles.card,
+                    {
+                      backgroundColor: theme.surface,
+                      borderColor: theme.border,
+                    },
+                  ]}
+                >
+                  <DetailRow
+                    icon="book-outline"
+                    label="Course"
+                    value={selectedLead.primary_course}
+                    selectionKey={selectionKey}
+                    theme={theme}
+                  />
+                  <DetailRow
+                    icon="cash-outline"
+                    label="Course Fees"
+                    selectionKey={selectionKey}
+                    theme={theme}
+                    value={
+                      selectedLead.primary_fees
+                        ? `₹${selectedLead.primary_fees}`
+                        : null
+                    }
+                  />
+                  <DetailRow
+                    icon="map-outline"
+                    label="Region"
+                    value={selectedLead.region_name}
+                    selectionKey={selectionKey}
+                    theme={theme}
+                  />
+                  <DetailRow
+                    icon="business-outline"
+                    label="Branch"
+                    value={selectedLead.branch_name}
+                    selectionKey={selectionKey}
+                    theme={theme}
+                  />
+                  <DetailRow
+                    icon="time-outline"
+                    label="Batch Track"
+                    value={selectedLead.batch_track}
+                    selectionKey={selectionKey}
+                    theme={theme}
+                  />
+                  <DetailRow
+                    icon="funnel-outline"
+                    label="Lead Source"
+                    value={selectedLead.lead_type}
+                    selectionKey={selectionKey}
+                    theme={theme}
+                  />
+                  <DetailRow
+                    icon="star-outline"
+                    label="Lead Status"
+                    value={selectedLead.lead_status}
+                    selectionKey={selectionKey}
+                    theme={theme}
+                  />
+                  <DetailRow
+                    icon="person-add-outline"
+                    label="Is Customer"
+                    selectionKey={selectionKey}
+                    theme={theme}
+                    value={selectedLead.is_customer_reg === 1 ? 'Yes' : 'No'}
+                    isHighlight={selectedLead.is_customer_reg !== 1}
+                    hideBorder
+                  />
+                </View>
+              </Pressable>
+            )}
+          </ScrollView>
+        </BottomSheetScrollView>
+      </BottomSheet>
     </SafeAreaView>
   );
 };
@@ -473,6 +498,15 @@ const DetailRow = ({
 };
 
 const styles = StyleSheet.create({
+  detailsHeading: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1A3353',
+    marginVertical: 15,
+    borderLeftWidth: 4,
+    borderLeftColor: '#5D6AD1',
+    paddingLeft: 10,
+  },
   safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
@@ -609,8 +643,8 @@ const styles = StyleSheet.create({
     color: '#1A3353',
   },
   detailsContent: {
-    padding: 16,
-    paddingBottom: 40,
+    paddingHorizontal: 6,
+    paddingBottom: 0,
   },
   sectionHeading: {
     fontSize: 14,
@@ -626,7 +660,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     paddingHorizontal: 16,
-    marginBottom: 20,
     shadowColor: '#1A3353',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
