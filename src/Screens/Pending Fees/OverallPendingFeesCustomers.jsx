@@ -590,12 +590,6 @@ const TodayPendingFeesCustomers = ({ navigation }) => {
         onClose={() => detailsSheetRef.current.close()}
       />
 
-      {/* <Modal
-        visible={paymentModalVisible}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setPaymentModalVisible(false)}
-      > */}
       <BottomSheet
         ref={paymentSheetRef}
         index={-1}
@@ -651,7 +645,6 @@ const TodayPendingFeesCustomers = ({ navigation }) => {
           </ScrollView>
         </BottomSheetScrollView>
       </BottomSheet>
-      {/* </Modal> */}
     </SafeAreaView>
   );
 };

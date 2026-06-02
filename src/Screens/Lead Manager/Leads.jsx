@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
 import {
   View,
   Text,
@@ -11,11 +17,18 @@ import {
   Alert,
   Modal,
   StyleSheet,
+  BackHandler,
+  ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDispatch, useSelector } from 'react-redux';
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import BottomSheet, {
+  BottomSheetView,
+  BottomSheetBackdrop,
+  BottomSheetScrollView,
+} from '@gorhom/bottom-sheet';
 import moment from 'moment';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import styles from './LeadManagerstyles';
@@ -30,6 +43,8 @@ import { storeLeadFilterValues } from '../../Redux/Slice';
 import { CommonMessage } from '../../Common/CommonMessage';
 import CommonMuiCustomDatePicker from '../../Common/CommonMuiCustomDatePicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import DownPaymentSheet from './DownPaymentSheet';
+import PendingFeesPaymentSheet from '../Pending Fees/PendingFeesPaymentSheet';
 
 const Leads = ({ isSubView, isActive }) => {
   const { theme } = useTheme();
@@ -56,7 +71,12 @@ const Leads = ({ isSubView, isActive }) => {
   // Bottom Sheet Refs
   const filterSheetRef = useRef(null);
   const assignSheetRef = useRef(null);
+  //payment sheet
   const paymentSheetRef = useRef(null);
+  const [isPaymentBottomSheetOpen, setIsPaymentBottomSheetOpen] =
+    useState(false);
+  const snapPoints = useMemo(() => ['70%', '92%'], []);
+  const [selectedLead, setSelectedLead] = useState(null);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -82,6 +102,24 @@ const Leads = ({ isSubView, isActive }) => {
       }
     }, [filterValuesFromRedux]),
   );
+
+  useEffect(() => {
+    const backAction = () => {
+      if (isPaymentBottomSheetOpen) {
+        paymentSheetRef.current?.close();
+        return true;
+      }
+
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, [isPaymentBottomSheetOpen]);
 
   useEffect(() => {
     if (isActive === false) {
@@ -368,29 +406,54 @@ const Leads = ({ isSubView, isActive }) => {
             ) : null}
           </View>
           <View style={styles.cardFooterActions}>
-            <TouchableOpacity
-              style={[
-                styles.actionButton,
-                editLeadId !== null && editLeadId !== item.id
-                  ? { opacity: 0.5 }
-                  : {},
-              ]}
-              disabled={editLeadId !== null}
-              onPress={() => handleEdit(item)}
-            >
-              {editLeadId == item.id ? (
-                <ActivityIndicator
-                  size="small"
-                  color={theme.primary}
-                  style={{ marginRight: 6 }}
+            {item.is_customer_reg === 0 && (
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  editLeadId !== null && editLeadId !== item.id
+                    ? { opacity: 0.5 }
+                    : {},
+                ]}
+                disabled={editLeadId !== null}
+                onPress={() => handleEdit(item)}
+              >
+                {editLeadId == item.id ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={theme.primary}
+                    style={{ marginRight: 6 }}
+                  />
+                ) : (
+                  <Icon name="create-outline" size={18} color={theme.primary} />
+                )}
+                <Text style={[styles.actionText, { color: theme.primary }]}>
+                  Edit
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {item.is_customer_reg === 1 ? (
+              <MaterialCommunityIcons
+                name="card-account-details-outline"
+                size={19}
+                color={'#2ed574dc'}
+              />
+            ) : (
+              <TouchableOpacity
+                style={[styles.actionButton]}
+                onPress={() => {
+                  console.log('selected leadddd', item);
+                  setSelectedLead(item);
+                  paymentSheetRef?.current?.expand();
+                }}
+              >
+                <MaterialCommunityIcons
+                  name="card-account-details-outline"
+                  size={19}
+                  color={'#d32f2fda'}
                 />
-              ) : (
-                <Icon name="create-outline" size={18} color={theme.primary} />
-              )}
-              <Text style={[styles.actionText, { color: theme.primary }]}>
-                Edit
-              </Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>
@@ -409,6 +472,18 @@ const Leads = ({ isSubView, isActive }) => {
         return '#f5f5f5';
     }
   };
+
+  const renderBackdrop = useCallback(
+    props => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        pressBehavior="close"
+      />
+    ),
+    [],
+  );
 
   return (
     <View
@@ -636,6 +711,63 @@ const Leads = ({ isSubView, isActive }) => {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      <BottomSheet
+        ref={paymentSheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        onChange={index => {
+          setIsPaymentBottomSheetOpen(index >= 0);
+        }}
+        enablePanDownToClose
+        backdropComponent={renderBackdrop}
+        keyboardBehavior="interactive"
+        android_keyboardInputMode="adjustResize"
+        backgroundStyle={{
+          backgroundColor: theme.background || theme.surface,
+        }}
+        handleIndicatorStyle={{
+          backgroundColor: theme.border,
+        }}
+      >
+        <BottomSheetScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingBottom: 0,
+          }}
+        >
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => {
+              paymentSheetRef.current.close();
+            }}
+          />
+          <Text
+            style={[styles.detailsModalTitle, { color: theme.textPrimary }]}
+          >
+            Make as Customer
+          </Text>
+
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {selectedLead ? (
+              <DownPaymentSheet
+                customer={null}
+                selectedLead={selectedLead}
+                onSuccess={() => {
+                  setPaymentModalVisible(false);
+                  onRefresh();
+                }}
+              />
+            ) : null}
+          </ScrollView>
+        </BottomSheetScrollView>
+      </BottomSheet>
     </View>
   );
 };

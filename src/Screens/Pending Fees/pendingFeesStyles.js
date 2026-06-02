@@ -186,9 +186,9 @@ export default StyleSheet.create({
     fontSize: 13,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
-    marginTop: 12,
+    marginTop: 8,
     marginBottom: 8,
   },
   historyItem: {

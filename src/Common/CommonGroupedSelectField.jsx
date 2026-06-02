@@ -217,10 +217,7 @@ export default function CommonGroupedSelectField({
                   }}
                   ListEmptyComponent={
                     <Text
-                      style={[
-                        styles.emptyText,
-                        { color: theme.textMuted },
-                      ]}
+                      style={[styles.emptyText, { color: theme.textMuted }]}
                     >
                       No data found
                     </Text>
@@ -272,7 +269,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   groupHeaderText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '700',
   },
   optionRow: {
@@ -283,7 +280,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderBottomWidth: 1,
   },
-  optionText: { fontSize: 15 },
+  optionText: { fontSize: 14 },
   emptyText: {
     textAlign: 'center',
     padding: 24,
