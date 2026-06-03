@@ -250,13 +250,90 @@ const PendingFeesPaymentSheet = ({ customer, onSuccess }) => {
   return (
     <>
       <View style={styles.sheetContent}>
-        {/* <Text style={[styles.sheetTitle, { color: theme.textPrimary }]}>
-          Pay Due Amount
+        <Text style={[styles.detailsHeading, { color: theme.textPrimary }]}>
+          Customer Details
         </Text>
-        <Text style={[styles.sheetSubtitle, { color: theme.textSecondary }]}>
-          {customerDetails?.name || customer?.name} ·{' '}
-          {customerDetails?.course_name || customer?.course_name}
-        </Text> */}
+        <View style={styles.detailGrid}>
+          <View style={styles.detailItem}>
+            <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
+              Name
+            </Text>
+            <Text
+              style={[styles.detailValue, { color: theme.textPrimary }]}
+              selectable={true}
+            >
+              {customerDetails?.name || '-'}
+            </Text>
+          </View>
+
+          <View style={styles.detailItem}>
+            <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
+              Email
+            </Text>
+
+            <Text
+              style={[styles.detailValue, { color: theme.textPrimary }]}
+              numberOfLines={1}
+              selectable={true}
+            >
+              {customerDetails?.email || '-'}
+            </Text>
+          </View>
+
+          <View style={styles.detailItem}>
+            <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
+              Mobile
+            </Text>
+
+            <Text
+              style={[styles.detailValue, { color: theme.textPrimary }]}
+              selectable={true}
+            >
+              {customerDetails?.phone || '-'}
+            </Text>
+          </View>
+
+          <View style={styles.detailItem}>
+            <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
+              Course
+            </Text>
+
+            <Text
+              style={[styles.detailValue, { color: theme.textPrimary }]}
+              selectable={true}
+            >
+              {customerDetails?.course_name || '-'}
+            </Text>
+          </View>
+
+          <View style={styles.detailItem}>
+            <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
+              Fees
+            </Text>
+
+            <Text
+              style={[styles.detailValue, { color: theme.textPrimary }]}
+              selectable={true}
+            >
+              ₹{customerDetails?.primary_fees || '-'}
+            </Text>
+          </View>
+
+          <View style={styles.detailItem}>
+            <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
+              Fees
+              <Text style={{ fontSize: 10, lineHeight: 10 }}>{` (+Gst)`}</Text>
+            </Text>
+
+            <Text style={[styles.detailValue, { color: theme.textPrimary }]}>
+              {customerDetails?.total_amount || '-'}
+            </Text>
+          </View>
+        </View>
+
+        <Text style={[styles.detailsHeading, { color: theme.textPrimary }]}>
+          Payment Info
+        </Text>
 
         <CommonFormInput
           label="Pending Amount *"
@@ -330,7 +407,7 @@ const PendingFeesPaymentSheet = ({ customer, onSuccess }) => {
           </Text>
         ) : null}
 
-        <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>
+        <Text style={[styles.detailsHeading, { color: theme.textPrimary }]}>
           Balance
         </Text>
         <CommonFormInput
@@ -353,7 +430,7 @@ const PendingFeesPaymentSheet = ({ customer, onSuccess }) => {
 
         {paymentDetails?.payment_trans?.length > 0 ? (
           <>
-            <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>
+            <Text style={[styles.detailsHeading, { color: theme.textPrimary }]}>
               Recent transactions
             </Text>
             {paymentDetails.payment_trans.slice(0, 3).map((item, index) => (
@@ -371,7 +448,17 @@ const PendingFeesPaymentSheet = ({ customer, onSuccess }) => {
                   style={[styles.historyDate, { color: theme.textPrimary }]}
                 >
                   {moment(item.invoice_date).format('DD/MM/YYYY')} ·{' '}
-                  {item.payment_status}
+                  <Text
+                    style={{
+                      color:
+                        item.payment_status?.toLowerCase() === 'rejected'
+                          ? theme.error || 'red'
+                          : theme.textPrimary,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {item.payment_status}
+                  </Text>{' '}
                 </Text>
                 <Text
                   style={[styles.historyMeta, { color: theme.textSecondary }]}

@@ -395,7 +395,7 @@ const PendingFeesCustomerDetails = ({
             }
           }}
         />
-        <Text style={[styles.detailsModalTitle, { color: theme.textPrimary }]}>
+        <Text style={[styles.detailsHeading, { color: theme.textPrimary }]}>
           Customer Details
         </Text>
         {loading ? (
