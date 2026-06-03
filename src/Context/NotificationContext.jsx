@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useState, useRef } from 'react';
 import { DeviceEventEmitter } from 'react-native';
 import { io } from 'socket.io-client';
+import notifee, { AndroidImportance } from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL, getNotifications } from '../ApiService/action';
 import { CommonMessage } from '../Common/CommonMessage';
@@ -74,7 +75,21 @@ export const NotificationProvider = ({ children }) => {
         setUnreadCount(prev => prev + 1);
       }
 
-      // playNotificationSound();
+      // Display native status bar notification
+      notifee.displayNotification({
+        title: notificationWithReadStatus.title || 'New Notification',
+        body: notificationWithReadStatus.message || notificationWithReadStatus.body || 'You have a new message.',
+        android: {
+          channelId: 'default',
+          importance: AndroidImportance.HIGH,
+          smallIcon: 'ic_launcher',
+          largeIcon: 'ic_launcher',
+          color: '#5b69ca',
+          pressAction: {
+            id: 'default',
+          },
+        },
+      }).catch(err => console.error('Error displaying notification:', err));
 
       // Specifically notify listeners of a new socket notification
       DeviceEventEmitter.emit(
@@ -131,6 +146,13 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     const handleInit = async () => {
       try {
+        await notifee.requestPermission();
+        await notifee.createChannel({
+          id: 'default',
+          name: 'Default Channel',
+          importance: AndroidImportance.HIGH,
+        });
+
         const raw = await AsyncStorage.getItem('loginUserDetails');
         const user = raw ? JSON.parse(raw) : null;
 
