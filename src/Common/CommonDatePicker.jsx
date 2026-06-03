@@ -15,6 +15,7 @@ export default function CommonDatePicker({
   maximumDate,
   disabled = false,
   allowPastDates = false,
+  disableFutureDates = false,
 }) {
   const { theme } = useTheme();
   const [showPicker, setShowPicker] = useState(false);
@@ -22,6 +23,8 @@ export default function CommonDatePicker({
   const calculatedMinimumDate = allowPastDates
     ? minimumDate
     : minimumDate || new Date();
+
+  const calculatedMaximumDate = disableFutureDates ? new Date() : maximumDate;
 
   return (
     <View style={styles.inputGroup}>
@@ -72,7 +75,7 @@ export default function CommonDatePicker({
           mode="date"
           display="default"
           minimumDate={calculatedMinimumDate}
-          maximumDate={maximumDate}
+          maximumDate={calculatedMaximumDate}
           onChange={(event, selectedDate) => {
             setShowPicker(false);
             if (event.type === 'set' && selectedDate)

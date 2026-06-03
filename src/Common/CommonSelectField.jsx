@@ -7,6 +7,7 @@ export default function CommonSelectField({
   label,
   selectedValue,
   onPress,
+  onClear,
   placeholder = 'Select Option',
   error,
   rightIcon = 'chevron-down',
@@ -34,11 +35,7 @@ export default function CommonSelectField({
         style={[
           styles.pickerSelector,
           {
-            borderColor: error
-              ? theme.error
-              : disabled
-              ? theme.border
-              : theme.border,
+            borderColor: error ? theme.error : theme.border,
             backgroundColor: disabled ? theme.surfaceSecondary : theme.surface,
           },
           style,
@@ -54,14 +51,28 @@ export default function CommonSelectField({
             { color: selectedValue ? theme.textPrimary : theme.textMuted },
             disabled && { color: theme.textMuted },
           ]}
+          numberOfLines={1}
         >
           {selectedValue || placeholder}
         </Text>
-        <Icon
-          name={rightIcon}
-          size={18}
-          color={disabled ? theme.textMuted : theme.textSecondary}
-        />
+
+        <View style={styles.iconContainer}>
+          {selectedValue && onClear && !disabled && (
+            <TouchableOpacity
+              onPress={onClear}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={styles.clearButton}
+            >
+              <Icon name="close-circle" size={18} color={theme.textMuted} />
+            </TouchableOpacity>
+          )}
+
+          <Icon
+            name={rightIcon}
+            size={18}
+            color={disabled ? theme.textMuted : theme.textSecondary}
+          />
+        </View>
       </TouchableOpacity>
 
       {error ? (
@@ -74,8 +85,14 @@ export default function CommonSelectField({
 }
 
 const styles = StyleSheet.create({
-  inputGroup: { marginBottom: 16 },
-  inputLabel: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
   pickerSelector: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -85,6 +102,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 12,
   },
-  pickerValue: { fontSize: 14 },
-  errorText: { fontSize: 11, marginTop: 4, fontWeight: '500' },
+  pickerValue: {
+    fontSize: 14,
+    flex: 1,
+  },
+  iconContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  clearButton: {
+    marginRight: 8,
+  },
+  errorText: {
+    fontSize: 11,
+    marginTop: 4,
+    fontWeight: '500',
+  },
 });

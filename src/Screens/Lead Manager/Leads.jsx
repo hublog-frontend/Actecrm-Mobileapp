@@ -760,7 +760,7 @@ const Leads = ({ isSubView, isActive }) => {
                 customer={null}
                 selectedLead={selectedLead}
                 onSuccess={() => {
-                  setPaymentModalVisible(false);
+                  paymentSheetRef.current.close();
                   onRefresh();
                 }}
               />

@@ -21,6 +21,7 @@ import CommonGroupedSelectField, {
 import CommonDatePicker from '../../Common/CommonDatePicker';
 import CommonImageUploadCrop from '../../Common/CommonImageUploadCrop';
 import {
+  addressValidator,
   formatToBackendIST,
   getBalanceAmount,
   getConvenienceFees,
@@ -28,14 +29,16 @@ import {
   selectValidator,
 } from '../../Common/Validation';
 import {
-  customerDuePayment,
-  getCustomerById,
-  getCustomersPaymentHistory,
-  inserCustomerTrack,
+  getUsersByRole,
+  leadPayment,
+  sendCustomerFormEmail,
+  sendCustomerPaymentVerificationEmail,
+  sendCustomerWelcomeEmail,
 } from '../../ApiService/action';
 import { CommonMessage } from '../../Common/CommonMessage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../Pending Fees/pendingFeesStyles';
+import Config from '../../ApiService/config';
 
 const PLACE_OPTIONS = [
   { id: 'Tamil Nadu', name: 'Tamil Nadu' },
@@ -53,10 +56,9 @@ const TAX_TYPE_OPTIONS = [
 
 const DownPaymentSheet = ({ selectedLead, customer, onSuccess }) => {
   const { theme } = useTheme();
+  const EMAIL_URL = Config.EMAIL_URL;
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [customerDetails, setCustomerDetails] = useState(null);
-  const [paymentDetails, setPaymentDetails] = useState(null);
 
   const [primaryFees, setPrimaryFees] = useState('');
   const [totalAmount, setTotalAmount] = useState('');
@@ -92,6 +94,9 @@ const DownPaymentSheet = ({ selectedLead, customer, onSuccess }) => {
   const [paymentScreenShotBase64, setPaymentScreenShotBase64] = useState('');
   const [paymentScreenShotError, setPaymentScreenShotError] = useState('');
   //customer details
+  const [raUsers, setRaUsers] = useState([]);
+  const [selectedRALabel, setSelectedRALabel] = useState('');
+  const [selectedRA, setSelectedRA] = useState('');
   const [customerCourseName, setCustomerCourseName] = useState('');
   const [batchTrackLabel, setBatchTrackLabel] = useState('');
   const batchTypeOptions = [
@@ -110,16 +115,26 @@ const DownPaymentSheet = ({ selectedLead, customer, onSuccess }) => {
   ];
   const [batchTypeLabel, setBatchTypeLabel] = useState('');
   const [batchTypeId, setBatchTypeId] = useState(null);
-  const [customerBatchTimingIdError, setCustomerBatchTimingIdError] =
-    useState('');
+  const [batchTypeError, setBatchTypeError] = useState(null);
   const [currentLocation, setCurrentLocation] = useState('');
   const [currentLocationError, setCurrentLocationError] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
   const [customerAddressError, setCustomerAddressError] = useState('');
   const [gstNumber, setGstNumber] = useState('');
-  const [placementSupport, setPlacementSupport] = useState(null);
+  const placementSupportOptions = [
+    { id: 'Need', name: 'Need' },
+    { id: 'Not Need', name: 'Not Need' },
+  ];
+  const [placementSupportLabel, setPlacementSupportLabel] = useState('');
+  const [placementSupport, setPlacementSupport] = useState('');
   const [placementSupportError, setPlacementSupportError] = useState('');
-  const [serverRequired, setServerRequired] = useState(false);
+  const serverOptions = [
+    { id: 1, name: 'Need' },
+    { id: 2, name: 'Not Need' },
+  ];
+  const [serverLabel, setServerLabel] = useState('');
+  const [server, setServer] = useState(null);
+  const [serverError, setServerError] = useState('');
 
   const resetForm = () => {
     setPrimaryFees(String(selectedLead?.primary_fees));
@@ -159,7 +174,12 @@ const DownPaymentSheet = ({ selectedLead, customer, onSuccess }) => {
     setSearchQuery('');
     setPickerModalVisible(false);
 
-    setCustomerBatchTimingIdError('');
+    setSelectedRALabel('');
+    setSelectedRA('');
+
+    setBatchTypeLabel('');
+    setBatchTypeId(null);
+    setBatchTypeError('');
 
     setCurrentLocation('');
     setCurrentLocationError('');
@@ -169,44 +189,38 @@ const DownPaymentSheet = ({ selectedLead, customer, onSuccess }) => {
 
     setGstNumber('');
 
-    setPlacementSupport(null);
+    setPlacementSupportLabel('');
+    setPlacementSupport('');
     setPlacementSupportError('');
 
-    setServerRequired(false);
+    setServerLabel('');
+    setServer(null);
+    setServerError('');
     setLoading(false);
   };
 
-  useEffect(() => {
-    if (customer?.id) {
-      loadCustomer();
-    }
-
-    if (selectedLead) {
+  const getRaUsers = async () => {
+    setLoading(true);
+    const payload = {
+      role: 'RA',
+    };
+    try {
+      const response = await getUsersByRole(payload);
+      console.log('get ra users response', response);
+      setRaUsers(response?.data?.data?.data || []);
+    } catch (error) {
+      setRaUsers([]);
+      console.log('get ra users error', error);
+    } finally {
       resetForm();
     }
-  }, [selectedLead]);
-
-  const loadCustomer = async () => {
-    setLoading(true);
-    try {
-      const response = await getCustomerById(customer.id);
-      const details = response?.data?.data;
-      setCustomerDetails(details);
-      const balance = parseFloat(details?.balance_amount) || 0;
-      setBalanceAmount(balance);
-    } catch (error) {
-      CommonMessage('error', 'Failed to load customer');
-      setCustomerDetails(null);
-    }
-    try {
-      const hist = await getCustomersPaymentHistory(customer.lead_id);
-      setPaymentDetails(hist?.data?.data || null);
-    } catch {
-      setPaymentDetails(null);
-    } finally {
-      setLoading(false);
-    }
   };
+
+  useEffect(() => {
+    if (selectedLead) {
+      getRaUsers();
+    }
+  }, [selectedLead]);
 
   const updatePayAmount = text => {
     if (!/^\d*\.?\d*$/.test(text)) return;
@@ -296,6 +310,11 @@ const DownPaymentSheet = ({ selectedLead, customer, onSuccess }) => {
     if (isShowDueDate) {
       dueDateValidate = selectValidator(dueDate);
     }
+    const batchTypeValidate = selectValidator(batchTypeId);
+    const currentLocationValidate = addressValidator(currentLocation);
+    const addressValidate = addressValidator(customerAddress);
+    const placementSupportValidate = selectValidator(placementSupport);
+    const serverValidate = selectValidator(server);
 
     setPaymentModeError(paymentTypeValidate);
     setTaxTypeError(taxTypeValidate);
@@ -304,6 +323,11 @@ const DownPaymentSheet = ({ selectedLead, customer, onSuccess }) => {
     setPlaceOfPaymentError(placeValidate);
     setPaymentScreenShotError(screenshotValidate);
     setDueDateError(dueDateValidate);
+    setBatchTypeError(batchTypeValidate);
+    setCurrentLocationError(currentLocationValidate);
+    setCustomerAddressError(addressValidate);
+    setPlacementSupportError(placementSupportValidate);
+    setServerError(serverValidate);
 
     if (
       paymentTypeValidate ||
@@ -312,8 +336,14 @@ const DownPaymentSheet = ({ selectedLead, customer, onSuccess }) => {
       paymentDateValidate ||
       placeValidate ||
       screenshotValidate ||
-      dueDateValidate
+      dueDateValidate ||
+      batchTypeValidate ||
+      currentLocationValidate ||
+      addressValidate ||
+      placementSupportValidate ||
+      serverValidate
     ) {
+      CommonMessage('error', 'Please fill all required fields correctly');
       return;
     }
 
@@ -322,84 +352,59 @@ const DownPaymentSheet = ({ selectedLead, customer, onSuccess }) => {
       const stored = await AsyncStorage.getItem('loginUserDetails');
       const loginUser = stored ? JSON.parse(stored) : null;
 
-      const payload = {
-        payment_master_id: paymentDetails?.id,
-        invoice_date: formatToBackendIST(paymentDate),
-        paid_amount: payAmount,
-        convenience_fees: convenienceFees,
-        balance_amount: balanceAmount,
-        paymode_id: paymentMode,
-        tax_type: taxType,
-        payment_screenshot: paymentScreenShotBase64,
-        payment_status: 'Verify Pending',
-        next_due_date: dueDate ? formatToBackendIST(dueDate) : null,
-        created_date: formatToBackendIST(new Date()),
-        paid_date: formatToBackendIST(paymentDate),
-        place_of_payment: placeOfPayment,
-        collected_by: loginUser?.user_id || 0,
-      };
-
       // Step 2: Calculate GST on discounted amount
       const gstAmount = totalAmount - primaryFees;
 
       console.log('GST Amount:', gstAmount);
 
-      //    const payload = {
-      //   lead_id: selectedLead.id,
-      //   invoice_date: formatToBackendIST(paymentDate),
-      //   tax_type:
-      //     taxType == 1
-      //       ? "GST (18%)"
-      //       : taxType == 2
-      //         ? "SGST (18%)"
-      //         : taxType == 3
-      //           ? "IGST (18%)"
-      //           : taxType == 4
-      //             ? "VAT (18%)"
-      //             : "No Tax",
-      //   gst_percentage: taxType == 5 ? "0%" : "18%",
-      //   gst_amount: parseFloat(gstAmount).toFixed(2),
-      //   total_amount: amount,
-      //   convenience_fees: convenienceFees,
-      //   paymode_id: paymentMode,
-      //   paid_amount: payAmount,
-      //   payment_screenshot: paymentScreenShotBase64,
-      //   payment_status: "Verify Pending",
-      //   next_due_date: dueDate ? formatToBackendIST(dueDate) : null,
-      //   // ra_id: selectedRA,
-      //   created_date: formatToBackendIST(today),
-      //   paid_date: formatToBackendIST(paymentDate),
-      //   place_of_payment: placeOfPayment,
-      //   enrolled_course: customerCourseId,
-      //   batch_track_id: customerBatchTrackId,
-      //   batch_timing_id: customerBatchTimingId,
-      //   place_of_supply: currentLocation,
-      //   address: customerAddress,
-      //   state_code: "",
-      //   gst_number: gstNumber,
-      //   placement_support: placementSupport,
-      //   is_server_required: serverRequired,
-      //   updated_by:
-      //     loginUser?.user_id || 0,
-      // };
-
-      await customerDuePayment(payload);
-
-      const trackPayload = {
-        customers: [
-          {
-            customer_id: customerDetails.id,
-            status: 'Part Payment Added',
-            updated_by: loginUser?.user_id || 0,
-            status_date: formatToBackendIST(new Date()),
-          },
-        ],
+      const payload = {
+        lead_id: selectedLead?.id,
+        invoice_date: formatToBackendIST(paymentDate),
+        tax_type:
+          taxType == 1
+            ? 'GST (18%)'
+            : taxType == 2
+            ? 'SGST (18%)'
+            : taxType == 3
+            ? 'IGST (18%)'
+            : taxType == 4
+            ? 'VAT (18%)'
+            : 'No Tax',
+        gst_percentage: taxType == 5 ? '0%' : '18%',
+        gst_amount: parseFloat(gstAmount).toFixed(2),
+        total_amount: totalAmount,
+        convenience_fees: convenienceFees,
+        paymode_id: paymentMode,
+        paid_amount: payAmount,
+        payment_screenshot: paymentScreenShotBase64,
+        payment_status: 'Verify Pending',
+        next_due_date: dueDate ? formatToBackendIST(dueDate) : null,
+        ra_id: selectedRA,
+        created_date: formatToBackendIST(new Date()),
+        paid_date: formatToBackendIST(paymentDate),
+        place_of_payment: placeOfPayment,
+        enrolled_course: selectedLead?.primary_course_id,
+        batch_track_id: selectedLead?.batch_track_id,
+        batch_timing_id: batchTypeId,
+        place_of_supply: currentLocation,
+        address: customerAddress,
+        state_code: '',
+        gst_number: gstNumber,
+        placement_support: placementSupport,
+        is_server_required: server == 1 ? true : false,
+        updated_by: loginUser?.user_id || 0,
       };
-      await inserCustomerTrack(trackPayload);
 
-      CommonMessage('success', 'Payment added');
+      const response = await leadPayment(payload);
+      console.log('lead payment response', response);
+      const createdCustomerDetails = response?.data?.data;
+
+      handleSendCustomerEmails(createdCustomerDetails);
+
+      CommonMessage('success', 'Customer Created Successfully');
       onSuccess?.();
     } catch (error) {
+      console.log('errorr', error);
       CommonMessage(
         'error',
         error?.response?.data?.details ||
@@ -407,6 +412,30 @@ const DownPaymentSheet = ({ selectedLead, customer, onSuccess }) => {
       );
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleSendCustomerEmails = async customerDetails => {
+    try {
+      await Promise.all([
+        sendCustomerFormEmail({
+          email: customerDetails.email,
+          link: `${EMAIL_URL}/customer-registration/${customerDetails.insertId}`,
+          customer_id: customerDetails.insertId,
+        }),
+        sendCustomerWelcomeEmail({
+          email: customerDetails.email,
+          name: customerDetails.name,
+        }),
+        sendCustomerPaymentVerificationEmail({
+          email: customerDetails.email,
+          name: customerDetails.name,
+        }),
+      ]);
+
+      console.log('All emails sent successfully');
+    } catch (error) {
+      console.error('One or more emails failed:', error);
     }
   };
 
@@ -421,6 +450,90 @@ const DownPaymentSheet = ({ selectedLead, customer, onSuccess }) => {
   return (
     <>
       <View style={styles.sheetContent}>
+        <Text style={[styles.detailsHeading, { color: theme.textPrimary }]}>
+          Lead Details
+        </Text>
+        <View style={styles.detailGrid}>
+          <View style={styles.detailItem}>
+            <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
+              Name
+            </Text>
+            <Text
+              style={[styles.detailValue, { color: theme.textPrimary }]}
+              selectable={true}
+            >
+              {selectedLead?.name || '-'}
+            </Text>
+          </View>
+
+          <View style={styles.detailItem}>
+            <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
+              Email
+            </Text>
+
+            <Text
+              style={[styles.detailValue, { color: theme.textPrimary }]}
+              numberOfLines={1}
+              selectable={true}
+            >
+              {selectedLead?.email || '-'}
+            </Text>
+          </View>
+
+          <View style={styles.detailItem}>
+            <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
+              Mobile
+            </Text>
+
+            <Text
+              style={[styles.detailValue, { color: theme.textPrimary }]}
+              selectable={true}
+            >
+              {selectedLead?.phone || '-'}
+            </Text>
+          </View>
+
+          <View style={styles.detailItem}>
+            <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
+              Course
+            </Text>
+
+            <Text
+              style={[styles.detailValue, { color: theme.textPrimary }]}
+              selectable={true}
+            >
+              {selectedLead?.primary_course || '-'}
+            </Text>
+          </View>
+
+          <View style={styles.detailItem}>
+            <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
+              Fees
+            </Text>
+
+            <Text
+              style={[styles.detailValue, { color: theme.textPrimary }]}
+              selectable={true}
+            >
+              ₹{selectedLead?.primary_fees || '-'}
+            </Text>
+          </View>
+
+          <View style={styles.detailItem}>
+            <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
+              Branch
+            </Text>
+
+            <Text style={[styles.detailValue, { color: theme.textPrimary }]}>
+              {selectedLead?.branch_name || '-'}
+            </Text>
+          </View>
+        </View>
+
+        <Text style={[styles.detailsHeading, { color: theme.textPrimary }]}>
+          Payment Details
+        </Text>
+
         <CommonFormInput
           label={'Fees *'}
           value={primaryFees}
@@ -489,7 +602,7 @@ const DownPaymentSheet = ({ selectedLead, customer, onSuccess }) => {
           keyboardType="numeric"
         />
 
-        <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>
+        <Text style={[styles.detailsHeading, { color: theme.textPrimary }]}>
           Payment Info
         </Text>
         <CommonFormInput
@@ -572,7 +685,7 @@ const DownPaymentSheet = ({ selectedLead, customer, onSuccess }) => {
           </Text>
         ) : null}
 
-        <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>
+        <Text style={[styles.detailsHeading, { color: theme.textPrimary }]}>
           Balance
         </Text>
         <CommonFormInput
@@ -593,9 +706,34 @@ const DownPaymentSheet = ({ selectedLead, customer, onSuccess }) => {
           />
         ) : null}
 
-        <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>
+        <Text style={[styles.detailsHeading, { color: theme.textPrimary }]}>
           Add Customer Details
         </Text>
+        <CommonSelectField
+          label="Select RA "
+          selectedValue={selectedRALabel}
+          onPress={() =>
+            showPicker(
+              'Select RA',
+              raUsers,
+              'user_name',
+              item => {
+                setSelectedRA(item?.user_id);
+                setSelectedRALabel(item?.user_name);
+                setPickerModalVisible(false);
+              },
+              'Search RA...',
+              selectedRALabel,
+            )
+          }
+          error={''}
+          onClear={() => {
+            setSelectedRA('');
+            setSelectedRALabel('');
+          }}
+          placeholder="Select RA"
+        />
+
         <CommonFormInput
           label="Course"
           value={String(customerCourseName)}
@@ -603,11 +741,113 @@ const DownPaymentSheet = ({ selectedLead, customer, onSuccess }) => {
         />
 
         <CommonFormInput
-          label="Course"
+          label="Batch Track"
           value={String(batchTrackLabel)}
           editable={false}
         />
 
+        <CommonSelectField
+          label="Batch Type *"
+          selectedValue={batchTypeLabel}
+          onPress={() =>
+            showPicker(
+              'Batch Type',
+              batchTypeOptions,
+              'name',
+              item => {
+                setBatchTypeId(item.id);
+                setBatchTypeLabel(item.name);
+                setPickerModalVisible(false);
+                if (validated) setBatchTypeError(selectValidator(item.id));
+              },
+              'Search batch type...',
+              batchTypeLabel,
+            )
+          }
+          error={batchTypeError}
+          placeholder="Select Batch Type"
+        />
+
+        <CommonFormInput
+          label="Customer Current State *"
+          placeholder="Customer Current State"
+          value={currentLocation}
+          onChangeText={value => {
+            setCurrentLocation(value);
+            if (validated) {
+              setCurrentLocationError(addressValidator(value));
+            }
+          }}
+          error={currentLocationError}
+        />
+
+        <CommonFormInput
+          label="Address *"
+          placeholder="Address"
+          value={customerAddress}
+          onChangeText={value => {
+            setCustomerAddress(value);
+            if (validated) {
+              setCustomerAddressError(addressValidator(value));
+            }
+          }}
+          error={customerAddressError}
+        />
+
+        <CommonFormInput
+          label="GST No"
+          placeholder="GST No"
+          value={gstNumber}
+          onChangeText={value => {
+            setCustomerAddress(value.toUpperCase());
+          }}
+          error={''}
+        />
+
+        <CommonSelectField
+          label="Placement Support *"
+          selectedValue={placementSupportLabel}
+          onPress={() =>
+            showPicker(
+              'Placement Support',
+              placementSupportOptions,
+              'name',
+              item => {
+                setPlacementSupport(item.id);
+                setPlacementSupportLabel(item.name);
+                setPickerModalVisible(false);
+                if (validated)
+                  setPlacementSupportError(selectValidator(item.id));
+              },
+              'Search placement support...',
+              placementSupportLabel,
+            )
+          }
+          error={placementSupportError}
+          placeholder="Select Placement Support"
+        />
+
+        <CommonSelectField
+          label="Server *"
+          selectedValue={serverLabel}
+          onPress={() =>
+            showPicker(
+              'Server',
+              serverOptions,
+              'name',
+              item => {
+                setServer(item.id);
+                setServerLabel(item.name);
+                setPickerModalVisible(false);
+                if (validated) setServerError(selectValidator(item.id));
+              },
+              'Search server...',
+              serverLabel,
+            )
+          }
+          error={serverError}
+          placeholder="Select Server"
+        />
         {/* -------------------------------submit button----------------------------------- */}
         <TouchableOpacity
           style={[styles.submitBtn, { backgroundColor: theme.primary }]}

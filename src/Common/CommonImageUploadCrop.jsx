@@ -9,6 +9,7 @@ import {
   ScrollView,
   Platform,
   PermissionsAndroid,
+  Keyboard,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -57,6 +58,7 @@ export default function CommonImageUploadCrop({
   };
 
   const handleChooseFile = async () => {
+    Keyboard.dismiss();
     const hasPermission = await requestGalleryPermission();
     if (!hasPermission) {
       CommonMessage('error', 'Gallery permission is required');
@@ -76,7 +78,10 @@ export default function CommonImageUploadCrop({
         if (response.didCancel) return;
 
         if (response.errorCode) {
-          CommonMessage('error', response.errorMessage || 'Failed to pick image');
+          CommonMessage(
+            'error',
+            response.errorMessage || 'Failed to pick image',
+          );
           return;
         }
 
@@ -114,7 +119,7 @@ export default function CommonImageUploadCrop({
         reportError('');
         setPreviewUri(asset.uri || `data:image/jpeg;base64,${base64}`);
         setFileName(asset.fileName || 'screenshot.jpg');
-        CommonMessage('success', 'Screenshot uploaded');
+        // CommonMessage('success', 'Screenshot uploaded');
       },
     );
   };
@@ -146,8 +151,7 @@ export default function CommonImageUploadCrop({
       >
         <Icon name="cloud-upload-outline" size={18} color={theme.primary} />
         <Text style={[styles.uploadButtonText, { color: theme.textPrimary }]}>
-          Choose file{' '}
-          <Text style={styles.uploadHint}>(PNG, JPEG & JPG)</Text>
+          Choose file <Text style={styles.uploadHint}>(PNG, JPEG & JPG)</Text>
         </Text>
       </TouchableOpacity>
 
@@ -194,12 +198,11 @@ export default function CommonImageUploadCrop({
         animationType="fade"
         onRequestClose={() => setPreviewVisible(false)}
       >
-        <View style={[styles.previewOverlay, { backgroundColor: theme.overlay }]}>
+        <View
+          style={[styles.previewOverlay, { backgroundColor: theme.overlay }]}
+        >
           <View
-            style={[
-              styles.previewCard,
-              { backgroundColor: theme.surface },
-            ]}
+            style={[styles.previewCard, { backgroundColor: theme.surface }]}
           >
             <View
               style={[
@@ -207,9 +210,7 @@ export default function CommonImageUploadCrop({
                 { borderBottomColor: theme.border },
               ]}
             >
-              <Text
-                style={[styles.previewTitle, { color: theme.textPrimary }]}
-              >
+              <Text style={[styles.previewTitle, { color: theme.textPrimary }]}>
                 Preview Image
               </Text>
               <TouchableOpacity onPress={() => setPreviewVisible(false)}>

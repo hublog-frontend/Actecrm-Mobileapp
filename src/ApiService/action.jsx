@@ -80,6 +80,33 @@ export const leadPayment = async payload => {
   }
 };
 
+export const sendCustomerFormEmail = async payload => {
+  try {
+    const response = await api.post('/api/sendCustomerMail', payload);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const sendCustomerWelcomeEmail = async payload => {
+  try {
+    const response = await api.post('/api/sendWelcomeMail', payload);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const sendCustomerPaymentVerificationEmail = async payload => {
+  try {
+    const response = await api.post('/api/sendPaymentMail', payload);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const assignLead = async payload => {
   try {
     const response = await api.put('/api/assignLead', payload);
@@ -134,6 +161,14 @@ export const getUserPermissions = async payload => {
   }
 };
 
+export const getUsersByRole = async payload => {
+  try {
+    const response = await api.post(`/api/getHRUsers`, payload);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
 // Lead Source (Lead Type) API
 export const getLeadType = async payload => {
   try {

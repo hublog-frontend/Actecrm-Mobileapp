@@ -376,4 +376,38 @@ export default StyleSheet.create({
     textAlign: 'center',
     marginTop: 4,
   },
+  // lead details styles
+  detailsHeading: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1A3353',
+    marginVertical: 15,
+    borderLeftWidth: 4,
+    borderLeftColor: '#5D6AD1',
+    paddingLeft: 10,
+  },
+  detailGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  detailItem: {
+    width: '48%',
+    marginBottom: 12,
+  },
+  detailLabel: {
+    fontSize: 11,
+    color: '#667C94',
+    marginBottom: 2,
+  },
+  detailValue: {
+    fontSize: 13,
+    color: '#1A3353',
+    fontWeight: '500',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E1E8EE',
+    marginVertical: 15,
+  },
 });
