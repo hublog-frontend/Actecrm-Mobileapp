@@ -90,7 +90,7 @@ export default function CommonGroupedSelectField({
           styles.pickerSelector,
           {
             borderColor: error ? theme.error : theme.border,
-            backgroundColor: disabled ? theme.surfaceSecondary : theme.surface,
+            backgroundColor: disabled ? theme.surfaceSecondary : 'transparent',
           },
         ]}
         onPress={() => !disabled && setVisible(true)}
@@ -163,7 +163,7 @@ export default function CommonGroupedSelectField({
                     <View
                       style={[
                         styles.groupHeader,
-                        { backgroundColor: theme.inputBg },
+                        { backgroundColor: theme.surface },
                       ]}
                     >
                       <Text
@@ -187,7 +187,7 @@ export default function CommonGroupedSelectField({
                             borderBottomColor: theme.borderLight,
                             backgroundColor: isSelected
                               ? theme.primaryLight
-                              : theme.surface,
+                              : theme.inputBg,
                           },
                         ]}
                         onPress={() => handleSelect(item)}

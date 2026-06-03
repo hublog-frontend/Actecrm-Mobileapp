@@ -50,7 +50,7 @@ export default function CommonTextArea({
           { height, textAlignVertical: 'top', paddingTop: 10 },
           {
             borderColor: error ? theme.error : theme.border,
-            backgroundColor: theme.inputBg,
+            backgroundColor: 'transparent',
             color: theme.textPrimary,
           },
         ]}

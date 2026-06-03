@@ -21,6 +21,7 @@ export default function CommonFormInput({
   error,
   secureTextEntry,
   keyboardType,
+  editable = true,
   ...props
 }) {
   const { theme } = useTheme();
@@ -59,8 +60,9 @@ export default function CommonFormInput({
           styles.textInput,
           {
             borderColor: error ? theme.error : theme.border,
-            backgroundColor: theme.inputBg,
+            backgroundColor: editable ? 'transparent' : theme.surfaceSecondary,
             color: theme.textPrimary,
+            opacity: editable ? 1 : 0.8,
           },
         ]}
         value={value}
@@ -70,6 +72,7 @@ export default function CommonFormInput({
         secureTextEntry={secureTextEntry}
         keyboardType={keyboardType}
         cursorColor={theme.primary}
+        editable={editable}
         {...props}
       />
       {error ? (

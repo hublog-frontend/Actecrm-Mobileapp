@@ -21,7 +21,7 @@ export const lightTheme = {
   borderLight: '#F0F3F7',
 
   // Brand
-  primary: '#5D6AD1',
+  primary: '#5b69ca',
   primaryLight: '#EEF0FF',
 
   // Status Bar
@@ -42,7 +42,7 @@ export const darkTheme = {
   background: '#000',
   surface: '#1b1e23',
   surfaceSecondary: '#1b1e23',
-  inputBg: '#1b1e23',
+  inputBg: '#000',
 
   // Text
   textPrimary: '#F1F5F9',

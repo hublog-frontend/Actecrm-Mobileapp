@@ -215,7 +215,7 @@ const CommonMuiCustomDatePicker = ({ onDateChange, value, isDashboard }) => {
           styles.triggerButton,
           isDashboard && styles.triggerButtonDashboard,
           {
-            backgroundColor: theme.inputBg,
+            backgroundColor: 'transparent',
             borderColor: theme.border,
           },
         ]}

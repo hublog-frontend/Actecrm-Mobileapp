@@ -134,7 +134,7 @@ export default function PhoneWithCountry({
           styles.inputWrapper,
           {
             borderColor: error ? theme.error : theme.border,
-            backgroundColor: disabled ? theme.surfaceSecondary : theme.surface,
+            backgroundColor: disabled ? theme.surfaceSecondary : 'transparent',
           },
         ]}
       >

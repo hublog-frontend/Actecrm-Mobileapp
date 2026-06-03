@@ -44,7 +44,8 @@ export default function CommonDatePicker({
           styles.pickerSelector,
           {
             borderColor: error ? theme.error : theme.border,
-            backgroundColor: disabled ? theme.surfaceSecondary : theme.surface,
+            backgroundColor: disabled ? theme.surfaceSecondary : 'transparent',
+            opacity: disabled ? 0.8 : 1,
           },
         ]}
         onPress={() => {
