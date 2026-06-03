@@ -1,7 +1,7 @@
 import React, { createContext, useEffect, useState, useRef } from 'react';
-import { DeviceEventEmitter } from 'react-native';
+import { DeviceEventEmitter, AppState, Linking, Alert, Platform } from 'react-native';
 import { io } from 'socket.io-client';
-import notifee, { AndroidImportance } from '@notifee/react-native';
+import notifee, { AndroidImportance, AndroidVisibility, AuthorizationStatus } from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL, getNotifications } from '../ApiService/action';
 import { CommonMessage } from '../Common/CommonMessage';
@@ -80,12 +80,15 @@ export const NotificationProvider = ({ children }) => {
         title: notificationWithReadStatus.title || 'New Notification',
         body: notificationWithReadStatus.message || notificationWithReadStatus.body || 'You have a new message.',
         android: {
-          channelId: 'default',
+          channelId: 'high_priority_alerts_v1',
           importance: AndroidImportance.HIGH,
           smallIcon: 'ic_launcher',
           largeIcon: 'ic_launcher',
           color: '#5b69ca',
           pressAction: {
+            id: 'default',
+          },
+          fullScreenAction: {
             id: 'default',
           },
         },
@@ -144,13 +147,34 @@ export const NotificationProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    const checkNotificationPermission = async () => {
+      try {
+        const settings = await notifee.requestPermission();
+        if (settings.authorizationStatus === AuthorizationStatus.DENIED) {
+          Alert.alert(
+            'Notifications Disabled',
+            'To stay updated with messages and alerts, please enable notifications in your device settings.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Settings', onPress: () => Linking.openSettings() },
+            ],
+          );
+        }
+      } catch (error) {
+        console.error('Error requesting permission:', error);
+      }
+    };
+
     const handleInit = async () => {
       try {
-        await notifee.requestPermission();
+        await checkNotificationPermission();
         await notifee.createChannel({
-          id: 'default',
-          name: 'Default Channel',
+          id: 'high_priority_alerts_v1',
+          name: 'Important Alerts',
           importance: AndroidImportance.HIGH,
+          vibration: true,
+          sound: 'default',
+          visibility: AndroidVisibility.PUBLIC,
         });
 
         const raw = await AsyncStorage.getItem('loginUserDetails');
@@ -170,6 +194,12 @@ export const NotificationProvider = ({ children }) => {
 
     handleInit();
 
+    const appStateSubscription = AppState.addEventListener('change', nextAppState => {
+      if (nextAppState === 'active') {
+        checkNotificationPermission();
+      }
+    });
+
     const initListener = DeviceEventEmitter.addListener(
       'callGetNotificationApi',
       handleInit,
@@ -181,6 +211,7 @@ export const NotificationProvider = ({ children }) => {
 
     return () => {
       logout();
+      appStateSubscription.remove();
       initListener.remove();
       logoutListener.remove();
     };
