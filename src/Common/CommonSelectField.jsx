@@ -36,7 +36,7 @@ export default function CommonSelectField({
           styles.pickerSelector,
           {
             borderColor: error ? theme.error : theme.border,
-            backgroundColor: disabled ? theme.surfaceSecondary : 'transparent',
+            backgroundColor: disabled ? theme.disableInputBg : 'transparent',
             opacity: disabled ? 0.8 : 1,
           },
           style,

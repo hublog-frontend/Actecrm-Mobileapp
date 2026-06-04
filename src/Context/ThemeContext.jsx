@@ -10,6 +10,7 @@ export const lightTheme = {
   surface: '#FFFFFF',
   surfaceSecondary: '#F8FAFC',
   inputBg: '#F8FAFC',
+  disableInputBg: '#8888881e',
 
   // Text
   textPrimary: '#1A3353',
@@ -43,6 +44,7 @@ export const darkTheme = {
   surface: '#1b1e23',
   surfaceSecondary: '#1b1e23',
   inputBg: '#000',
+  disableInputBg: '#1b1e23',
 
   // Text
   textPrimary: '#F1F5F9',

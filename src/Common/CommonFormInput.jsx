@@ -60,7 +60,7 @@ export default function CommonFormInput({
           styles.textInput,
           {
             borderColor: error ? theme.error : theme.border,
-            backgroundColor: editable ? 'transparent' : theme.surfaceSecondary,
+            backgroundColor: editable ? 'transparent' : theme.disableInputBg,
             color: theme.textPrimary,
             opacity: editable ? 1 : 0.8,
           },

@@ -622,6 +622,8 @@ const TodayPendingFeesCustomers = ({ navigation }) => {
         android_keyboardInputMode="adjustResize"
         backgroundStyle={{
           backgroundColor: theme.background || theme.surface,
+          // borderTopLeftRadius: 24,
+          // borderTopRightRadius: 24,
         }}
         handleIndicatorStyle={{
           backgroundColor: theme.border,

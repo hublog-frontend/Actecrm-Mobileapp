@@ -636,6 +636,7 @@ const DownPaymentSheet = ({ selectedLead, customer, onSuccess }) => {
           }}
           error={paymentDateError}
           allowPastDates
+          disableFutureDates={true}
         />
         <CommonSelectField
           label="Place of Payment *"
