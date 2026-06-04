@@ -1,7 +1,17 @@
 import React, { createContext, useEffect, useState, useRef } from 'react';
-import { DeviceEventEmitter, AppState, Linking, Alert, Platform } from 'react-native';
+import {
+  DeviceEventEmitter,
+  AppState,
+  Linking,
+  Alert,
+  Platform,
+} from 'react-native';
 import { io } from 'socket.io-client';
-import notifee, { AndroidImportance, AndroidVisibility, AuthorizationStatus } from '@notifee/react-native';
+import notifee, {
+  AndroidImportance,
+  AndroidVisibility,
+  AuthorizationStatus,
+} from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL, getNotifications } from '../ApiService/action';
 import { CommonMessage } from '../Common/CommonMessage';
@@ -76,23 +86,22 @@ export const NotificationProvider = ({ children }) => {
       }
 
       // Display native status bar notification
-      notifee.displayNotification({
-        title: notificationWithReadStatus.title || 'New Notification',
-        body: notificationWithReadStatus.message || notificationWithReadStatus.body || 'You have a new message.',
-        android: {
-          channelId: 'high_priority_alerts_v1',
-          importance: AndroidImportance.HIGH,
-          smallIcon: 'ic_launcher',
-          largeIcon: 'ic_launcher',
-          color: '#5b69ca',
-          pressAction: {
-            id: 'default',
+      notifee
+        .displayNotification({
+          title: notificationWithReadStatus.title || 'New Notification',
+          body:
+            notificationWithReadStatus.message ||
+            notificationWithReadStatus.body ||
+            'You have a new message.',
+          android: {
+            channelId: 'high_priority_alerts_v1',
+            importance: AndroidImportance.HIGH,
+            pressAction: {
+              id: 'default',
+            },
           },
-          fullScreenAction: {
-            id: 'default',
-          },
-        },
-      }).catch(err => console.error('Error displaying notification:', err));
+        })
+        .catch(err => console.error('Error displaying notification:', err));
 
       // Specifically notify listeners of a new socket notification
       DeviceEventEmitter.emit(
@@ -147,18 +156,26 @@ export const NotificationProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const checkNotificationPermission = async () => {
+    const checkNotificationPermission = async (shouldRequest = false) => {
       try {
-        const settings = await notifee.requestPermission();
+        let settings = await notifee.getNotificationSettings();
+        
+        if (shouldRequest && settings.authorizationStatus !== AuthorizationStatus.AUTHORIZED) {
+          settings = await notifee.requestPermission();
+        }
+
         if (settings.authorizationStatus === AuthorizationStatus.DENIED) {
-          Alert.alert(
-            'Notifications Disabled',
-            'To stay updated with messages and alerts, please enable notifications in your device settings.',
-            [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'Settings', onPress: () => Linking.openSettings() },
-            ],
-          );
+          // Avoid spamming the alert every time app becomes active
+          if (shouldRequest) {
+            Alert.alert(
+              'Notifications Disabled',
+              'To stay updated with messages and alerts, please enable notifications in your device settings.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Settings', onPress: () => Linking.openSettings() },
+              ],
+            );
+          }
         }
       } catch (error) {
         console.error('Error requesting permission:', error);
@@ -167,7 +184,11 @@ export const NotificationProvider = ({ children }) => {
 
     const handleInit = async () => {
       try {
-        await checkNotificationPermission();
+        // Request permission once on init, with a delay so UI can render
+        setTimeout(() => {
+          checkNotificationPermission(true);
+        }, 2000);
+
         await notifee.createChannel({
           id: 'high_priority_alerts_v1',
           name: 'Important Alerts',
@@ -194,11 +215,15 @@ export const NotificationProvider = ({ children }) => {
 
     handleInit();
 
-    const appStateSubscription = AppState.addEventListener('change', nextAppState => {
-      if (nextAppState === 'active') {
-        checkNotificationPermission();
-      }
-    });
+    const appStateSubscription = AppState.addEventListener(
+      'change',
+      nextAppState => {
+        if (nextAppState === 'active') {
+          // ONLY check settings when returning to active, don't request!
+          checkNotificationPermission(false);
+        }
+      },
+    );
 
     const initListener = DeviceEventEmitter.addListener(
       'callGetNotificationApi',

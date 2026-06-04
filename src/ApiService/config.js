@@ -7,7 +7,7 @@ const Config = {
   // BASE_URL: 'https://actecrm.com',
   BASE_URL: 'https://switch-smirk-doozy.ngrok-free.dev',
   EMAIL_URL: 'http://localhost:5173',
-  // EMAIL_URL: 'https://actecrm.com'
+  // EMAIL_URL: 'https://actecrm.com',
 };
 
 export default Config;
