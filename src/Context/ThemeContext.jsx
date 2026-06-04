@@ -17,7 +17,7 @@ export const lightTheme = {
   textMuted: '#A0AEC0',
 
   // Borders
-  border: '#E2E8F0',
+  border: '#7d8da154',
   borderLight: '#F0F3F7',
 
   // Brand
